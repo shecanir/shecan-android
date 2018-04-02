@@ -6,22 +6,26 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
+import android.content.res.Configuration;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
+
 import org.itxtech.daedalus.activity.MainActivity;
 import org.itxtech.daedalus.service.DaedalusVpnService;
 import org.itxtech.daedalus.util.Configurations;
+import org.itxtech.daedalus.util.LanguageHelper;
 import org.itxtech.daedalus.util.Logger;
 import org.itxtech.daedalus.util.Rule;
-import org.itxtech.daedalus.util.RuleResolver;
 import org.itxtech.daedalus.util.server.DNSServer;
 import org.itxtech.daedalus.util.server.DNSServerHelper;
 
@@ -29,6 +33,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Daedalus Project
@@ -42,36 +47,27 @@ import java.util.List;
  * (at your option) any later version.
  */
 public class Daedalus extends Application {
+    static {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                FirebaseCrash.report(e);
+            }
+        });
+    }
 
     private static final String SHORTCUT_ID_ACTIVATE = "shortcut_activate";
 
     public static final List<DNSServer> DNS_SERVERS = new ArrayList<DNSServer>() {{
-        add(new DNSServer("119.23.248.241", R.string.server_fundns_south_china));
-        add(new DNSServer("101.132.183.99", R.string.server_pdomo_primary));
-        add(new DNSServer("193.112.15.186", R.string.server_pdomo_secondary));
-        add(new DNSServer("115.159.146.99", R.string.server_aixyz_east_china));
-        add(new DNSServer("123.206.21.48", R.string.server_aixyz_south_china));
+        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_primary, 53));
+        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_secondary, 5353));
     }};
 
     public static final List<Rule> RULES = new ArrayList<Rule>() {{
-        //Build-in Hosts rule providers
-        add(new Rule("googlehosts/hosts", "googlehosts.hosts", Rule.TYPE_HOSTS,
-                "https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts", false));
-        add(new Rule("vokins/yhosts", "vokins.hosts", Rule.TYPE_HOSTS,
-                "https://raw.githubusercontent.com/vokins/yhosts/master/hosts", false));
-        add(new Rule("adaway", "adaway.hosts", Rule.TYPE_HOSTS,
-                "https://adaway.org/hosts.txt", false));
-        //Build-in DNSMasq rule providers
-        add(new Rule("vokins/yhosts/union", "union.dnsmasq", Rule.TYPE_DNAMASQ,
-                "https://raw.githubusercontent.com/vokins/yhosts/master/dnsmasq/union.conf", false));
     }};
 
     public static final String[] DEFAULT_TEST_DOMAINS = new String[]{
-            "google.com",
-            "twitter.com",
-            "youtube.com",
-            "facebook.com",
-            "wikipedia.org"
+            "coursera.org"
     };
 
     public static Configurations configurations;
@@ -82,7 +78,6 @@ public class Daedalus extends Application {
 
     private static Daedalus instance = null;
     private SharedPreferences prefs;
-    private Thread mResolver;
 
     @Override
     public void onCreate() {
@@ -92,10 +87,9 @@ public class Daedalus extends Application {
 
         Logger.init();
 
-        mResolver = new Thread(new RuleResolver());
-        mResolver.start();
-
         initData();
+
+        updateLocale(LanguageHelper.getLanguage());
     }
 
     private void initDirectory(String dir) {
@@ -134,42 +128,6 @@ public class Daedalus extends Application {
         return gson.fromJson(reader, beanClass);
     }
 
-    public static void initRuleResolver() {
-        if (Daedalus.getPrefs().getBoolean("settings_local_rules_resolution", false)) {
-            ArrayList<String> pendingLoad = new ArrayList<>();
-            ArrayList<Rule> usingRules = configurations.getUsingRules();
-            if (usingRules != null && usingRules.size() > 0) {
-                for (Rule rule : usingRules) {
-                    if (rule.isUsing()) {
-                        pendingLoad.add(rulePath + rule.getFileName());
-                    }
-                }
-                if (pendingLoad.size() > 0) {
-                    String[] arr = new String[pendingLoad.size()];
-                    pendingLoad.toArray(arr);
-                    switch (usingRules.get(0).getType()) {
-                        case Rule.TYPE_HOSTS:
-                            RuleResolver.startLoadHosts(arr);
-                            break;
-                        case Rule.TYPE_DNAMASQ:
-                            RuleResolver.startLoadDnsmasq(arr);
-                            break;
-                    }
-                } else {
-                    RuleResolver.clear();
-                }
-            } else {
-                RuleResolver.clear();
-            }
-        }
-    }
-
-    public static void setRulesChanged() {
-        if (DaedalusVpnService.isActivated() &&
-                getPrefs().getBoolean("settings_allow_dynamic_rule_reload", false)) {
-            initRuleResolver();
-        }
-    }
 
     public static SharedPreferences getPrefs() {
         return getInstance().prefs;
@@ -186,10 +144,6 @@ public class Daedalus extends Application {
 
         instance = null;
         prefs = null;
-        RuleResolver.shutdown();
-        mResolver.interrupt();
-        RuleResolver.clear();
-        mResolver = null;
         Logger.shutdown();
     }
 
@@ -212,8 +166,8 @@ public class Daedalus extends Application {
         if (intent != null) {
             return false;
         } else {
-            DaedalusVpnService.primaryServer = DNSServerHelper.getAddressById(DNSServerHelper.getPrimary());
-            DaedalusVpnService.secondaryServer = DNSServerHelper.getAddressById(DNSServerHelper.getSecondary());
+            DaedalusVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+            DaedalusVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
             context.startService(Daedalus.getServiceIntent(context).setAction(DaedalusVpnService.ACTION_ACTIVATE));
             return true;
         }
@@ -251,6 +205,19 @@ public class Daedalus extends Application {
                     .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
         } catch (Exception e) {
             Logger.logException(e);
+        }
+    }
+
+    public void updateLocale(String lang) {
+        Locale locale = new Locale(lang);
+        Locale.setDefault(locale);
+
+        Configuration config = new Configuration(getResources().getConfiguration());
+        config.setLocale(locale);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
+            getApplicationContext().createConfigurationContext(config);
+        } else {
+            getResources().updateConfiguration(config,getResources().getDisplayMetrics());
         }
     }
 

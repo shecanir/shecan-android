@@ -29,11 +29,7 @@ public class SettingsFragment extends ToolbarFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         FragmentManager fm;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            fm = getChildFragmentManager();
-        } else {
-            fm = getFragmentManager();
-        }
+        fm = getChildFragmentManager();
         fm.beginTransaction().replace(R.id.settings_content, new GlobalConfigFragment()).commit();
     }
 

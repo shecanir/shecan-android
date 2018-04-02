@@ -3,7 +3,6 @@ package org.itxtech.daedalus.provider;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import android.support.annotation.NonNull;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.system.OsConstants;
@@ -44,7 +43,6 @@ public class TcpProvider extends UdpProvider {
         super(descriptor, service);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void process() {
         try {
             Log.d(TAG, "Starting advanced DNS proxy.");
@@ -134,7 +132,7 @@ public class TcpProvider extends UdpProvider {
 
             service.protect(dnsSocket);
 
-            SocketAddress address = new InetSocketAddress(outPacket.getAddress(), DNSServerHelper.getPortOrDefault(outPacket.getAddress(), outPacket.getPort()));
+            SocketAddress address = new InetSocketAddress(outPacket.getAddress(), outPacket.getPort());
             dnsSocket.connect(address, 5000);
             dnsSocket.setSoTimeout(5000);
             Logger.info("TcpProvider: Sending DNS query request");
@@ -216,7 +214,6 @@ public class TcpProvider extends UdpProvider {
             }
         }
 
-        @NonNull
         public Iterator<TcpProvider.WaitingOnSocketPacket> iterator() {
             return list.iterator();
         }

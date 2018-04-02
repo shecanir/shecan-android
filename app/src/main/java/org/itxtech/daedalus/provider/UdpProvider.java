@@ -1,33 +1,41 @@
 package org.itxtech.daedalus.provider;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.os.ParcelFileDescriptor;
-import android.support.annotation.NonNull;
+import android.support.v4.util.Pair;
 import android.system.Os;
 import android.system.OsConstants;
 import android.system.StructPollfd;
 import android.util.Log;
-import de.measite.minidns.DNSMessage;
-import de.measite.minidns.Record;
-import de.measite.minidns.record.A;
-import de.measite.minidns.record.AAAA;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.service.DaedalusVpnService;
 import org.itxtech.daedalus.util.Logger;
-import org.itxtech.daedalus.util.RuleResolver;
-import org.itxtech.daedalus.util.server.DNSServerHelper;
-import org.pcap4j.packet.*;
+import org.pcap4j.packet.IpPacket;
+import org.pcap4j.packet.IpSelector;
+import org.pcap4j.packet.IpV4Packet;
+import org.pcap4j.packet.IpV6Packet;
+import org.pcap4j.packet.UdpPacket;
+import org.pcap4j.packet.UnknownPacket;
 
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import de.measite.minidns.DNSMessage;
+import de.measite.minidns.Record;
+import de.measite.minidns.record.A;
+import de.measite.minidns.record.AAAA;
 
 /**
  * Daedalus Project
@@ -52,7 +60,6 @@ public class UdpProvider extends Provider {
         super(descriptor, service);
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void stop() {
         try {
             if (mInterruptFd != null) {
@@ -74,7 +81,6 @@ public class UdpProvider extends Provider {
         deviceWrites.add(ipOutPacket.getRawData());
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public void process() {
         try {
             Log.d(TAG, "Starting advanced DNS proxy.");
@@ -157,7 +163,7 @@ public class UdpProvider extends Provider {
         }
     }
 
-    void readPacketFromDevice(FileInputStream inputStream, byte[] packet) throws DaedalusVpnService.VpnNetworkException {
+    void readPacketFromDevice(FileInputStream inputStream, byte[] packet) throws DaedalusVpnService.VpnNetworkException, SocketException {
         // Read the outgoing packet from the input stream.
         int length;
 
@@ -283,10 +289,13 @@ public class UdpProvider extends Provider {
         }
 
         InetAddress destAddr = parsedPacket.getHeader().getDstAddr();
+        int destPort;
+        Pair<String, Integer> destination = service.dnsServers.get(destAddr.getHostAddress());
         if (destAddr == null)
             return;
         try {
-            destAddr = InetAddress.getByName(service.dnsServers.get(destAddr.getHostAddress()));
+            destAddr = InetAddress.getByName(destination.first);
+            destPort = destination.second;
         } catch (Exception e) {
             Logger.logException(e);
             Logger.error("handleDnsRequest: DNS server alias query failed for " + destAddr.getHostAddress());
@@ -302,7 +311,7 @@ public class UdpProvider extends Provider {
             // the gateway to reduce the RTT. For further details, please see
             // https://bugzilla.mozilla.org/show_bug.cgi?id=888268
             DatagramPacket outPacket = new DatagramPacket(new byte[0], 0, 0, destAddr,
-                    DNSServerHelper.getPortOrDefault(destAddr, parsedUdp.getHeader().getDstPort().valueAsInt()));
+                     destPort);
             forwardPacket(outPacket, null);
             return;
         }
@@ -325,27 +334,10 @@ public class UdpProvider extends Provider {
         String dnsQueryName = dnsMsg.getQuestion().name.toString();
 
         try {
-            String response = RuleResolver.resolve(dnsQueryName, dnsMsg.getQuestion().type);
-            if (response != null && dnsMsg.getQuestion().type == Record.TYPE.A) {
-                Logger.info("Provider: Resolved " + dnsQueryName + "  Local resolver response: " + response);
-                DNSMessage.Builder builder = dnsMsg.asBuilder()
-                        .setQrFlag(true)
-                        .addAnswer(new Record<>(dnsQueryName, Record.TYPE.A, 1, 64,
-                                new A(Inet4Address.getByName(response).getAddress())));
-                handleDnsResponse(parsedPacket, builder.build().toArray());
-            } else if (response != null && dnsMsg.getQuestion().type == Record.TYPE.AAAA) {
-                Logger.info("Provider: Resolved " + dnsQueryName + "  Local resolver response: " + response);
-                DNSMessage.Builder builder = dnsMsg.asBuilder()
-                        .setQrFlag(true)
-                        .addAnswer(new Record<>(dnsQueryName, Record.TYPE.AAAA, 1, 64,
-                                new AAAA(Inet6Address.getByName(response).getAddress())));
-                handleDnsResponse(parsedPacket, builder.build().toArray());
-            } else {
-                Logger.info("Provider: Resolving " + dnsQueryName + " Type: " + dnsMsg.getQuestion().type.name() + " Sending to " + destAddr);
-                DatagramPacket outPacket = new DatagramPacket(dnsRawData, 0, dnsRawData.length, destAddr,
-                        DNSServerHelper.getPortOrDefault(destAddr, parsedUdp.getHeader().getDstPort().valueAsInt()));
-                forwardPacket(outPacket, parsedPacket);
-            }
+            Logger.info("Provider: Resolving " + dnsQueryName + " Type: " + dnsMsg.getQuestion().type.name() + " Sending to " + destAddr + ":" + destPort);
+            DatagramPacket outPacket = new DatagramPacket(dnsRawData, 0, dnsRawData.length, destAddr,
+                    destPort);
+            forwardPacket(outPacket, parsedPacket);
         } catch (Exception e) {
             Logger.logException(e);
         }
@@ -390,7 +382,6 @@ public class UdpProvider extends Provider {
             list.add(wosp);
         }
 
-        @NonNull
         public Iterator<WaitingOnSocketPacket> iterator() {
             return list.iterator();
         }

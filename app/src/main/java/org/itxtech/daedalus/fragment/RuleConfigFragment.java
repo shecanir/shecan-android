@@ -3,6 +3,7 @@ package org.itxtech.daedalus.fragment;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -11,11 +12,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
 import android.support.design.widget.Snackbar;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 import org.itxtech.daedalus.activity.ConfigActivity;
@@ -81,9 +84,12 @@ public class RuleConfigFragment extends ConfigFragment {
         mHandler = new RuleConfigHandler().setView(view);
 
         final EditTextPreference ruleName = (EditTextPreference) findPreference("ruleName");
-        ruleName.setOnPreferenceChangeListener((preference, newValue) -> {
-            preference.setSummary((String) newValue);
-            return true;
+        ruleName.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                preference.setSummary((String) newValue);
+                return true;
+            }
         });
 
         final ListPreference ruleType = (ListPreference) findPreference("ruleType");
@@ -91,103 +97,123 @@ public class RuleConfigFragment extends ConfigFragment {
         String[] values = {"0", "1"};
         ruleType.setEntries(entries);
         ruleType.setEntryValues(values);
-        ruleType.setOnPreferenceChangeListener((preference, newValue) -> {
-            preference.setSummary(entries[Integer.parseInt((String) newValue)]);
-            return true;
+        ruleType.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                preference.setSummary(entries[Integer.parseInt((String) newValue)]);
+                return true;
+            }
         });
 
         final EditTextPreference ruleDownloadUrl = (EditTextPreference) findPreference("ruleDownloadUrl");
-        ruleDownloadUrl.setOnPreferenceChangeListener((preference, newValue) -> {
-            preference.setSummary((String) newValue);
-            return true;
+        ruleDownloadUrl.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                preference.setSummary((String) newValue);
+                return true;
+            }
         });
 
         final EditTextPreference ruleFilename = (EditTextPreference) findPreference("ruleFilename");
-        ruleFilename.setOnPreferenceChangeListener((preference, newValue) -> {
-            preference.setSummary((String) newValue);
-            return true;
+        ruleFilename.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                preference.setSummary((String) newValue);
+                return true;
+            }
         });
 
         ClickPreference ruleSync = (ClickPreference) findPreference("ruleSync");
-        ruleSync.setOnPreferenceClickListener(preference -> {
-            save();
-            if (mThread == null) {
-                Snackbar.make(getView(), R.string.notice_start_download, Snackbar.LENGTH_SHORT).show();
-                if (ruleDownloadUrl.getText().startsWith("content:/")) {
-                    mThread = new Thread(() -> {
-                        try {
-                            InputStream inputStream = getActivity().getContentResolver().openInputStream(Uri.parse(ruleDownloadUrl.getText()));
-                            int readLen;
-                            byte[] data = new byte[1024];
-                            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                            while ((readLen = inputStream.read(data)) != -1) {
-                                buffer.write(data, 0, readLen);
+        ruleSync.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                save();
+                if (mThread == null) {
+                    Snackbar.make(getView(), R.string.notice_start_download, Snackbar.LENGTH_SHORT).show();
+                    if (ruleDownloadUrl.getText().startsWith("content:/")) {
+                        mThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    InputStream inputStream = getActivity().getContentResolver().openInputStream(Uri.parse(ruleDownloadUrl.getText()));
+                                    int readLen;
+                                    byte[] data = new byte[1024];
+                                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                                    while ((readLen = inputStream.read(data)) != -1) {
+                                        buffer.write(data, 0, readLen);
+                                    }
+                                    inputStream.close();
+                                    buffer.flush();
+                                    mHandler.obtainMessage(RuleConfigHandler.MSG_RULE_DOWNLOADED,
+                                            new RuleData(ruleFilename.getText(), buffer.toByteArray())).sendToTarget();
+                                    stopThread();
+                                } catch (Exception e) {
+                                    Logger.logException(e);
+                                } finally {
+                                    stopThread();
+                                }
                             }
-                            inputStream.close();
-                            buffer.flush();
-                            mHandler.obtainMessage(RuleConfigHandler.MSG_RULE_DOWNLOADED,
-                                    new RuleData(ruleFilename.getText(), buffer.toByteArray())).sendToTarget();
-                            stopThread();
-                        } catch (Exception e) {
-                            Logger.logException(e);
-                        } finally {
-                            stopThread();
-                        }
-                    });
-                } else {
-                    mThread = new Thread(() -> {
-                        try {
-                            URLConnection connection = new URL(ruleDownloadUrl.getText()).openConnection();
-                            InputStream inputStream = connection.getInputStream();
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                            StringBuilder builder = new StringBuilder();
-                            String result;
-                            while ((result = reader.readLine()) != null) {
-                                builder.append("\n").append(result);
-                            }
-                            reader.close();
+                        });
+                    } else {
+                        mThread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    URLConnection connection = new URL(ruleDownloadUrl.getText()).openConnection();
+                                    InputStream inputStream = connection.getInputStream();
+                                    BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                                    StringBuilder builder = new StringBuilder();
+                                    String result;
+                                    while ((result = reader.readLine()) != null) {
+                                        builder.append("\n").append(result);
+                                    }
+                                    reader.close();
 
-                            mHandler.obtainMessage(RuleConfigHandler.MSG_RULE_DOWNLOADED,
-                                    new RuleData(ruleFilename.getText(), builder.toString().getBytes())).sendToTarget();
-                            stopThread();
-                        } catch (Exception e) {
-                            Logger.logException(e);
-                        } finally {
-                            stopThread();
-                        }
-                    });
+                                    mHandler.obtainMessage(RuleConfigHandler.MSG_RULE_DOWNLOADED,
+                                            new RuleData(ruleFilename.getText(), builder.toString().getBytes())).sendToTarget();
+                                    stopThread();
+                                } catch (Exception e) {
+                                    Logger.logException(e);
+                                } finally {
+                                    stopThread();
+                                }
+                            }
+                        });
+                    }
+                    mThread.start();
+                } else {
+                    Snackbar.make(getView(), R.string.notice_now_downloading, Snackbar.LENGTH_LONG).show();
                 }
-                mThread.start();
-            } else {
-                Snackbar.make(getView(), R.string.notice_now_downloading, Snackbar.LENGTH_LONG).show();
+                return false;
             }
-            return false;
         });
 
         ListPreference ruleImportBuildIn = (ListPreference) findPreference("ruleImportBuildIn");
         ruleImportBuildIn.setEntries(Rule.getBuildInRuleNames());
         ruleImportBuildIn.setEntryValues(Rule.getBuildInRuleEntries());
-        ruleImportBuildIn.setOnPreferenceChangeListener((preference, newValue) -> {
-            Rule rule = Daedalus.RULES.get(Integer.parseInt((String) newValue));
-            ruleName.setText(rule.getName());
-            ruleName.setSummary(rule.getName());
-            ruleType.setValue(String.valueOf(rule.getType()));
-            ruleType.setSummary(Rule.getTypeById(rule.getType()));
-            ruleFilename.setText(rule.getFileName());
-            ruleFilename.setSummary(rule.getFileName());
-            ruleDownloadUrl.setText(rule.getDownloadUrl());
-            ruleDownloadUrl.setSummary(rule.getDownloadUrl());
-            return true;
+        ruleImportBuildIn.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                Rule rule = Daedalus.RULES.get(Integer.parseInt((String) newValue));
+                ruleName.setText(rule.getName());
+                ruleName.setSummary(rule.getName());
+                ruleType.setValue(String.valueOf(rule.getType()));
+                ruleType.setSummary(Rule.getTypeById(rule.getType()));
+                ruleFilename.setText(rule.getFileName());
+                ruleFilename.setSummary(rule.getFileName());
+                ruleDownloadUrl.setText(rule.getDownloadUrl());
+                ruleDownloadUrl.setSummary(rule.getDownloadUrl());
+                return true;
+            }
         });
 
         ClickPreference ruleImportExternal = (ClickPreference) findPreference("ruleImportExternal");
-        ruleImportExternal.setOnPreferenceClickListener(preference -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        ruleImportExternal.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
                 performFileSearch();
-            } else {
-                Snackbar.make(getView(), R.string.notice_legacy_api, Snackbar.LENGTH_LONG).show();
+                return false;
             }
-            return false;
         });
 
 
@@ -223,7 +249,6 @@ public class RuleConfigFragment extends ConfigFragment {
         return view;
     }
 
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     private void performFileSearch() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 
@@ -236,7 +261,6 @@ public class RuleConfigFragment extends ConfigFragment {
     }
 
     @Override
-    @TargetApi(Build.VERSION_CODES.KITKAT)
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (resultData != null) {
@@ -309,12 +333,15 @@ public class RuleConfigFragment extends ConfigFragment {
                 if (this.id != ConfigActivity.ID_NONE) {
                     new AlertDialog.Builder(getActivity())
                             .setTitle(R.string.notice_delete_confirm_prompt)
-                            .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                                Rule rule = Rule.getRuleById(String.valueOf(RuleConfigFragment.this.id));
-                                if (rule != null) {
-                                    rule.removeFromConfig();
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Rule rule = Rule.getRuleById(String.valueOf(RuleConfigFragment.this.id));
+                                    if (rule != null) {
+                                        rule.removeFromConfig();
+                                    }
+                                    getActivity().finish();
                                 }
-                                getActivity().finish();
                             })
                             .setNegativeButton(android.R.string.no, null)
                             .create()

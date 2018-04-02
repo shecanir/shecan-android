@@ -3,8 +3,8 @@ package org.itxtech.daedalus.activity;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.net.VpnService;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,15 +12,13 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.TextView;
-import org.itxtech.daedalus.BuildConfig;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 import org.itxtech.daedalus.fragment.*;
@@ -54,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int FRAGMENT_DNS_TEST = 1;
     public static final int FRAGMENT_SETTINGS = 2;
     public static final int FRAGMENT_ABOUT = 3;
-    public static final int FRAGMENT_RULES = 4;
+//    public static final int FRAGMENT_RULES = 4;
     public static final int FRAGMENT_DNS_SERVERS = 5;
     public static final int FRAGMENT_LOG = 6;
 
@@ -89,9 +87,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        ((TextView) navigationView.getHeaderView(0).findViewById(R.id.textView_nav_version)).setText(getString(R.string.nav_version) + " " + BuildConfig.VERSION_NAME);
-        ((TextView) navigationView.getHeaderView(0).findViewById(R.id.textView_nav_git_commit)).setText(getString(R.string.nav_git_commit) + " " + BuildConfig.GIT_COMMIT);
 
         updateUserInterface(getIntent());
     }
@@ -149,35 +144,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         activateCounter++;
         Daedalus.configurations.setActivateCounter(activateCounter);
-        if (activateCounter % 10 == 0) {
-            new AlertDialog.Builder(this)
-                    .setTitle("觉得还不错？")
-                    .setMessage("您的支持是我动力来源！\n请考虑为我买杯咖啡醒醒脑，甚至其他…… ;)")
-                    .setPositiveButton("为我买杯咖啡", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Daedalus.donate();
-                            new AlertDialog.Builder(MainActivity.this)
-                                    .setMessage("感谢您的支持！;)\n我会再接再厉！")
-                                    .setPositiveButton("确认", null)
-                                    .show();
-                        }
-                    })
-                    .setNeutralButton("不再显示", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Daedalus.configurations.setActivateCounter(-1);
-                        }
-                    })
-                    .setNegativeButton("取消", null)
-                    .show();
-        }
     }
 
+    @Override
     public void onActivityResult(int request, int result, Intent data) {
         if (result == Activity.RESULT_OK) {
-            DaedalusVpnService.primaryServer = DNSServerHelper.getAddressById(DNSServerHelper.getPrimary());
-            DaedalusVpnService.secondaryServer = DNSServerHelper.getAddressById(DNSServerHelper.getSecondary());
+            DaedalusVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+            DaedalusVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
             Daedalus.getInstance().startService(Daedalus.getServiceIntent(getApplicationContext()).setAction(DaedalusVpnService.ACTION_ACTIVATE));
             updateMainButton(R.string.button_text_deactivate);
             Daedalus.updateShortcut(getApplicationContext());
@@ -234,9 +207,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case FRAGMENT_HOME:
                 switchFragment(HomeFragment.class);
                 break;
-            case FRAGMENT_RULES:
-                switchFragment(RulesFragment.class);
-                break;
             case FRAGMENT_SETTINGS:
                 switchFragment(SettingsFragment.class);
                 break;
@@ -264,14 +234,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.nav_dns_test:
                 switchFragment(DNSTestFragment.class);
                 break;
-            case R.id.nav_github:
-                Daedalus.openUri("https://github.com/iTXTech/Daedalus");
+                case R.id.nav_domain_test:
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://shecan.ir")));
                 break;
             case R.id.nav_home:
                 switchFragment(HomeFragment.class);
-                break;
-            case R.id.nav_rules:
-                switchFragment(RulesFragment.class);
                 break;
             case R.id.nav_settings:
                 switchFragment(SettingsFragment.class);

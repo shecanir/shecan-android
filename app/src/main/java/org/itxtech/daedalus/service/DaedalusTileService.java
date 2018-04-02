@@ -1,9 +1,10 @@
 package org.itxtech.daedalus.service;
 
+import android.annotation.TargetApi;
 import android.os.Build;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
-import android.support.annotation.RequiresApi;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 
@@ -18,7 +19,7 @@ import org.itxtech.daedalus.R;
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-@RequiresApi(api = Build.VERSION_CODES.N)
+@TargetApi(Build.VERSION_CODES.N)
 public class DaedalusTileService extends TileService {
 
     @Override

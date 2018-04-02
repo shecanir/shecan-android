@@ -1,12 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">shecan</string>
+    <string name="app_name">شکن</string>
     <string name="quick_toggle">Toggle</string>
 
-    <string name="notice_main">See the world outside.</string>
-    <string name="notice_activated">shecan is activated.</string>
+    <string name="notice_main">دنیا را بدون تحریم ببین.</string>
+    <string name="notice_activated">شکن فعال است.</string>
     <string name="notice_start_test">Testing specified DNS server…</string>
     <string name="notice_queries">DNS query times:</string>
-    <string name="notice_legacy_api">The current Android API can not support all the features.</string>
+    <string name="notice_legacy_api">نسخه‌ی اندروید شما از تمامی قابلیت‌ها پشتیبانی نمی‌کند.</string>
     <string name="notice_need_restart">Re-activate shecan to make the settings take effect.</string>
     <string name="notice_start_download">Downloading rule, please wait …</string>
     <string name="notice_downloaded">Rule has been downloaded.</string>
@@ -18,46 +19,46 @@
     <string name="notice_export_complete">Export completed.</string>
     <string name="notice_importing_rule">Importing rule… Please wait until blanks are filled.</string>
 
-    <string name="action_settings">Settings</string>
-    <string name="action_about">About</string>
-    <string name="action_dns_test">Test DNS</string>
-    <string name="action_domain_test">Report or Test Domain</string>
-    <string name="action_start_test">Start test</string>
-    <string name="action_home">Home</string>
-    <string name="action_rules">Rules</string>
-    <string name="action_dns_servers">Servers</string>
-    <string name="action_removed">Removed.</string>
+    <string name="action_settings">تنظیمات</string>
+    <string name="action_about">درباره ما</string>
+    <string name="action_dns_test">بررسی DNS</string>
+    <string name="action_domain_test">گزارش یا بررسی تحریم</string>
+    <string name="action_start_test">شروع تست</string>
+    <string name="action_home">خانه</string>
+    <string name="action_rules">قواعد</string>
+    <string name="action_dns_servers">سرورها</string>
+    <string name="action_removed">حذف شد</string>
     <string name="action_undo">Undo</string>
-    <string name="action_log">Log</string>
+    <string name="action_log">وقایع</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_reload">Reload</string>
 
-    <string name="delete">Delete</string>
-    <string name="apply">Apply</string>
-    <string name="export">Export</string>
+    <string name="delete">پاک کردن</string>
+    <string name="apply">اعمال</string>
+    <string name="export">بیرون بردن</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="button_text_activate">Activate</string>
-    <string name="button_text_deactivate">Deactivate</string>
+    <string name="button_text_activate">فعال کردن</string>
+    <string name="button_text_deactivate">غیر فعال کردن</string>
 
-    <string name="config_dns_server">DNS server config</string>
-    <string name="config_rule">Rule config</string>
+    <string name="config_dns_server">تنظیم سرور DNS</string>
+    <string name="config_rule">تنظیم قاعده</string>
 
-    <string name="settings_system">System Settings</string>
+    <string name="settings_system">تنظیمات سیستم</string>
     <string name="settings_boot">Auto activate on boot</string>
-    <string name="settings_server">Server Settings</string>
-    <string name="settings_notification">Show notification</string>
+    <string name="settings_server">تنظیمات سرور</string>
+    <string name="settings_notification">نمایش آگاه‌سازی</string>
     <string name="settings_check_update">Check update</string>
     <string name="settings_update_summary">Visit GitHub releases page.</string>
     <string name="settings_count_number_of_queries">Count DNS query times</string>
     <string name="settings_bug_report">Report a bug</string>
     <string name="settings_issue_summary">Submit an issue in GitHub Issues page.</string>
-    <string name="settings_dns_test_servers">DNS test servers</string>
+    <string name="settings_dns_test_servers">سرورهای تست DNS</string>
     <string name="settings_help_and_support">Help &amp; Support</string>
-    <string name="settings_advanced">Advanced System Settings</string>
-    <string name="settings_advanced_on">On</string>
+    <string name="settings_advanced">تنظیمات پیشرفته سیستم</string>
+    <string name="settings_advanced_on">روشن</string>
     <string name="settings_local_rules_resolution">Local rules resolution</string>
     <string name="settings_dns_over_tcp">DNS over TCP</string>
     <string name="settings_log_size">Log size limit</string>
@@ -77,9 +78,9 @@
     <string name="settings_rule_import_build_in">Build-in</string>
     <string name="settings_rule_import_external">External</string>
 
-    <string name="settings_server_name">Server Name</string>
-    <string name="settings_server_address">Server Address</string>
-    <string name="settings_server_port">Server Port</string>
+    <string name="settings_server_name">نام سرور</string>
+    <string name="settings_server_address">آدرس سرور</string>
+    <string name="settings_server_port">شماره‌ی پورت</string>
 
     <string name="server_aixyz_south_china">AIXYZ DNS South China</string>
     <string name="server_aixyz_east_china">AIXYZ DNS East China</string>
@@ -89,20 +90,20 @@
     <string name="server_shecan_primary">شکن</string>
     <string name="server_shecan_secondary">شکن نامسدود</string>
 
-    <string name="primary_server">Primary DNS server</string>
-    <string name="secondary_server">Secondary DNS server</string>
+    <string name="primary_server">سرور DNS اصلی</string>
+    <string name="secondary_server">سرور DNS ثانویه</string>
 
-    <string name="test_domain">Test domain:</string>
-    <string name="test_time_used">Time used:</string>
-    <string name="test_dns_server">DNS server:</string>
-    <string name="test_result_resolved">Address:</string>
+    <string name="test_domain">دامنه آزمایش شده:</string>
+    <string name="test_time_used">زمان صرف شده:</string>
+    <string name="test_dns_server">سرور (DNS):</string>
+    <string name="test_result_resolved">آدرس:</string>
     <string name="test_failed">DNS query failed. Timeout or unknown hostname.</string>
     <string name="test_test_domain">coursera.org</string>
 
-    <string name="nav_version">Version:</string>
+    <string name="nav_version">نسخه:</string>
     <string name="nav_git_commit">Git commit:</string>
     <string name="nav_github">GitHub</string>
-    <string name="settings_language">Language</string>
+    <string name="settings_language">زبان</string>
     <string name="notification_channel_default">Default Channel</string>
     <string name="notification_channel_default_description">Default channel for posting notifications.</string>
     <string name="notification_channel_hiddenicon">Channel with no icon</string>

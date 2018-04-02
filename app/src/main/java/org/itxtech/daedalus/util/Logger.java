@@ -1,6 +1,7 @@
 package org.itxtech.daedalus.util;
 
 import android.util.Log;
+
 import org.itxtech.daedalus.Daedalus;
 
 import java.io.PrintWriter;

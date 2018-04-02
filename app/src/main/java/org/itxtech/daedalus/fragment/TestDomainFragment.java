@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.itxtech.daedalus.BuildConfig;
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 
@@ -25,16 +26,16 @@ import org.itxtech.daedalus.R;
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-public class AboutFragment extends ToolbarFragment {
+public class TestDomainFragment extends ToolbarFragment {
     private WebView mWebView = null;
 
     @SuppressLint({"JavascriptInterface", "SetJavaScriptEnabled", "addJavascriptInterface"})
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_about, container, false);
+        View view = inflater.inflate(R.layout.fragment_domain_test, container, false);
 
         mWebView = new WebView(Daedalus.getInstance());
-        ((ViewGroup) view.findViewById(R.id.fragment_about)).addView(mWebView);
+        ((ViewGroup) view.findViewById(R.id.fragment_domain_test)).addView(mWebView);
 
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.setBackgroundColor(0);
@@ -47,18 +48,26 @@ public class AboutFragment extends ToolbarFragment {
             }
         });
 
-        mWebView.loadUrl("file:///android_asset/about_html/index.html");
+        mWebView.loadUrl("https://shecan.ir");
 
         mWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {//for better compatibility
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
-                return true;
+                if (!url.startsWith("https://shecan.ir")) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+                    return true;
+                }
+                return super.shouldOverrideUrlLoading(view, url);
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
+                try {
+                    mWebView.loadUrl("javascript:changeVersionInfo('" + Daedalus.getInstance().getPackageManager().getPackageInfo(Daedalus.getInstance().getPackageName(), 0).versionName + "', '" + BuildConfig.BUILD_TIME + "', '" + BuildConfig.GIT_COMMIT + "')");
+                } catch (Exception e) {
+                    Log.e("DAboutActivity", e.toString());
+                }
             }
         });
         return view;

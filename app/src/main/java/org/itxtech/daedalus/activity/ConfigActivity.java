@@ -9,6 +9,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 import org.itxtech.daedalus.fragment.ConfigFragment;
@@ -60,7 +62,12 @@ public class ConfigActivity extends AppCompatActivity {
         Drawable wrappedDrawable = DrawableCompat.wrap(drawable);
         DrawableCompat.setTint(wrappedDrawable, Color.WHITE);
         toolbar.setNavigationIcon(drawable);
-        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
+        });
         toolbar.setOnMenuItemClickListener(fragment);
         toolbar.inflateMenu(R.menu.custom_config);
 
@@ -75,7 +82,7 @@ public class ConfigActivity extends AppCompatActivity {
     public void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        Toolbar toolbar = findViewById(R.id.toolbar_config);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_config);
         switch (getIntent().getIntExtra(LAUNCH_ACTION_FRAGMENT, LAUNCH_FRAGMENT_DNS_SERVER)) {
             case LAUNCH_FRAGMENT_DNS_SERVER:
                 toolbar.setTitle(R.string.config_dns_server);

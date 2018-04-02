@@ -12,14 +12,13 @@ import android.widget.*;
 import de.measite.minidns.DNSMessage;
 import de.measite.minidns.Question;
 import de.measite.minidns.Record;
-import de.measite.minidns.source.NetworkDataSource;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 import org.itxtech.daedalus.util.Logger;
 import org.itxtech.daedalus.util.server.AbstractDNSServer;
 import org.itxtech.daedalus.util.server.DNSServerHelper;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
@@ -64,9 +63,9 @@ public class DNSTestFragment extends ToolbarFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dns_test, container, false);
 
-        final TextView textViewTestInfo = view.findViewById(R.id.textView_test_info);
+        final TextView textViewTestInfo = (TextView) view.findViewById(R.id.textView_test_info);
 
-        final Spinner spinnerServerChoice = view.findViewById(R.id.spinner_server_choice);
+        final Spinner spinnerServerChoice = (Spinner) view.findViewById(R.id.spinner_server_choice);
         ArrayAdapter spinnerArrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, DNSServerHelper.getAllServers());
         spinnerServerChoice.setAdapter(spinnerArrayAdapter);
         spinnerServerChoice.setSelection(DNSServerHelper.getPosition(DNSServerHelper.getPrimary()));
@@ -93,11 +92,11 @@ public class DNSTestFragment extends ToolbarFragment {
             add(new Type("DLV", Record.TYPE.DLV));
         }};
 
-        final Spinner spinnerType = view.findViewById(R.id.spinner_type);
+        final Spinner spinnerType = (Spinner) view.findViewById(R.id.spinner_type);
         ArrayAdapter<Type> typeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, types);
         spinnerType.setAdapter(typeAdapter);
 
-        final AutoCompleteTextView textViewTestDomain = view.findViewById(R.id.autoCompleteTextView_test_url);
+        final AutoCompleteTextView textViewTestDomain = (AutoCompleteTextView) view.findViewById(R.id.autoCompleteTextView_test_url);
         ArrayAdapter autoCompleteArrayAdapter = new ArrayAdapter<>(Daedalus.getInstance(), android.R.layout.simple_list_item_1, Daedalus.DEFAULT_TEST_DOMAINS);
         textViewTestDomain.setAdapter(autoCompleteArrayAdapter);
 
@@ -197,16 +196,23 @@ public class DNSTestFragment extends ToolbarFragment {
             }
         };
 
-        final Button startTestBut = view.findViewById(R.id.button_start_test);
-        startTestBut.setOnClickListener(v -> {
-            startTestBut.setEnabled(false);
-            InputMethodManager imm = (InputMethodManager) Daedalus.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-            textViewTestInfo.setText("");
+        final Button startTestBut = (Button) view.findViewById(R.id.button_start_test);
+        startTestBut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                /*Snackbar.make(v, R.string.notice_start_test, Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();*/
+                startTestBut.setEnabled(false);
 
-            if (mThread == null) {
-                mThread = new Thread(mRunnable);
-                mThread.start();
+                InputMethodManager imm = (InputMethodManager) Daedalus.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+                textViewTestInfo.setText("");
+
+                if (mThread == null) {
+                    mThread = new Thread(mRunnable);
+                    mThread.start();
+                }
             }
         });
 
@@ -280,9 +286,4 @@ public class DNSTestFragment extends ToolbarFragment {
         }
     }
 
-    private class DNSQuery extends NetworkDataSource {
-        public DNSMessage query(DNSMessage message, InetAddress address, int port) throws IOException {
-            return queryUdp(message, address, port);
-        }
-    }
 }

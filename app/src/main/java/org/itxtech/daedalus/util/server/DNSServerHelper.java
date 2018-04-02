@@ -1,12 +1,15 @@
 package org.itxtech.daedalus.util.server;
 
 import android.content.Context;
+import android.support.v4.util.Pair;
+
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.service.DaedalusVpnService;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Daedalus Project
@@ -20,33 +23,6 @@ import java.util.HashMap;
  * (at your option) any later version.
  */
 public class DNSServerHelper {
-    private static HashMap<String, Integer> portCache = null;
-
-    public static void clearPortCache() {
-        portCache = null;
-    }
-
-    public static void buildPortCache() {
-        portCache = new HashMap<>();
-        for (DNSServer server : Daedalus.DNS_SERVERS) {
-            portCache.put(server.getAddress(), server.getPort());
-        }
-
-        for (CustomDNSServer server : Daedalus.configurations.getCustomDNSServers()) {
-            portCache.put(server.getAddress(), server.getPort());
-        }
-
-    }
-
-    public static int getPortOrDefault(InetAddress address, int defaultPort) {
-        String hostAddress = address.getHostAddress();
-
-        if (portCache.containsKey(hostAddress)) {
-            return portCache.get(hostAddress);
-        }
-
-        return defaultPort;
-    }
 
     public static int getPosition(String id) {
         int intId = Integer.parseInt(id);
@@ -82,18 +58,18 @@ public class DNSServerHelper {
         return 0;
     }
 
-    public static String getAddressById(String id) {
+    public static AbstractDNSServer getDNSById(String id) {
         for (DNSServer server : Daedalus.DNS_SERVERS) {
             if (server.getId().equals(id)) {
-                return server.getAddress();
+                return server;
             }
         }
         for (CustomDNSServer customDNSServer : Daedalus.configurations.getCustomDNSServers()) {
             if (customDNSServer.getId().equals(id)) {
-                return customDNSServer.getAddress();
+                return customDNSServer;
             }
         }
-        return Daedalus.DNS_SERVERS.get(0).getAddress();
+        return Daedalus.DNS_SERVERS.get(0);
     }
 
     public static String[] getIds() {

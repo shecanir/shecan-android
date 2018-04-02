@@ -19,7 +19,6 @@ import android.util.AttributeSet;
  */
 public class ClickPreference extends ListPreference {
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public ClickPreference(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
