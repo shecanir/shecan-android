@@ -33,7 +33,8 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".receiver.BootBroadcastReceiver">
+        <receiver android:enabled="true" android:name=".receiver.BootBroadcastReceiver"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
 
