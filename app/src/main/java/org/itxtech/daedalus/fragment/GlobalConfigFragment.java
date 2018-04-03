@@ -88,6 +88,7 @@ public class GlobalConfigFragment extends PreferenceFragment {
                 getActivity().startActivity(new Intent(Daedalus.getInstance(), MainActivity.class)
                         .putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS)
                         .putExtra(MainActivity.LAUNCH_NEED_RECREATE, true));
+                getActivity().finish();
                 return true;
             }
         });
