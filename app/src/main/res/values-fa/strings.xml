@@ -8,14 +8,10 @@
     <string name="notice_start_test">Testing specified DNS server…</string>
     <string name="notice_queries">DNS query times:</string>
     <string name="notice_legacy_api">نسخه‌ی اندروید شما از تمامی قابلیت‌ها پشتیبانی نمی‌کند.</string>
-    <string name="notice_need_restart">Re-activate shecan to make the settings take effect.</string>
-    <string name="notice_start_download">Downloading rule, please wait …</string>
-    <string name="notice_fill_in_all">Please fill in all configuration items.</string>
-    <string name="notice_delete_confirm_prompt">Are you sure you want to remove this configuration?</string>
-    <string name="notice_after_stop">Please modify activated rules after stopping service.</string>
-    <string name="notice_check_dynamic_rule_reload">Please enable "Allow dynamic rule reload" in Settings</string>
-    <string name="notice_export_complete">Export completed.</string>
-    <string name="notice_importing_rule">Importing rule… Please wait until blanks are filled.</string>
+    <string name="notice_need_restart">نیازمند راه‌اندازی مجدد برای اعمال تنظیمات.</string>
+    <string name="notice_fill_in_all">لطفاً تمامی آیتم‌ها پیکربندی را پر کنید.</string>
+    <string name="notice_delete_confirm_prompt">از حذف این پیکربندی اطمینان دارید؟</string>
+    <string name="notice_export_complete">بیرون بردن کامل شد.</string>
 
     <string name="action_settings">تنظیمات</string>
     <string name="action_about">درباره ما</string>
@@ -27,7 +23,7 @@
     <string name="action_dns_servers">سرورها</string>
     <string name="action_removed">حذف شد</string>
     <string name="action_undo">Undo</string>
-    <string name="action_log">وقایع</string>
+    <string name="action_log">رخ‌دادها</string>
     <string name="action_refresh">Refresh</string>
     <string name="action_reload">Reload</string>
 
@@ -45,22 +41,16 @@
     <string name="config_rule">تنظیم قاعده</string>
 
     <string name="settings_system">تنظیمات سیستم</string>
-    <string name="settings_boot">Auto activate on boot</string>
+    <string name="settings_boot">فعالسازی خودکار هنگام راه‌اندازی دستگاه</string>
     <string name="settings_server">تنظیمات سرور</string>
     <string name="settings_notification">نمایش آگاه‌سازی</string>
-    <string name="settings_check_update">Check update</string>
     <string name="settings_dns_test_servers">سرورهای تست DNS</string>
-    <string name="settings_help_and_support">Help &amp; Support</string>
     <string name="settings_advanced">تنظیمات پیشرفته سیستم</string>
     <string name="settings_advanced_on">روشن</string>
-    <string name="settings_local_rules_resolution">Local rules resolution</string>
-    <string name="settings_dns_over_tcp">DNS over TCP</string>
-    <string name="settings_log_size">Log size limit</string>
-    <string name="settings_manual">Manual</string>
-    <string name="settings_manual_summary">Visit GitHub wiki page.</string>
-    <string name="settings_allow_dynamic_rule_reload">Allow dynamic rule reload</string>
-    <string name="settings_debug_output">Debug output</string>
-    <string name="settings_dark_theme">Use Dark Theme</string>
+    <string name="settings_dns_over_tcp">درخواست DNS بر بستر TCP</string>
+    <string name="settings_log_size">محدودیت تعداد رکورد رخ‌داد</string>
+    <string name="settings_debug_output">تولید خروجی ایرادیابی</string>
+    <string name="settings_dark_theme">استفاده از پوسته‌ی تیره</string>
 
     <string name="settings_server_name">نام سرور</string>
     <string name="settings_server_address">آدرس سرور</string>
@@ -76,7 +66,7 @@
     <string name="test_time_used">زمان صرف شده:</string>
     <string name="test_dns_server">سرور (DNS):</string>
     <string name="test_result_resolved">آدرس:</string>
-    <string name="test_failed">DNS query failed. Timeout or unknown hostname.</string>
+    <string name="test_failed">درخواست DNS با خطا مواجه شد. به علّت انقضاء زمان یا ناشناخته بودن نام میزبان.</string>
     <string name="test_test_domain">check.shecan.ir</string>
 
     <string name="nav_version">نسخه:</string>
