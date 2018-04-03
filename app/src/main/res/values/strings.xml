@@ -1,13 +1,13 @@
 <resources>
-    <string name="app_name">shecan</string>
+    <string name="app_name">Shecan</string>
     <string name="quick_toggle">Toggle</string>
 
     <string name="notice_main">See the world outside.</string>
-    <string name="notice_activated">shecan is activated.</string>
+    <string name="notice_activated">Shecan is activated.</string>
     <string name="notice_start_test">Testing specified DNS server…</string>
     <string name="notice_queries">DNS query times:</string>
     <string name="notice_legacy_api">The current Android API can not support all the features.</string>
-    <string name="notice_need_restart">Re-activate shecan to make the settings take effect.</string>
+    <string name="notice_need_restart">Re-activate Shecan to make the settings take effect.</string>
     <string name="notice_fill_in_all">Please fill in all configuration items.</string>
     <string name="notice_delete_confirm_prompt">Are you sure you want to remove this configuration?</string>
     <string name="notice_export_complete">Export completed.</string>
@@ -55,8 +55,8 @@
     <string name="settings_server_address">Server Address</string>
     <string name="settings_server_port">Server Port</string>
 
-    <string name="server_shecan_primary">shecan</string>
-    <string name="server_shecan_secondary">standard shecan</string>
+    <string name="server_shecan_primary">Shecan</string>
+    <string name="server_shecan_secondary">Standard Shecan</string>
 
     <string name="primary_server">Primary DNS server</string>
     <string name="secondary_server">Secondary DNS server</string>
