@@ -3,15 +3,13 @@
     <string name="app_name">شکن</string>
     <string name="quick_toggle">Toggle</string>
 
-    <string name="notice_main">دنیا را بدون تحریم ببین.</string>
+    <string name="notice_main">تحریم‌های اینترنتی رو بی‌اثر کن!</string>
     <string name="notice_activated">شکن فعال است.</string>
     <string name="notice_start_test">Testing specified DNS server…</string>
     <string name="notice_queries">DNS query times:</string>
     <string name="notice_legacy_api">نسخه‌ی اندروید شما از تمامی قابلیت‌ها پشتیبانی نمی‌کند.</string>
     <string name="notice_need_restart">Re-activate shecan to make the settings take effect.</string>
     <string name="notice_start_download">Downloading rule, please wait …</string>
-    <string name="notice_downloaded">Rule has been downloaded.</string>
-    <string name="notice_now_downloading">shecan is currently downloading rule, please wait.</string>
     <string name="notice_fill_in_all">Please fill in all configuration items.</string>
     <string name="notice_delete_confirm_prompt">Are you sure you want to remove this configuration?</string>
     <string name="notice_after_stop">Please modify activated rules after stopping service.</string>
@@ -51,10 +49,6 @@
     <string name="settings_server">تنظیمات سرور</string>
     <string name="settings_notification">نمایش آگاه‌سازی</string>
     <string name="settings_check_update">Check update</string>
-    <string name="settings_update_summary">Visit GitHub releases page.</string>
-    <string name="settings_count_number_of_queries">Count DNS query times</string>
-    <string name="settings_bug_report">Report a bug</string>
-    <string name="settings_issue_summary">Submit an issue in GitHub Issues page.</string>
     <string name="settings_dns_test_servers">سرورهای تست DNS</string>
     <string name="settings_help_and_support">Help &amp; Support</string>
     <string name="settings_advanced">تنظیمات پیشرفته سیستم</string>
@@ -68,27 +62,12 @@
     <string name="settings_debug_output">Debug output</string>
     <string name="settings_dark_theme">Use Dark Theme</string>
 
-    <string name="settings_rule_name">Rule Name</string>
-    <string name="settings_rule_type">Rule Type</string>
-    <string name="settings_rule">Rule Settings</string>
-    <string name="settings_rule_download_url">Rule Download Url</string>
-    <string name="settings_rule_sync">Sync Rule</string>
-    <string name="settings_rule_filename">Rule Filename</string>
-    <string name="settings_rule_import">Import</string>
-    <string name="settings_rule_import_build_in">Build-in</string>
-    <string name="settings_rule_import_external">External</string>
-
     <string name="settings_server_name">نام سرور</string>
     <string name="settings_server_address">آدرس سرور</string>
     <string name="settings_server_port">شماره‌ی پورت</string>
 
-    <string name="server_aixyz_south_china">AIXYZ DNS South China</string>
-    <string name="server_aixyz_east_china">AIXYZ DNS East China</string>
-    <string name="server_fundns_south_china">FUN DNS South China</string>
-    <string name="server_pdomo_primary">PdoMo DNS Primary</string>
-    <string name="server_pdomo_secondary">PdoMo DNS Secondary</string>
     <string name="server_shecan_primary">شکن</string>
-    <string name="server_shecan_secondary">شکن نامسدود</string>
+    <string name="server_shecan_secondary">شکن استاندارد</string>
 
     <string name="primary_server">سرور DNS اصلی</string>
     <string name="secondary_server">سرور DNS ثانویه</string>
@@ -98,11 +77,9 @@
     <string name="test_dns_server">سرور (DNS):</string>
     <string name="test_result_resolved">آدرس:</string>
     <string name="test_failed">DNS query failed. Timeout or unknown hostname.</string>
-    <string name="test_test_domain">coursera.org</string>
+    <string name="test_test_domain">check.shecan.ir</string>
 
     <string name="nav_version">نسخه:</string>
-    <string name="nav_git_commit">Git commit:</string>
-    <string name="nav_github">GitHub</string>
     <string name="settings_language">زبان</string>
     <string name="notification_channel_default">Default Channel</string>
     <string name="notification_channel_default_description">Default channel for posting notifications.</string>

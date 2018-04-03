@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public static final int FRAGMENT_SETTINGS = 2;
     public static final int FRAGMENT_ABOUT = 3;
 //    public static final int FRAGMENT_RULES = 4;
-    public static final int FRAGMENT_DNS_SERVERS = 5;
+//    public static final int FRAGMENT_DNS_SERVERS = 5;
     public static final int FRAGMENT_LOG = 6;
 
     public static final String LAUNCH_NEED_RECREATE = "org.itxtech.daedalus.activity.MainActivity.LAUNCH_NEED_RECREATE";
@@ -198,9 +198,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case FRAGMENT_ABOUT:
                 switchFragment(AboutFragment.class);
                 break;
-            case FRAGMENT_DNS_SERVERS:
-                switchFragment(DNSServersFragment.class);
-                break;
             case FRAGMENT_DNS_TEST:
                 switchFragment(DNSTestFragment.class);
                 break;
@@ -227,9 +224,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch (id) {
             case R.id.nav_about:
                 switchFragment(AboutFragment.class);
-                break;
-            case R.id.nav_dns_server:
-                switchFragment(DNSServersFragment.class);
                 break;
             case R.id.nav_dns_test:
                 switchFragment(DNSTestFragment.class);

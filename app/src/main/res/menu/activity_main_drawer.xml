@@ -20,13 +20,6 @@
     </group>
 
     <group android:checkableBehavior="single"
-           android:id="@+id/nav_group_profiles">
-        <item android:id="@+id/nav_dns_server"
-              android:title="@string/action_dns_servers"
-              android:icon="@drawable/ic_device_hub"/>
-    </group>
-
-    <group android:checkableBehavior="single"
            android:id="@+id/nav_group_more">
         <item android:id="@+id/nav_log"
               android:title="@string/action_log"

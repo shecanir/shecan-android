@@ -55,10 +55,6 @@
         android:key="settings_advanced"
         android:title="@string/settings_advanced">
         <SwitchPreference
-            android:key="settings_count_query_times"
-            android:title="@string/settings_count_number_of_queries"
-            android:defaultValue="false" />
-        <SwitchPreference
             android:key="settings_dns_over_tcp"
             android:title="@string/settings_dns_over_tcp"
             android:defaultValue="false" />

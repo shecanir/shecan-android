@@ -59,15 +59,15 @@ public class Daedalus extends Application {
     private static final String SHORTCUT_ID_ACTIVATE = "shortcut_activate";
 
     public static final List<DNSServer> DNS_SERVERS = new ArrayList<DNSServer>() {{
-        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_primary, 53));
-        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_secondary, 5353));
+        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_primary, 5353));
+        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_secondary, 53));
     }};
 
     public static final List<Rule> RULES = new ArrayList<Rule>() {{
     }};
 
     public static final String[] DEFAULT_TEST_DOMAINS = new String[]{
-            "coursera.org"
+            "check.shecan.ir"
     };
 
     public static Configurations configurations;

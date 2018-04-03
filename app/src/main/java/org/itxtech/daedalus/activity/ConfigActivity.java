@@ -15,7 +15,6 @@ import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
 import org.itxtech.daedalus.fragment.ConfigFragment;
 import org.itxtech.daedalus.fragment.DNSServerConfigFragment;
-import org.itxtech.daedalus.fragment.RuleConfigFragment;
 
 /**
  * Daedalus Project
@@ -49,9 +48,7 @@ public class ConfigActivity extends AppCompatActivity {
             case LAUNCH_FRAGMENT_DNS_SERVER:
                 fragment = new DNSServerConfigFragment();
                 break;
-            case LAUNCH_FRAGMENT_RULE:
-                fragment = new RuleConfigFragment();
-                break;
+
             default://should never reach this
                 fragment = new DNSServerConfigFragment();
                 break;
