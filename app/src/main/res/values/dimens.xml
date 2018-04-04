@@ -10,4 +10,6 @@
     <dimen name="nav_header_height">180dp</dimen>
 
     <dimen name="config_item_max_width">480dp</dimen>
+    <dimen name="about_logo_size">130dp</dimen>
+    <dimen name="contact_icon_size">17dp</dimen>
 </resources>

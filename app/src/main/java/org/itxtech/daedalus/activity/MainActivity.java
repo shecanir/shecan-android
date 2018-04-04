@@ -184,14 +184,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int fragment = intent.getIntExtra(LAUNCH_FRAGMENT, FRAGMENT_NONE);
 
         if (intent.getBooleanExtra(LAUNCH_NEED_RECREATE, false)) {
-            finish();
-            overridePendingTransition(R.anim.start, R.anim.end);
-            if (fragment != FRAGMENT_NONE) {
-                startActivity(new Intent(this, MainActivity.class)
-                        .putExtra(LAUNCH_FRAGMENT, fragment));
-            } else {
-                startActivity(new Intent(this, MainActivity.class));
-            }
+            if (fragment != FRAGMENT_NONE)
+                getIntent().putExtra(MainActivity.LAUNCH_FRAGMENT, fragment);
+            recreate();
             return;
         }
 

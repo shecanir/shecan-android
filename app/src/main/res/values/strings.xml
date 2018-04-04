@@ -74,4 +74,9 @@
     <string name="notification_channel_default_description">Default channel for posting notifications.</string>
     <string name="notification_channel_hiddenicon">Channel with no icon</string>
     <string name="notification_channel_hiddenicon_description">This channel shows no icon in the notification bar</string>
+    <string name="about_us_text">سامانه «شکن» یک تحریم‌شکن ایرانی و قانونی است که امکان دسترسی به سایت‌های تحریم‌شده را بدون نیاز به ابزارهای ناقض حریم خصوصی و امنیت مانند فیلترشکن، وی‌پی‌ان و پراکسی به آسانی و برای استفاده شخصی به رایگان فراهم می‌کند.</string>
+    <string name="website_link"><a href="https://shecan.ir/">shecan.ir</a></string>
+    <string name="telegram_link"><a href="https://t.me/shecan_ir">@shecan_ir</a></string>
+    <string name="email_link"><a href="mailto:info@shecan.ir">info@shecan.ir</a></string>
+    <string name="github_link"><a href="https://github.com/bonyan-co/shecan-android">bonyan-co/shecan-android</a></string>
 </resources>
