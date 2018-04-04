@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Daedalus.getInstance().updateLocale(Daedalus.getPrefs().getString("settings_language", "fa"));
         if (Daedalus.isDarkTheme()) {
             setTheme(R.style.AppTheme_Dark_NoActionBar);
         }

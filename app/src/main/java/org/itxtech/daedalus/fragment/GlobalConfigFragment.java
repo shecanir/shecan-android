@@ -84,11 +84,11 @@ public class GlobalConfigFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 preference.setSummary(LanguageHelper.getDescription((String) newValue));
-                Daedalus.getInstance().updateLocale((String) newValue);
-                getActivity().startActivity(new Intent(Daedalus.getInstance(), MainActivity.class)
-                        .putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS)
-                        .putExtra(MainActivity.LAUNCH_NEED_RECREATE, true));
-                getActivity().finish();
+                getActivity().getIntent().putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS);
+                getActivity().recreate();
+//                getActivity().startActivity(new Intent(Daedalus.getInstance(), MainActivity.class)
+//                        .putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS)
+//                        .putExtra(MainActivity.LAUNCH_NEED_RECREATE, true));
                 return true;
             }
         });
