@@ -82,4 +82,6 @@
     <string name="saramad_url">http://logo.saramad.ir/verify.aspx?CodeShamad=1-2-691804-63-0-3</string>
     <string name="shecan_logo_description">Shecan Logo</string>
     <string name="saramad_logo_description">Saramad Logo</string>
+    <string name="ic_bonyan_logo">\ue809</string>
+    <string name="bonyan_url">https://bonyan.co</string>
 </resources>

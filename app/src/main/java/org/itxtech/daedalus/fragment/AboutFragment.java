@@ -2,6 +2,7 @@ package org.itxtech.daedalus.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
@@ -43,6 +44,20 @@ public class AboutFragment extends ToolbarFragment {
                 intent.setAction(Intent.ACTION_VIEW);
                 intent.addCategory(Intent.CATEGORY_BROWSABLE);
                 intent.setData(Uri.parse(getString(R.string.saramad_url)));
+                startActivity(intent);
+            }
+        });
+
+        Typeface bonyanTypeface = Typeface.createFromAsset(getActivity().getAssets(), "fonts/bonyan_font.ttf");
+        TextView bonyanLogo = view.findViewById(R.id.bonyan_logo);
+        bonyanLogo.setTypeface(bonyanTypeface);
+        bonyanLogo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                intent.setData(Uri.parse(getString(R.string.bonyan_url)));
                 startActivity(intent);
             }
         });
