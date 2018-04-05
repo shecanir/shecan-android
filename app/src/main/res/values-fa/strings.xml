@@ -75,4 +75,6 @@
     <string name="notification_channel_default_description">Default channel for posting notifications.</string>
     <string name="notification_channel_hiddenicon">Channel with no icon</string>
     <string name="notification_channel_hiddenicon_description">This channel shows no icon in the notification bar</string>
+    <string name="shecan_logo_description">نشان شکن</string>
+    <string name="saramad_logo_description">نشان سرآمد</string>
 </resources>

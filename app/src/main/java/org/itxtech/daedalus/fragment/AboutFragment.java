@@ -1,11 +1,14 @@
 package org.itxtech.daedalus.fragment;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.itxtech.daedalus.R;
@@ -32,6 +35,17 @@ public class AboutFragment extends ToolbarFragment {
         ((TextView) view.findViewById(R.id.telegram_link)).setMovementMethod(LinkMovementMethod.getInstance());
         ((TextView) view.findViewById(R.id.email_link)).setMovementMethod(LinkMovementMethod.getInstance());
         ((TextView) view.findViewById(R.id.github_link)).setMovementMethod(LinkMovementMethod.getInstance());
+
+        view.findViewById(R.id.saramad_logo).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent();
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.addCategory(Intent.CATEGORY_BROWSABLE);
+                intent.setData(Uri.parse(getString(R.string.saramad_url)));
+                startActivity(intent);
+            }
+        });
 
         return view;
     }
