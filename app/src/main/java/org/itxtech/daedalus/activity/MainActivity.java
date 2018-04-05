@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Bundle;
@@ -68,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Daedalus.getInstance().updateLocale(Daedalus.getPrefs().getString("settings_language", "fa"));
+        Daedalus.getInstance().updateLocale();
         if (Daedalus.isDarkTheme()) {
             setTheme(R.style.AppTheme_Dark_NoActionBar);
         }
@@ -244,5 +245,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         InputMethodManager imm = (InputMethodManager) Daedalus.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(findViewById(R.id.id_content).getWindowToken(), 0);
         return true;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Daedalus.getInstance().updateLocale();
     }
 }

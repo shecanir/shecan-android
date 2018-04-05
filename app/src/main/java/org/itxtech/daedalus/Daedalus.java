@@ -89,7 +89,7 @@ public class Daedalus extends Application {
 
         initData();
 
-        updateLocale(LanguageHelper.getLanguage());
+        updateLocale();
     }
 
     private void initDirectory(String dir) {
@@ -208,7 +208,11 @@ public class Daedalus extends Application {
         }
     }
 
-    public void updateLocale(String lang) {
+    public void updateLocale() {
+        setLocale(LanguageHelper.getLanguage());
+    }
+
+    private void setLocale(String lang) {
         Locale locale = new Locale(lang);
         Locale.setDefault(locale);
 
