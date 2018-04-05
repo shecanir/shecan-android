@@ -1,13 +1,18 @@
 package org.itxtech.daedalus.activity;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.net.VpnService;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.LocaleList;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -31,6 +36,9 @@ import org.itxtech.daedalus.fragment.ToolbarFragment;
 import org.itxtech.daedalus.service.DaedalusVpnService;
 import org.itxtech.daedalus.util.Logger;
 import org.itxtech.daedalus.util.server.DNSServerHelper;
+import org.itxtech.daedalus.util.server.LocaleHelper;
+
+import java.util.Locale;
 
 /**
  * Daedalus Project
@@ -257,4 +265,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onConfigurationChanged(newConfig);
         Daedalus.getInstance().updateLocale();
     }
+
+
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(LocaleHelper.onAttach(base));
+    }
 }
+
+class MyContextWrapper extends ContextWrapper {
+    public MyContextWrapper(Context base) {
+        super(base);
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    public static ContextWrapper wrap(Context context, Locale newLocale) {
+        Resources res = context.getResources();
+        Configuration configuration = res.getConfiguration();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            configuration.setLocale(newLocale);
+
+            LocaleList localeList = new LocaleList(newLocale);
+            LocaleList.setDefault(localeList);
+            configuration.setLocales(localeList);
+            configuration.setLayoutDirection(localeList.get(0));
+
+            context = context.createConfigurationContext(configuration);
+
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            configuration.setLocale(newLocale);
+            context = context.createConfigurationContext(configuration);
+
+        } else {
+            configuration.locale = newLocale;
+            res.updateConfiguration(configuration, res.getDisplayMetrics());
+        }
+
+        return new ContextWrapper(context);
+    }
+
+}
+

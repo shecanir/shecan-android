@@ -1,18 +1,23 @@
 package org.itxtech.daedalus;
 
+import android.annotation.TargetApi;
 import android.app.Application;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ShortcutInfo;
 import android.content.pm.ShortcutManager;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
 import android.os.Environment;
+import android.os.LocaleList;
 import android.preference.PreferenceManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.google.firebase.crash.FirebaseCrash;
@@ -29,6 +34,7 @@ import org.itxtech.daedalus.util.Logger;
 import org.itxtech.daedalus.util.Rule;
 import org.itxtech.daedalus.util.server.DNSServer;
 import org.itxtech.daedalus.util.server.DNSServerHelper;
+import org.itxtech.daedalus.util.server.LocaleHelper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -221,11 +227,13 @@ public class Daedalus extends Application {
         Locale locale = new Locale(lang);
         Locale.setDefault(locale);
 
-        Configuration config = new Configuration(getResources().getConfiguration());
-        config.setLocale(locale);
+        Configuration config = getResources().getConfiguration();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-            getApplicationContext().createConfigurationContext(config);
+            config.setLocale(locale);
+            config.setLayoutDirection(locale);
+            createConfigurationContext(config);
         } else {
+            config.locale = locale;
             getResources().updateConfiguration(config,getResources().getDisplayMetrics());
         }
     }
@@ -233,4 +241,38 @@ public class Daedalus extends Application {
     public static Daedalus getInstance() {
         return instance;
     }
+
+    public static void changeLanguageType(String locale) {
+        getInstance().setLocale(locale);
+//        Locale.setDefault(locale);
+//        Resources resources = Daedalus.getInstance().getResources();
+//        DisplayMetrics dm = resources.getDisplayMetrics();
+//        Configuration config = resources.getConfiguration();
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//            config.setLocale(locale);
+//        } else {
+//            config.locale = locale;
+//            resources.updateConfiguration(config, dm);
+//        }
+    }
+
+    public static Locale getLanguageType() {
+        return getLanguageType(instance);
+    }
+
+    public static Locale getLanguageType(Context context) {
+        Resources resources = context.getResources();
+        Configuration config = resources.getConfiguration();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return config.getLocales().get(0);
+        } else {
+            return config.locale;
+        }
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(LocaleHelper.onAttach(base));
+    }
 }
+

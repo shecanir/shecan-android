@@ -13,6 +13,8 @@ import org.itxtech.daedalus.activity.MainActivity;
 import org.itxtech.daedalus.util.LanguageHelper;
 import org.itxtech.daedalus.util.server.DNSServerHelper;
 
+import java.util.Locale;
+
 /**
  * Daedalus Project
  *
@@ -84,9 +86,19 @@ public class GlobalConfigFragment extends PreferenceFragment {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 preference.setSummary(LanguageHelper.getDescription((String) newValue));
-                getActivity().startActivity(new Intent(Daedalus.getInstance(), MainActivity.class)
-                        .putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS)
-                        .putExtra(MainActivity.LAUNCH_NEED_RECREATE, true));
+                Daedalus.changeLanguageType((String) newValue);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    Intent i = getActivity().getBaseContext().getPackageManager()
+                            .getLaunchIntentForPackage( getContext().getPackageName() );
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getActivity().finish();
+                    startActivity(i);
+                } else {
+                    getActivity().startActivity(new Intent(Daedalus.getInstance(), MainActivity.class)
+                            .putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS)
+                            .putExtra(MainActivity.LAUNCH_NEED_RECREATE, true));
+                }
                 return true;
             }
         });
