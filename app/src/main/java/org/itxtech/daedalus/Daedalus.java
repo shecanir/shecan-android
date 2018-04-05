@@ -11,6 +11,7 @@ import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -106,14 +107,18 @@ public class Daedalus extends Application {
         PreferenceManager.setDefaultValues(this, R.xml.perf_settings, false);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        String path;
         if (getExternalFilesDir(null) != null) {
-            rulePath = getExternalFilesDir(null).getPath() + "/rules/";
-            logPath = getExternalFilesDir(null).getPath() + "/logs/";
-            configPath = getExternalFilesDir(null).getPath() + "/config.json";
-
-            initDirectory(rulePath);
-            initDirectory(logPath);
+            path = getExternalFilesDir(null).getPath();
+        } else {
+            path = getFilesDir().getPath();
         }
+        rulePath = path + "/rules/";
+        logPath = path + "/logs/";
+        configPath = path + "/config.json";
+
+        initDirectory(rulePath);
+        initDirectory(logPath);
 
         if (configPath != null) {
             configurations = Configurations.load(new File(configPath));

@@ -22,7 +22,12 @@ import android.widget.Button;
 
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
-import org.itxtech.daedalus.fragment.*;
+import org.itxtech.daedalus.fragment.AboutFragment;
+import org.itxtech.daedalus.fragment.DNSTestFragment;
+import org.itxtech.daedalus.fragment.HomeFragment;
+import org.itxtech.daedalus.fragment.LogFragment;
+import org.itxtech.daedalus.fragment.SettingsFragment;
+import org.itxtech.daedalus.fragment.ToolbarFragment;
 import org.itxtech.daedalus.service.DaedalusVpnService;
 import org.itxtech.daedalus.util.Logger;
 import org.itxtech.daedalus.util.server.DNSServerHelper;

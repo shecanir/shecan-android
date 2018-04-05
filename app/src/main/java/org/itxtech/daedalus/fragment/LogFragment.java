@@ -1,5 +1,6 @@
 package org.itxtech.daedalus.fragment;
 
+import android.Manifest;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import org.itxtech.daedalus.Daedalus;
 import org.itxtech.daedalus.R;
+import org.itxtech.daedalus.activity.MainActivity;
 import org.itxtech.daedalus.util.Logger;
 
 import java.io.FileWriter;
@@ -44,7 +46,10 @@ public class LogFragment extends ToolbarFragment implements Toolbar.OnMenuItemCl
 
     private void export() {
         try {
-            String file = Daedalus.logPath + String.valueOf(System.currentTimeMillis()) + ".log";
+            String file = Daedalus.logPath +
+                    "Shecan-" +
+                    String.valueOf(System.currentTimeMillis()) +
+                    ".log";
             FileWriter fileWriter = new FileWriter(file);
             fileWriter.write(Logger.getLog());
             fileWriter.close();
