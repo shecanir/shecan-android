@@ -29,7 +29,7 @@
         <ListPreference
             android:key="settings_language"
             android:title="@string/settings_language"
-            android:defaultValue="fa"/>
+            />
         <SwitchPreference
             android:key="settings_notification"
             android:title="@string/settings_notification"

@@ -2,6 +2,8 @@ package org.itxtech.daedalus.util;
 
 import org.itxtech.daedalus.Daedalus;
 
+import java.util.Locale;
+
 public class LanguageHelper {
 
     private static final String[] ids = {"fa", "en"};
@@ -25,6 +27,12 @@ public class LanguageHelper {
     }
 
     public static String getLanguage() {
-        return Daedalus.getPrefs().getString("settings_language", "fa");
+        String systemLanguage = Locale.getDefault().getLanguage();
+        String defaultLanguage;
+        if (systemLanguage.equals("fa"))
+            defaultLanguage = "fa";
+        else
+            defaultLanguage = "en";
+        return Daedalus.getPrefs().getString("settings_language", defaultLanguage);
     }
 }
