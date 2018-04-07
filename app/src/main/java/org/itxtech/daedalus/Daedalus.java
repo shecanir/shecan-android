@@ -235,10 +235,6 @@ public class Daedalus extends Application {
         getInstance().setLocale(locale);
     }
 
-    public static Locale getLanguageType() {
-        return getLanguageType(instance);
-    }
-
     public static Locale getLanguageType(Context context) {
 
         if (instance != null) { // Use currently edited context instance to get locale
