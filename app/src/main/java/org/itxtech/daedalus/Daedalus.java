@@ -228,9 +228,10 @@ public class Daedalus extends Application {
         Locale.setDefault(locale);
 
         Configuration config = getResources().getConfiguration();
+        config.setLayoutDirection(locale);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
             config.setLocale(locale);
-            config.setLayoutDirection(locale);
             createConfigurationContext(config);
         } else {
             config.locale = locale;
