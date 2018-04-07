@@ -90,8 +90,7 @@ public class GlobalConfigFragment extends PreferenceFragment {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     Intent i = getActivity().getBaseContext().getPackageManager()
                             .getLaunchIntentForPackage( getContext().getPackageName() );
-                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     getActivity().finish();
                     startActivity(i);
                 } else {

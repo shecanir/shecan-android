@@ -224,18 +224,7 @@ public class Daedalus extends Application {
     }
 
     private void setLocale(String lang) {
-        Locale locale = new Locale(lang);
-        Locale.setDefault(locale);
-
-        Configuration config = getResources().getConfiguration();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N){
-            config.setLocale(locale);
-            config.setLayoutDirection(locale);
-            createConfigurationContext(config);
-        } else {
-            config.locale = locale;
-            getResources().updateConfiguration(config,getResources().getDisplayMetrics());
-        }
+        LocaleHelper.setLocale(this, new Locale(lang));
     }
 
     public static Daedalus getInstance() {
@@ -244,16 +233,6 @@ public class Daedalus extends Application {
 
     public static void changeLanguageType(String locale) {
         getInstance().setLocale(locale);
-//        Locale.setDefault(locale);
-//        Resources resources = Daedalus.getInstance().getResources();
-//        DisplayMetrics dm = resources.getDisplayMetrics();
-//        Configuration config = resources.getConfiguration();
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//            config.setLocale(locale);
-//        } else {
-//            config.locale = locale;
-//            resources.updateConfiguration(config, dm);
-//        }
     }
 
     public static Locale getLanguageType() {
@@ -261,6 +240,11 @@ public class Daedalus extends Application {
     }
 
     public static Locale getLanguageType(Context context) {
+
+        if (instance != null) { // Use currently edited context instance to get locale
+            context = instance;
+        }
+
         Resources resources = context.getResources();
         Configuration config = resources.getConfiguration();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
