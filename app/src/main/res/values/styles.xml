@@ -1,30 +1,122 @@
 <resources>
+    <style name="ThemeActionBar"
+        parent="Widget.AppCompat.Light.ActionBar.Solid">
+        <item name="android:background">@null</item>
+        <!-- Support library compatibility -->
+        <item name="background">@null</item>
+    </style>
 
-    <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-
         <item name="colorIcons">@android:color/black</item>
+        <item name="android:textViewStyle">@style/TextViewStyle</item>
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Support library compatibility -->
+        <item name="actionBarStyle">@style/ThemeActionBar</item>
+<!--        <item name="windowActionBarOverlay">true</item>-->
+
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">false</item>
+
+        <!-- Support library compatibility -->
+
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+
+        <item name="android:textColor">@android:color/black</item>
     </style>
+
     <style name="AppTheme.Dark" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-
         <item name="colorIcons">@android:color/white</item>
-    </style>
-    <style name="AppTheme.NoActionBar">
+        <item name="android:textViewStyle">@style/TextViewStyle</item>
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+        <!-- Support library compatibility -->
+        <item name="actionBarStyle">@style/ThemeActionBar</item>
+        <!--        <item name="windowActionBarOverlay">true</item>-->
+
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:fitsSystemWindows">false</item>
+
+        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+        <item name="android:textColor">@android:color/white</item>
+
     </style>
-    <style name="AppTheme.Dark.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+
+    <style name="TextViewStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeuil</item>
     </style>
+
+    <style name="TextViewRegularStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeui</item>
+    </style>
+
+    <style name="TextViewBoldStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeuib</item>
+    </style>
+
+    <style name="TextViewLightStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeui</item>
+    </style>
+
+    <style name="TextViewSubBarStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeuil</item>
+    </style>
+
+    <style name="TextViewLogoStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:textSize">60sp</item>
+        <item name="android:letterSpacing">-0.065</item>
+    </style>
+
+    <style name="HomeImageLogoStyle">
+        <item name="android:layout_width">52dp</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_marginTop">20dp</item>
+        <item name="android:layout_marginBottom">15dp</item>
+    </style>
+
+    <style name="TextViewNoticeStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:letterSpacing">0.2</item>
+    </style>
+
+    <style name="WindowAnimationTransition">
+        <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
+        <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+
+    <style name="Widget.NavigationView"
+        parent="Widget.Design.NavigationView">
+        <item name="fontFamily">@font/iran_yekan_light</item>
+    </style>
+
+    <style name="TextViewStatus" parent="TextViewRegularStyle">
+        <item name="android:layout_width">115dp</item>
+    </style>
+
+    <style name="ImageViewStatus" parent="TextViewRegularStyle">
+        <item name="android:layout_marginTop">2dp</item>
+    </style>
 
 </resources>

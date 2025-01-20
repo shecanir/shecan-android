@@ -3,7 +3,8 @@
     <string name="app_name">شکن</string>
     <string name="quick_toggle">Toggle</string>
 
-    <string name="notice_main">تحریم‌های اینترنتی رو بی‌اثر کن!</string>
+    <string name="notice_main_disconnected">در حال حاضر شما به وب‌سایت‌ها و سرویس‌های تحریم شده دسترسی ندارید. برای فعال‌سازی دکمه زیر را بزنید.</string>
+    <string name="notice_main_connected">دسترسی شما به وبسایت‌ها و سرویس‌های تحریم‌شده برقرار شد.</string>
     <string name="notice_activated">شکن فعال است.</string>
     <string name="notice_start_test">Testing specified DNS server…</string>
     <string name="notice_queries">DNS query times:</string>
@@ -12,11 +13,11 @@
     <string name="notice_fill_in_all">لطفاً تمامی آیتم‌ها پیکربندی را پر کنید.</string>
     <string name="notice_delete_confirm_prompt">از حذف این پیکربندی اطمینان دارید؟</string>
     <string name="notice_export_complete">بیرون بردن کامل شد.</string>
+    <string name="logo_text">شکن</string>
 
     <string name="action_settings">تنظیمات</string>
     <string name="action_about">درباره ما</string>
     <string name="action_dns_test">بررسی DNS</string>
-    <string name="action_domain_test">گزارش یا بررسی تحریم</string>
     <string name="action_start_test">شروع تست</string>
     <string name="action_home">خانه</string>
     <string name="action_rules">قواعد</string>
@@ -50,7 +51,6 @@
     <string name="settings_dns_over_tcp">درخواست DNS بر بستر TCP</string>
     <string name="settings_log_size">محدودیت تعداد رکورد رخ‌داد</string>
     <string name="settings_debug_output">تولید خروجی ایرادیابی</string>
-    <string name="settings_dark_theme">استفاده از پوسته‌ی تیره</string>
 
     <string name="settings_server_name">نام سرور</string>
     <string name="settings_server_address">آدرس سرور</string>
@@ -77,4 +77,9 @@
     <string name="notification_channel_hiddenicon_description">This channel shows no icon in the notification bar</string>
     <string name="shecan_logo_description">نشان شکن</string>
     <string name="saramad_logo_description">نشان سرآمد</string>
+    <string name="shecan_status_active">شکن فعال است</string>
+    <string name="shecan_status_deactive">شکن فعال نیست</string>
+    <string name="donate">شکن</string>
+    <string name="check_and_report">بررسی و گزارش</string>
+
 </resources>

@@ -24,7 +24,7 @@
             android:id="@+id/spinner_type"
             android:verticalScrollbarPosition="defaultPosition"
             android:layout_alignParentTop="true"/>
-        <org.itxtech.daedalus.widget.ClearAutoCompleteTextView
+        <ir.shecan.widget.ClearAutoCompleteTextView
             android:completionThreshold="1"
             android:singleLine="true"
             android:textDirection="ltr"
