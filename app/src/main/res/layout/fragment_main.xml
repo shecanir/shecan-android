@@ -16,81 +16,81 @@
         <LinearLayout
             android:id="@+id/tabLinearLayout"
             android:layout_width="0dp"
-            android:padding="8dp"
+            android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
             android:layout_marginTop="80dp"
             android:background="@drawable/rounded_white_background"
             android:orientation="vertical"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            android:padding="8dp"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_height="wrap_content">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:orientation="horizontal"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/freeModeBtn"
-                    android:text="@string/free_shecan"
                     style="@style/ButtonStyle"
-                    android:textColor="#ffffff"
-                    android:background="@drawable/rounded_button"
                     android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"/>
+                    android:background="@drawable/rounded_button"
+                    android:text="@string/free_shecan"
+                    android:textColor="#ffffff" />
 
                 <View
                     android:layout_width="16dp"
-                    android:layout_height="2dp"/>
+                    android:layout_height="2dp" />
 
                 <Button
                     android:id="@+id/proModeBtn"
-                    android:text="@string/pro_shecan"
                     style="@style/ButtonStyle"
-                    android:textColor="#000000"
-                    android:background="@drawable/default_no_background_button"
                     android:layout_width="0dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content"/>
+                    android:background="@drawable/default_no_background_button"
+                    android:text="@string/pro_shecan"
+                    android:textColor="#000000" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/pro_mode_expand_layout"
                 android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <LinearLayout
-                    android:layout_marginTop="8dp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
 
                     <RadioGroup
                         android:id="@+id/radio_group"
                         android:layout_width="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
                         <RadioButton
                             android:id="@+id/dynamic_radio_btn"
-                            android:layout_width="wrap_content"
-                            android:text="@string/dynamic_ip"
                             style="@style/TextViewBoldStyle"
-                            android:textColor="#000000"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:checked="true"
-                            android:layout_height="wrap_content"/>
+                            android:text="@string/dynamic_ip"
+                            android:textColor="#000000" />
 
                         <RadioButton
                             android:id="@+id/static_radio_btn"
-                            android:layout_marginStart="32dp"
-                            android:layout_width="wrap_content"
-                            android:text="@string/static_ip"
                             style="@style/TextViewBoldStyle"
-                            android:textColor="#000000"
-                            android:layout_height="wrap_content"/>
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="32dp"
+                            android:text="@string/static_ip"
+                            android:textColor="#000000" />
 
                     </RadioGroup>
 
@@ -98,35 +98,34 @@
 
                 <LinearLayout
                     android:id="@+id/dynamic_expand_layout"
-                    android:layout_marginTop="8dp"
                     android:layout_width="match_parent"
-                    android:orientation="vertical"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
 
                     <TextView
-                        android:text="@string/please_enter_your_link_updater"
-                        android:layout_width="wrap_content"
                         style="@style/TextViewBoldStyle"
-                        android:textColor="#000000"
-                        android:layout_height="wrap_content"/>
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/please_enter_your_link_updater"
+                        android:textColor="#000000" />
 
                     <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_marginTop="4dp"
                         style="@style/TextInputStyle"
-                        android:layout_height="wrap_content">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp">
 
                         <EditText
-                            android:layoutDirection="ltr"
-                            android:textDirection="ltr"
-                            android:maxLines="1"
                             android:id="@+id/link_updater_edit_text"
                             android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layoutDirection="ltr"
+                            android:maxLines="1"
                             android:textColor="#000000"
-                            android:layout_height="wrap_content"/>
+                            android:textDirection="ltr" />
 
                     </com.google.android.material.textfield.TextInputLayout>
-
 
 
                 </LinearLayout>
@@ -143,11 +142,11 @@
             android:layout_marginTop="24dp"
             android:gravity="center|center_horizontal"
             android:orientation="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/button_activate"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0">
+            app:layout_constraintVertical_bias="0.44">
 
             <LinearLayout
                 android:id="@+id/linearLayoutLogo"
@@ -178,13 +177,13 @@
                 android:id="@+id/textShecanDesctiption"
                 style="@style/TextViewNoticeStyle"
                 android:layout_width="264dp"
-                android:layout_height="80dp"
-                android:layout_marginTop="28dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="14dp"
                 android:fontFamily="@font/iran_yekan_light"
                 android:gravity="center_horizontal|top"
                 android:lineSpacingMultiplier="0.8"
-                android:paddingBottom="0.5dp"
                 android:paddingTop="0.5dp"
+                android:paddingBottom="0.5dp"
                 android:text="@string/notice_main_disconnected"
                 android:textAlignment="center"
                 android:textSize="12sp" />
@@ -194,7 +193,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="14dp"
                 android:gravity="center"
                 android:orientation="horizontal">
 
@@ -225,7 +224,7 @@
             android:layout_height="210dp"
             android:layout_marginBottom="35dp"
 
-            app:layout_constraintBottom_toTopOf="@+id/linearLayoutDonate"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayoutHeader"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -242,6 +241,19 @@
             app:layout_constraintEnd_toEndOf="parent">
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/banner_image_view"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:maxHeight="120dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="56dp"
+            android:visibility="gone"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <Space
             android:id="@+id/space"

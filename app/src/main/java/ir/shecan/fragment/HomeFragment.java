@@ -3,8 +3,10 @@ package ir.shecan.fragment;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -17,6 +19,17 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import java.util.Objects;
 
@@ -41,6 +54,7 @@ public class HomeFragment extends ToolbarFragment {
 
     Boolean isExpandedProMode = false;
     Boolean isExpandedDynamicMode = true;
+    ImageView bannerImageView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -50,15 +64,17 @@ public class HomeFragment extends ToolbarFragment {
         final Button freeModeBtn = view.findViewById(R.id.freeModeBtn);
         final Button proModeBtn = view.findViewById(R.id.proModeBtn);
 
-
         RadioButton dynamicRBtn = view.findViewById(R.id.dynamic_radio_btn);
         RadioButton staticBtn = view.findViewById(R.id.static_radio_btn);
-
 
         final LinearLayout proModeExpandLayout = view.findViewById(R.id.pro_mode_expand_layout);
         final LinearLayout dynamicExpandLayout = view.findViewById(R.id.dynamic_expand_layout);
 
         EditText linkUpdaterEditText = view.findViewById(R.id.link_updater_edit_text);
+
+        bannerImageView = view.findViewById(R.id.banner_image_view);
+        loadBanner(bannerImageView);
+
         final Activity activity = getActivity();
 
         // collapse first
@@ -124,8 +140,6 @@ public class HomeFragment extends ToolbarFragment {
             }
         });
 
-
-
         LinearLayout linearLayoutDonate = view.findViewById(R.id.linearLayoutDonate);
 
         if (!ViewConfiguration.get(activity.getApplicationContext()).hasPermanentMenuKey()) {
@@ -139,6 +153,32 @@ public class HomeFragment extends ToolbarFragment {
         }
 
         return view;
+    }
+
+    private void loadBanner(final ImageView imageView){
+        // URL of the image to load
+        String imageUrl = "https://fakeimg.pl/600x360"; // Replace with your image URL
+        Log.d("Banner", "run function");
+
+        // Load the image using Picasso
+        Picasso.get()
+                .load(imageUrl) // URL of the image
+                .into(imageView, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        // Successfully loaded the image, make the ImageView visible
+                        imageView.setVisibility(View.VISIBLE);
+                        Log.d("Banner", "successful");
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        // Handle the error, if loading fails
+                        imageView.setVisibility(View.GONE); // Keep the ImageView hidden if image loading fails
+                        Log.d("Banner", "failure");
+                    }
+                });
+
     }
 
     // Expand function
