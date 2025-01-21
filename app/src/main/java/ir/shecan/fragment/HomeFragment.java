@@ -1,16 +1,19 @@
 package ir.shecan.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.Button;
@@ -21,6 +24,7 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -72,6 +76,8 @@ public class HomeFragment extends ToolbarFragment {
 
         EditText linkUpdaterEditText = view.findViewById(R.id.link_updater_edit_text);
 
+        TextView helpLinkUpdater = view.findViewById(R.id.help_link_updater);
+
         bannerImageView = view.findViewById(R.id.banner_image_view);
         loadBanner(bannerImageView);
 
@@ -79,6 +85,16 @@ public class HomeFragment extends ToolbarFragment {
 
         // collapse first
         collapse(proModeExpandLayout);
+
+        helpLinkUpdater.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // todo: change it later
+                String url = "https://shecan.ir"; // Replace with the URL you want to open
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+            }
+        });
 
         dynamicRBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,8 +122,16 @@ public class HomeFragment extends ToolbarFragment {
                 if (ShecanVpnService.isActivated()) {
                     Shecan.deactivateService(activity.getApplicationContext());
                 } else {
-                    startActivity(new Intent(activity, MainActivity.class)
-                            .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+                    // todo: chnage it later, just for test
+                    if(isExpandedProMode){
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            showRenewalDialog();
+                        }
+                    } else {
+                        startActivity(new Intent(activity, MainActivity.class)
+                                .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+                    }
+
                 }
             }
         });
@@ -156,39 +180,29 @@ public class HomeFragment extends ToolbarFragment {
     }
 
     private void loadBanner(final ImageView imageView) {
-        // URL of the image to load
-        String imageUrl = "https://fakeimg.pl/600x360"; // Replace with your image URL
-        Log.d("Banner", "run function");
+        // todo: change the image url later
+        String imageUrl = "https://fakeimg.pl/600x360";
 
-        // Load the image using Picasso
         Picasso.get()
                 .load(imageUrl) // URL of the image
                 .into(imageView, new Callback() {
                     @Override
                     public void onSuccess() {
-                        // Successfully loaded the image, make the ImageView visible
                         imageView.setVisibility(View.VISIBLE);
-                        Log.d("Banner", "successful");
                     }
 
                     @Override
                     public void onError(Exception e) {
-                        // Handle the error, if loading fails
                         imageView.setVisibility(View.GONE); // Keep the ImageView hidden if image loading fails
-                        Log.d("Banner", "failure");
                     }
                 });
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Define the URL you want to open
+                // todo: change the link later
                 String url = "https://shecan.ir"; // Replace with the URL you want to open
-
-                // Create an Intent to open the URL in the browser
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-
-                // Start the intent (open the browser)
                 startActivity(intent);
             }
         });
@@ -247,6 +261,36 @@ public class HomeFragment extends ToolbarFragment {
 
         animation.setDuration((int) (initialHeight / view.getContext().getResources().getDisplayMetrics().density));
         view.startAnimation(animation);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void showRenewalDialog() {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_no_active_service, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setView(dialogView);
+
+        Button openUrlButton = dialogView.findViewById(R.id.renewalButton);
+        final AlertDialog dialog = builder.create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        openUrlButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+
+                // todo: change the url later
+                String url = "https://shecan.ir"; // Replace with your desired URL
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+            }
+        });
+
+        dialog.show();
     }
 
     private void updateUserInterface() {

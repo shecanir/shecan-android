@@ -86,5 +86,8 @@
     <string name="dynamic_ip">آی پی متغیر</string>
     <string name="static_ip">آی پی ثابت</string>
     <string name="please_enter_your_link_updater">لینک بروزرسان خود را وارد کنید</string>
+    <string name="help">راهنما</string>
+    <string name="no_active_service">شما سرویس فعال ندارید</string>
+    <string name="purchase_service">خرید/تمدید سرویس</string>
 
 </resources>

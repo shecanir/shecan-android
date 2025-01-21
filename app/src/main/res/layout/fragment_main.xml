@@ -103,12 +103,34 @@
                     android:layout_marginTop="8dp"
                     android:orientation="vertical">
 
-                    <TextView
-                        style="@style/TextViewBoldStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/please_enter_your_link_updater"
-                        android:textColor="#000000" />
+                    <LinearLayout
+                        android:paddingHorizontal="8dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            style="@style/TextViewBoldStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/please_enter_your_link_updater"
+                            android:textColor="#000000" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="1dp"/>
+
+                        <TextView
+                            android:id="@+id/help_link_updater"
+                            android:text="@string/help"
+                            android:textColor="@color/colorAccent"
+                            style="@style/TextViewRegularStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+
+                    </LinearLayout>
+
+
 
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/TextInputStyle"
