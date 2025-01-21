@@ -91,4 +91,10 @@
     <string name="logo_image">Logo Image</string>
     <string name="check_and_report">Check and Report</string>
     <string name="status_icon">Status Icon</string>
+
+    <string name="free_shecan">Free Shecan</string>
+    <string name="pro_shecan">Pro Shecan</string>
+    <string name="dynamic_ip">Dynamic IP</string>
+    <string name="static_ip">Static IP</string>
+    <string name="please_enter_your_link_updater">Please Enter Your Link Updater</string>
 </resources>

@@ -12,6 +12,10 @@
         <item name="android:fontFamily">@font/iran_yekan_light</item>
     </style>
 
+    <style name="TextViewBoldStyle" parent="android:Widget.TextView">
+        <item name="android:fontFamily">@font/iran_yekan_bold</item>
+    </style>
+
     <style name="TextViewSubBarStyle" parent="android:Widget.TextView">
         <item name="android:fontFamily">@font/iran_yekan_thin</item>
     </style>
@@ -19,6 +23,10 @@
     <style name="TextViewLogoStyle" parent="android:Widget.TextView">
         <item name="android:fontFamily">@font/iran_yekan_extra_bold</item>
         <item name="android:textSize">50sp</item>
+    </style>
+
+    <style name="ButtonStyle">
+        <item name="android:fontFamily">@font/iran_yekan_extra_bold</item>
     </style>
 
     <style name="TextViewNoticeStyle" parent="android:Widget.TextView">

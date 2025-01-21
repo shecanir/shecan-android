@@ -81,5 +81,10 @@
     <string name="shecan_status_deactive">شکن فعال نیست</string>
     <string name="donate">شکن</string>
     <string name="check_and_report">بررسی و گزارش</string>
+    <string name="free_shecan">شکن رایگان</string>
+    <string name="pro_shecan">شکن حرفه ای</string>
+    <string name="dynamic_ip">آی پی متغیر</string>
+    <string name="static_ip">آی پی ثابت</string>
+    <string name="please_enter_your_link_updater">لینک بروزرسان خود را وارد کنید</string>
 
 </resources>

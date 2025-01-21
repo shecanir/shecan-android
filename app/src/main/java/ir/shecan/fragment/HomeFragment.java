@@ -9,9 +9,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.util.Objects;
@@ -35,12 +39,51 @@ import ir.shecan.service.ShecanVpnService;
  */
 public class HomeFragment extends ToolbarFragment {
 
+    Boolean isExpandedProMode = false;
+    Boolean isExpandedDynamicMode = true;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         Button but = view.findViewById(R.id.button_activate);
+        final Button freeModeBtn = view.findViewById(R.id.freeModeBtn);
+        final Button proModeBtn = view.findViewById(R.id.proModeBtn);
+
+
+        RadioButton dynamicRBtn = view.findViewById(R.id.dynamic_radio_btn);
+        RadioButton staticBtn = view.findViewById(R.id.static_radio_btn);
+
+
+        final LinearLayout proModeExpandLayout = view.findViewById(R.id.pro_mode_expand_layout);
+        final LinearLayout dynamicExpandLayout = view.findViewById(R.id.dynamic_expand_layout);
+
+        EditText linkUpdaterEditText = view.findViewById(R.id.link_updater_edit_text);
         final Activity activity = getActivity();
+
+        // collapse first
+        collapse(proModeExpandLayout);
+
+        dynamicRBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!isExpandedDynamicMode){
+                    expand(dynamicExpandLayout);
+                }
+                isExpandedDynamicMode = true;
+            }
+        });
+
+        staticBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isExpandedDynamicMode){
+                    collapse(dynamicExpandLayout);
+                }
+                isExpandedDynamicMode = false;
+            }
+        });
+
         but.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,6 +95,36 @@ public class HomeFragment extends ToolbarFragment {
                 }
             }
         });
+
+        freeModeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isExpandedProMode){
+                    collapse(proModeExpandLayout);
+                    freeModeBtn.setBackgroundResource(R.drawable.rounded_button);
+                    freeModeBtn.setTextColor(getResources().getColor(android.R.color.white));
+                    proModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
+                    proModeBtn.setTextColor(getResources().getColor(android.R.color.black));
+                }
+                isExpandedProMode = false;
+            }
+        });
+
+        proModeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!isExpandedProMode){
+                    expand(proModeExpandLayout);
+                    proModeBtn.setBackgroundResource(R.drawable.rounded_button);
+                    proModeBtn.setTextColor(getResources().getColor(android.R.color.white));
+                    freeModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
+                    freeModeBtn.setTextColor(getResources().getColor(android.R.color.black));
+                }
+                isExpandedProMode = true;
+            }
+        });
+
+
 
         LinearLayout linearLayoutDonate = view.findViewById(R.id.linearLayoutDonate);
 
@@ -66,6 +139,60 @@ public class HomeFragment extends ToolbarFragment {
         }
 
         return view;
+    }
+
+    // Expand function
+    private void expand(final View view) {
+        view.measure(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        final int targetHeight = view.getMeasuredHeight();
+
+        view.getLayoutParams().height = 0;
+        view.setVisibility(View.VISIBLE);
+
+        Animation animation = new Animation() {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                if (interpolatedTime == 1) {
+                    view.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
+                } else {
+                    view.getLayoutParams().height = (int) (targetHeight * interpolatedTime);
+                }
+                view.requestLayout();
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        animation.setDuration((int) (targetHeight / view.getContext().getResources().getDisplayMetrics().density));
+        view.startAnimation(animation);
+    }
+
+    // Collapse function
+    private void collapse(final View view) {
+        final int initialHeight = view.getMeasuredHeight();
+
+        Animation animation = new Animation() {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                if (interpolatedTime == 1) {
+                    view.setVisibility(View.GONE);
+                } else {
+                    view.getLayoutParams().height = initialHeight - (int) (initialHeight * interpolatedTime);
+                    view.requestLayout();
+                }
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        animation.setDuration((int) (initialHeight / view.getContext().getResources().getDisplayMetrics().density));
+        view.startAnimation(animation);
     }
 
     private void updateUserInterface() {
