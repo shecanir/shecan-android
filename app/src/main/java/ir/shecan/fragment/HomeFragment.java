@@ -83,7 +83,7 @@ public class HomeFragment extends ToolbarFragment {
         dynamicRBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!isExpandedDynamicMode){
+                if (!isExpandedDynamicMode) {
                     expand(dynamicExpandLayout);
                 }
                 isExpandedDynamicMode = true;
@@ -93,7 +93,7 @@ public class HomeFragment extends ToolbarFragment {
         staticBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isExpandedDynamicMode){
+                if (isExpandedDynamicMode) {
                     collapse(dynamicExpandLayout);
                 }
                 isExpandedDynamicMode = false;
@@ -115,7 +115,7 @@ public class HomeFragment extends ToolbarFragment {
         freeModeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isExpandedProMode){
+                if (isExpandedProMode) {
                     collapse(proModeExpandLayout);
                     freeModeBtn.setBackgroundResource(R.drawable.rounded_button);
                     freeModeBtn.setTextColor(getResources().getColor(android.R.color.white));
@@ -129,7 +129,7 @@ public class HomeFragment extends ToolbarFragment {
         proModeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!isExpandedProMode){
+                if (!isExpandedProMode) {
                     expand(proModeExpandLayout);
                     proModeBtn.setBackgroundResource(R.drawable.rounded_button);
                     proModeBtn.setTextColor(getResources().getColor(android.R.color.white));
@@ -155,7 +155,7 @@ public class HomeFragment extends ToolbarFragment {
         return view;
     }
 
-    private void loadBanner(final ImageView imageView){
+    private void loadBanner(final ImageView imageView) {
         // URL of the image to load
         String imageUrl = "https://fakeimg.pl/600x360"; // Replace with your image URL
         Log.d("Banner", "run function");
@@ -178,6 +178,20 @@ public class HomeFragment extends ToolbarFragment {
                         Log.d("Banner", "failure");
                     }
                 });
+
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Define the URL you want to open
+                String url = "https://shecan.ir"; // Replace with the URL you want to open
+
+                // Create an Intent to open the URL in the browser
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+
+                // Start the intent (open the browser)
+                startActivity(intent);
+            }
+        });
 
     }
 
