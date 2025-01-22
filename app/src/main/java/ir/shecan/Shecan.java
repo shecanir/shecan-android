@@ -182,6 +182,31 @@ public class Shecan extends Application {
         context.stopService(getServiceIntent(context));
     }
 
+    public static void setFreeMode(Context context) {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_PRO_MODE, false)
+                .apply();
+    }
+
+    public static void setProMode(Context context) {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_PRO_MODE, true)
+                .apply();
+    }
+
+    public static void setDynamicIPMode(Context context) {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_DYNAMIC_IP_MODE, true)
+                .apply();
+    }
+
+    public static void setStaticIPMode(Context context) {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_DYNAMIC_IP_MODE, false)
+                .apply();
+    }
+
+
     public static void updateShortcut(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             Log.d("Shecan", "Updating shortcut");

@@ -100,4 +100,7 @@
     <string name="help">Help</string>
     <string name="no_active_service">You don\'t have active service</string>
     <string name="purchase_service">Purchase/Renewal Service</string>
+    <string name="update">Update</string>
+    <string name="cancel">Cancel</string>
+    <string name="new_version_available">A new version of the app is available</string>
 </resources>

@@ -91,6 +91,7 @@
         <item name="android:fontFamily">@font/segoeui</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:elevation">0dp</item>
+        <item name="android:outlineProvider">none</item>
     </style>
 
     <style name="HomeImageLogoStyle">

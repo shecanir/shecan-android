@@ -56,8 +56,6 @@ import ir.shecan.service.ShecanVpnService;
  */
 public class HomeFragment extends ToolbarFragment {
 
-    Boolean isExpandedProMode = false;
-    Boolean isExpandedDynamicMode = true;
     ImageView bannerImageView;
 
     @Override
@@ -99,20 +97,20 @@ public class HomeFragment extends ToolbarFragment {
         dynamicRBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isExpandedDynamicMode) {
+                if (!ShecanVpnService.isDynamicIPMode()) {
                     expand(dynamicExpandLayout);
                 }
-                isExpandedDynamicMode = true;
+                Shecan.setDynamicIPMode(activity.getApplicationContext());
             }
         });
 
         staticBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isExpandedDynamicMode) {
+                if (ShecanVpnService.isDynamicIPMode()) {
                     collapse(dynamicExpandLayout);
                 }
-                isExpandedDynamicMode = false;
+                Shecan.setStaticIPMode(activity.getApplicationContext());
             }
         });
 
@@ -123,14 +121,17 @@ public class HomeFragment extends ToolbarFragment {
                     Shecan.deactivateService(activity.getApplicationContext());
                 } else {
                     // todo: chnage it later, just for test
-                    if(isExpandedProMode){
+                    if (ShecanVpnService.isProMode()) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            showRenewalDialog();
+//                            showRenewalDialog();
+//                            showUpdateDialog(true);
                         }
                     } else {
-                        startActivity(new Intent(activity, MainActivity.class)
-                                .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+
                     }
+
+                    startActivity(new Intent(activity, MainActivity.class)
+                            .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
 
                 }
             }
@@ -139,28 +140,28 @@ public class HomeFragment extends ToolbarFragment {
         freeModeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isExpandedProMode) {
+                if (ShecanVpnService.isProMode()) {
                     collapse(proModeExpandLayout);
                     freeModeBtn.setBackgroundResource(R.drawable.rounded_button);
                     freeModeBtn.setTextColor(getResources().getColor(android.R.color.white));
                     proModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
                     proModeBtn.setTextColor(getResources().getColor(android.R.color.black));
                 }
-                isExpandedProMode = false;
+                Shecan.setFreeMode(activity.getApplicationContext());
             }
         });
 
         proModeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isExpandedProMode) {
+                if (!ShecanVpnService.isProMode()) {
                     expand(proModeExpandLayout);
                     proModeBtn.setBackgroundResource(R.drawable.rounded_button);
                     proModeBtn.setTextColor(getResources().getColor(android.R.color.white));
                     freeModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
                     freeModeBtn.setTextColor(getResources().getColor(android.R.color.black));
                 }
-                isExpandedProMode = true;
+                Shecan.setProMode(activity.getApplicationContext());
             }
         });
 
@@ -293,6 +294,51 @@ public class HomeFragment extends ToolbarFragment {
         dialog.show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void showUpdateDialog(Boolean isForceUpdate) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_update_app, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setView(dialogView);
+
+        Button openUrlButton = dialogView.findViewById(R.id.updateBtn);
+        Button cancelBtn = dialogView.findViewById(R.id.cancelBtn);
+        final AlertDialog dialog = builder.create();
+
+        if (isForceUpdate) {
+            cancelBtn.setVisibility(View.GONE);
+            dialog.setCancelable(false);
+        }
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            if (isForceUpdate) {
+                dialog.setCanceledOnTouchOutside(false);
+            }
+        }
+
+        openUrlButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // todo: change the url later
+                String url = "https://shecan.ir"; // Replace with your desired URL
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                startActivity(intent);
+            }
+        });
+
+
+        cancelBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
     private void updateUserInterface() {
         boolean isActive = ShecanVpnService.isActivated();
         View view = getView();
@@ -301,8 +347,42 @@ public class HomeFragment extends ToolbarFragment {
         TextView shecanStatus = view.findViewById(R.id.textShecanStatus);
         ImageView statusIcon = view.findViewById(R.id.imageViewStatus);
         TextView shecanDescription = view.findViewById(R.id.textShecanDesctiption);
+
+        final Button freeModeBtn = view.findViewById(R.id.freeModeBtn);
+        final Button proModeBtn = view.findViewById(R.id.proModeBtn);
+
+        RadioButton dynamicRBtn = view.findViewById(R.id.dynamic_radio_btn);
+        RadioButton staticBtn = view.findViewById(R.id.static_radio_btn);
+
+        final LinearLayout proModeExpandLayout = view.findViewById(R.id.pro_mode_expand_layout);
+        LinearLayout dynamicExpandLayout = view.findViewById(R.id.dynamic_expand_layout);
+
         Resources resources = getResources();
+
+        if (ShecanVpnService.isProMode()) {
+            expand(proModeExpandLayout);
+            proModeBtn.setBackgroundResource(R.drawable.rounded_button);
+            proModeBtn.setTextColor(getResources().getColor(android.R.color.white));
+            freeModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
+            freeModeBtn.setTextColor(getResources().getColor(android.R.color.black));
+            if (ShecanVpnService.isDynamicIPMode()) {
+                expand(dynamicExpandLayout);
+                dynamicRBtn.setChecked(true);
+            } else {
+                collapse(dynamicExpandLayout);
+                staticBtn.setChecked(true);
+            }
+        } else {
+            freeModeBtn.setBackgroundResource(R.drawable.rounded_button);
+            freeModeBtn.setTextColor(getResources().getColor(android.R.color.white));
+            proModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
+            proModeBtn.setTextColor(getResources().getColor(android.R.color.black));
+        }
+
         if (isActive) {
+            if(ShecanVpnService.isProMode()){
+                collapse(proModeExpandLayout);
+            }
             view.setBackground(resources.getDrawable(R.drawable.background_on));
             button.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
             imageView.setBackgroundResource(R.drawable.home_logo);
@@ -319,6 +399,7 @@ public class HomeFragment extends ToolbarFragment {
             statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_disconnected));
             shecanDescription.setText(R.string.notice_main_disconnected);
         }
+
     }
 
     @Override
@@ -342,6 +423,5 @@ public class HomeFragment extends ToolbarFragment {
             updateUserInterface();
         }
     }
-
 
 }

@@ -57,6 +57,9 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static final String ACTION_ACTIVATE = "ir.shecan.service.ShecanVpnService.ACTION_ACTIVATE";
     public static final String ACTION_DEACTIVATE = "ir.shecan.service.ShecanVpnService.ACTION_DEACTIVATE";
 
+    public static final String IS_PRO_MODE = "IS_PRO_MODE";
+    public static final String IS_DYNAMIC_IP_MODE = "IS_DYNAMIC_IP_MODE";
+
     private static final int NOTIFICATION_ACTIVATED = 0;
 
     private static final String TAG = "ShecanVpnService";
@@ -82,6 +85,14 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     public static boolean isActivated() {
         return activated;
+    }
+
+    public static boolean isProMode(){
+        return Shecan.getPrefs().getBoolean(IS_PRO_MODE, false);
+    }
+
+    public static boolean isDynamicIPMode(){
+        return Shecan.getPrefs().getBoolean(IS_DYNAMIC_IP_MODE, true);
     }
 
     @Override

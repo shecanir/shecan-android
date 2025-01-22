@@ -89,5 +89,8 @@
     <string name="help">راهنما</string>
     <string name="no_active_service">شما سرویس فعال ندارید</string>
     <string name="purchase_service">خرید/تمدید سرویس</string>
+    <string name="update">بروزرسانی</string>
+    <string name="cancel">لغو</string>
+    <string name="new_version_available">نسخه ی جدیدی از اپلیکیشن در دسترس است</string>
 
 </resources>

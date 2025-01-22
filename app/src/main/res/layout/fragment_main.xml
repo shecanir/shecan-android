@@ -39,6 +39,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/rounded_button"
                     android:text="@string/free_shecan"
+                    android:stateListAnimator="@null"
                     android:textColor="#ffffff" />
 
                 <View
@@ -53,6 +54,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/default_no_background_button"
                     android:text="@string/pro_shecan"
+                    android:stateListAnimator="@null"
                     android:textColor="#000000" />
 
             </LinearLayout>
@@ -80,6 +82,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:checked="true"
+                            android:drawablePadding="8dp"
+                            android:button="@null"
+                            android:drawableStart="@drawable/custom_radio_button"
                             android:text="@string/dynamic_ip"
                             android:textColor="#000000" />
 
@@ -88,7 +93,10 @@
                             style="@style/TextViewBoldStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:button="@null"
+                            android:drawableStart="@drawable/custom_radio_button"
                             android:layout_marginStart="32dp"
+                            android:drawablePadding="8dp"
                             android:text="@string/static_ip"
                             android:textColor="#000000" />
 
