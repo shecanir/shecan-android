@@ -103,4 +103,6 @@
     <string name="update">Update</string>
     <string name="cancel">Cancel</string>
     <string name="new_version_available">A new version of the app is available</string>
+    <string name="out_of_range_ip_error">Your IP is out of range of Shecan Service</string>
+    <string name="contact_support">Contact Support</string>
 </resources>

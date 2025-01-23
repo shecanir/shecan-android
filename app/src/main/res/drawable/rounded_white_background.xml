@@ -2,9 +2,5 @@
     android:shape="rectangle">
     <corners android:radius="32dp" />
     <solid android:color="#ffffff" />
-    <padding
-        android:bottom="64dp"
-        android:left="64dp"
-        android:right="64dp"
-        android:top="64dp" />
+
 </shape>

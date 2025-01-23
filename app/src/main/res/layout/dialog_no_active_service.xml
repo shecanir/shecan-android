@@ -15,7 +15,6 @@
     android:background="@drawable/rounded_white_background"
     android:gravity="center">
 
-    <!-- Message TextView -->
     <TextView
         android:id="@+id/dialogMessage"
         android:layout_width="wrap_content"
@@ -25,13 +24,13 @@
         android:textColor="@color/colorAccent"
         android:layout_marginBottom="20dp"/>
 
-    <!-- Open URL Button -->
     <Button
         android:id="@+id/renewalButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/purchase_service"
         style="@style/ButtonStyle"
+        android:stateListAnimator="@null"
         android:paddingHorizontal="8dp"
         android:textColor="@android:color/white"
         android:background="@drawable/rounded_button" />
