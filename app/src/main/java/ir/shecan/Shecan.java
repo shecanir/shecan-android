@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
+import com.onesignal.OneSignal;
 
 import ir.shecan.R;
 
@@ -83,6 +84,8 @@ public class Shecan extends Application {
     private static Shecan instance = null;
     private SharedPreferences prefs;
 
+    private static final String ONESIGNAL_APP_ID = "64aafa29-46dc-46ea-8ac1-36830a241e90";
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -92,8 +95,19 @@ public class Shecan extends Application {
         Logger.init();
 
         initData();
+        initOneSignal();
 
         updateLocale();
+    }
+
+    private void initOneSignal(){
+        // Enable verbose OneSignal logging for debugging (optional)
+        OneSignal.setLogLevel(OneSignal.LOG_LEVEL.VERBOSE, OneSignal.LOG_LEVEL.NONE);
+
+        // Initialize OneSignal
+        OneSignal.initWithContext(this);
+        OneSignal.setAppId(ONESIGNAL_APP_ID);
+
     }
 
     private void initDirectory(String dir) {

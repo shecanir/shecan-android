@@ -70,9 +70,19 @@
                 <action android:name="android.net.VpnService" />
             </intent-filter>
         </service>
+
+        <meta-data
+            android:name="onesignal_app_id"
+            android:value="64aafa29-46dc-46ea-8ac1-36830a241e90" />
+
+        <meta-data
+            android:name="onesignal_google_project_number"
+            android:value="REMOTE" />
+
     </application>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
