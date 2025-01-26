@@ -33,6 +33,8 @@ public class GlobalConfigFragment extends PreferenceFragment {
         Shecan.getPrefs().edit()
                 .putString("primary_server", DNSServerHelper.getPrimary())
                 .putString("secondary_server", DNSServerHelper.getSecondary())
+                .putString("pro_primary_server", DNSServerHelper.getProPrimary())
+                .putString("pro_secondary_server", DNSServerHelper.getProSecondary())
                 .putString("settings_language", LanguageHelper.getLanguage())
                 .apply();
 

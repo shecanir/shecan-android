@@ -85,6 +85,7 @@
                             android:checked="true"
                             android:drawablePadding="8dp"
                             android:button="@null"
+                            android:textSize="14sp"
                             android:drawableStart="@drawable/custom_radio_button"
                             android:text="@string/dynamic_ip"
                             android:textColor="#000000" />
@@ -98,6 +99,7 @@
                             android:drawableStart="@drawable/custom_radio_button"
                             android:layout_marginStart="32dp"
                             android:drawablePadding="8dp"
+                            android:textSize="14sp"
                             android:text="@string/static_ip"
                             android:textColor="#000000" />
 
@@ -119,6 +121,7 @@
                         <TextView
                             style="@style/TextViewBoldStyle"
                             android:layout_width="wrap_content"
+                            android:textSize="12sp"
                             android:layout_height="wrap_content"
                             android:text="@string/please_enter_your_link_updater"
                             android:textColor="#000000" />
@@ -131,6 +134,7 @@
                         <TextView
                             android:id="@+id/help_link_updater"
                             android:text="@string/help"
+                            android:textSize="12sp"
                             android:textColor="@color/colorAccent"
                             style="@style/TextViewRegularStyle"
                             android:layout_width="wrap_content"
@@ -138,24 +142,47 @@
 
                     </LinearLayout>
 
-
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/TextInputStyle"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp">
+                        android:layoutDirection="ltr"
+                        android:gravity="center"
+                        android:orientation="horizontal">
 
-                        <EditText
-                            android:id="@+id/link_updater_edit_text"
-                            android:layout_width="match_parent"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/link_updater_input_layout"
+                            style="@style/TextInputStyle"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
-                            android:layoutDirection="ltr"
-                            android:maxLines="1"
-                            android:textColor="#000000"
-                            android:textDirection="ltr" />
+                            android:layout_marginTop="4dp">
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                            <EditText
+                                android:id="@+id/link_updater_edit_text"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layoutDirection="ltr"
+                                android:maxLines="1"
+                                android:singleLine="true"
+                                android:inputType="text"
+                                android:textSize="12sp"
+                                android:textColor="#000000"
+                                android:textDirection="ltr" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <ImageView
+                            android:id="@+id/clear_btn"
+                            android:visibility="gone"
+                            android:src="@drawable/ic_clear"
+                            android:layout_width="20dp"
+                            android:layout_marginStart="4dp"
+                            android:background="@drawable/rounded_button"
+                            android:layout_height="20dp"/>
+
+                    </LinearLayout>
+
+
 
 
                 </LinearLayout>
@@ -236,6 +263,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
                     android:contentDescription="@string/status_icon"
                     android:src="@drawable/status_connected" />
 
@@ -243,6 +271,7 @@
                     android:id="@+id/textShecanStatus"
                     style="@style/TextViewStatus"
                     android:layout_height="wrap_content"
+                    android:layout_width="wrap_content"
                     android:textAlignment="center"
                     android:textSize="12sp"
                     app:layout_constraintEnd_toEndOf="parent"

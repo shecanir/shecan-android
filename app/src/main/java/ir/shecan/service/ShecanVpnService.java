@@ -15,6 +15,13 @@ import androidx.core.util.Pair;
 import android.system.OsConstants;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import ir.shecan.Shecan;
 import ir.shecan.R;
 
@@ -59,6 +66,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     public static final String IS_PRO_MODE = "IS_PRO_MODE";
     public static final String IS_DYNAMIC_IP_MODE = "IS_DYNAMIC_IP_MODE";
+    public static final String UPDATER_LINK = "UPDATER_LINK";
+    public static final String DYNAMIC_IP = "DYNAMIC_IP";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
 
@@ -87,12 +96,20 @@ public class ShecanVpnService extends VpnService implements Runnable {
         return activated;
     }
 
-    public static boolean isProMode(){
+    public static boolean isProMode() {
         return Shecan.getPrefs().getBoolean(IS_PRO_MODE, false);
     }
 
-    public static boolean isDynamicIPMode(){
+    public static boolean isDynamicIPMode() {
         return Shecan.getPrefs().getBoolean(IS_DYNAMIC_IP_MODE, true);
+    }
+
+    public static String getUpdaterLink() {
+        return Shecan.getPrefs().getString(UPDATER_LINK, "https://ddns.shecan.ir/update");
+    }
+
+    public static String getDynamicIp() {
+        return Shecan.getPrefs().getString(DYNAMIC_IP, "");
     }
 
     @Override
@@ -163,6 +180,13 @@ public class ShecanVpnService extends VpnService implements Runnable {
             }
         }
         return START_NOT_STICKY;
+    }
+
+    private void callCoreAPI() {
+        String apiUrl = "https://ddns.shecan.ir/update";
+        if (ShecanVpnService.isDynamicIPMode()) {
+
+        }
     }
 
     private List<Pair<String, Integer>> getResolvedDNS(AbstractDNSServer dnsServer) {
@@ -430,6 +454,129 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } else {
             return "defaultchannel";
         }
+    }
+
+    public static void callCoreAPI(final Context context, final ApiResponseListener listener) {
+        String apiUrl = ShecanVpnService.getUpdaterLink();
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String result = response.trim();
+                        if (result.equals("invalid")) {
+                            listener.onInvalid();
+                        } else if (result.equals("in the range")) {
+                            listener.onInTheRange();
+                        } else if (result.equals("out of the range")) {
+                            listener.onOutOfRange();
+                        } else {
+                            listener.onSuccess(result);
+                            Shecan.setDynamicIP(result.trim());
+                        }
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // todo: handle error
+                        if (listener != null) {
+                            listener.onError(error.toString());
+                        }
+                        Log.d("APIzzz", error.toString());
+                    }
+                }
+        );
+
+        requestQueue.add(stringRequest);
+    }
+
+    public static void callConnectionStatusAPI(Context context, final ConnectionStatusListener listener) {
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        String apiUrl = "https://check.shecan.ir";
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String result = response.trim();
+                        if(result.equals("2")){
+                            listener.onConnected();
+                        } else {
+                            listener.onRetry();
+                        }
+                        Log.d("APIzzz", result);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // todo: handle error
+                        listener.onRetry();
+                        Log.d("APIzzz", error.toString());
+                    }
+                }
+        );
+
+        requestQueue.add(stringRequest);
+    }
+
+    public static void callCheckCurrentIP(final Context context) {
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        String apiUrl = "https://shecan.ir/ip";
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        // todo: edit later
+                        String result = response;
+                        if (!result.trim().equals(ShecanVpnService.getDynamicIp().trim())) {
+
+                            ShecanVpnService.callCoreAPI(context, new ApiResponseListener() {
+                                @Override
+                                public void onSuccess(String response) {
+
+                                }
+
+                                @Override
+                                public void onError(String errorMessage) {
+
+                                }
+
+                                @Override
+                                public void onInvalid() {
+
+                                }
+
+                                @Override
+                                public void onOutOfRange() {
+
+                                }
+
+                                @Override
+                                public void onInTheRange() {
+
+                                }
+                            });
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // todo: handle error
+                    }
+                }
+        );
+
+        requestQueue.add(stringRequest);
     }
 
 

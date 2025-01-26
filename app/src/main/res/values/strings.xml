@@ -57,6 +57,8 @@
 
     <string name="server_shecan_primary">Shecan</string>
     <string name="server_shecan_secondary">Standard Shecan</string>
+    <string name="server_shecan_pro_primary">Pro</string>
+    <string name="server_shecan_pro_secondary">Standard Pro</string>
 
     <string name="primary_server">Primary DNS server</string>
     <string name="secondary_server">Secondary DNS server</string>
@@ -85,7 +87,10 @@
     <string name="ic_bonyan_logo">\ue809</string>
     <string name="bonyan_url">https://bonyan.co</string>
     <string name="shecan_status_active">shecan is active</string>
+    <string name="shecan_status_pro_static_active">shecan is active with static IP</string>
+    <string name="shecan_status_pro_dynamic_active">shecan is active with dynamic IP</string>
     <string name="shecan_status_deactive">shecan is not active</string>
+    <string name="shecan_status_connecting">You are connecting. This process may take some time</string>
     <string name="donate">Shecan</string>
     <string name="donate_icon">Donate Icon</string>
     <string name="logo_image">Logo Image</string>
@@ -103,6 +108,8 @@
     <string name="update">Update</string>
     <string name="cancel">Cancel</string>
     <string name="new_version_available">A new version of the app is available</string>
-    <string name="out_of_range_ip_error">Your IP is out of range of Shecan Service</string>
+    <string name="out_of_range_ip_error">Your IP is not defined in Shecan </string>
     <string name="contact_support">Contact Support</string>
+    <string name="empty_link_updater_error">Please Enter Your Link Updater</string>
+    <string name="false_link_updater_error">Your Link is not correct</string>
 </resources>

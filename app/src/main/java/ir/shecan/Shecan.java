@@ -12,9 +12,16 @@ import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -25,6 +32,7 @@ import com.onesignal.OneSignal;
 import ir.shecan.R;
 
 import ir.shecan.activity.MainActivity;
+import ir.shecan.service.ApiResponseListener;
 import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.Configurations;
 import ir.shecan.util.LanguageHelper;
@@ -66,6 +74,9 @@ public class Shecan extends Application {
     public static final List<DNSServer> DNS_SERVERS = new ArrayList<DNSServer>() {{
         add(new DNSServer("dns.shecan.ir", R.string.server_shecan_primary, 5353));
         add(new DNSServer("dns.shecan.ir", R.string.server_shecan_secondary, 53));
+        // Pro DNS
+        add(new DNSServer("pro.shecan.ir", R.string.server_shecan_pro_primary, 5353));
+        add(new DNSServer("pro.shecan.ir", R.string.server_shecan_pro_secondary, 53));
     }};
 
     public static final List<Rule> RULES = new ArrayList<Rule>() {{
@@ -85,6 +96,7 @@ public class Shecan extends Application {
     private SharedPreferences prefs;
 
     private static final String ONESIGNAL_APP_ID = "64aafa29-46dc-46ea-8ac1-36830a241e90";
+    private final Handler handler = new Handler();
 
     @Override
     public void onCreate() {
@@ -96,11 +108,26 @@ public class Shecan extends Application {
 
         initData();
         initOneSignal();
+        initCheckIP();
 
         updateLocale();
     }
 
-    private void initOneSignal(){
+    private void initCheckIP() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                boolean isRunning = true;
+                if (isRunning) {
+                    ShecanVpnService.callCheckCurrentIP(Shecan.this);
+
+                    handler.postDelayed(this, 20000); // 20 seconds
+                }
+            }
+        }, 20000); // Initial delay of 20 seconds
+    }
+
+    private void initOneSignal() {
         // Enable verbose OneSignal logging for debugging (optional)
         OneSignal.setLogLevel(OneSignal.LOG_LEVEL.VERBOSE, OneSignal.LOG_LEVEL.NONE);
 
@@ -163,6 +190,7 @@ public class Shecan extends Application {
         instance = null;
         prefs = null;
         Logger.shutdown();
+        handler.removeCallbacksAndMessages(null);
     }
 
     public static Intent getServiceIntent(Context context) {
@@ -184,8 +212,14 @@ public class Shecan extends Application {
         if (intent != null) {
             return false;
         } else {
-            ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
-            ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+            if(ShecanVpnService.isProMode()){
+                ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProPrimary());
+                ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProSecondary());
+            } else {
+                ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+                ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+            }
+
             context.startService(Shecan.getServiceIntent(context).setAction(ShecanVpnService.ACTION_ACTIVATE));
             return true;
         }
@@ -196,27 +230,39 @@ public class Shecan extends Application {
         context.stopService(getServiceIntent(context));
     }
 
-    public static void setFreeMode(Context context) {
+    public static void setFreeMode() {
         getPrefs().edit()
                 .putBoolean(ShecanVpnService.IS_PRO_MODE, false)
                 .apply();
     }
 
-    public static void setProMode(Context context) {
+    public static void setProMode() {
         getPrefs().edit()
                 .putBoolean(ShecanVpnService.IS_PRO_MODE, true)
                 .apply();
     }
 
-    public static void setDynamicIPMode(Context context) {
+    public static void setDynamicIPMode() {
         getPrefs().edit()
                 .putBoolean(ShecanVpnService.IS_DYNAMIC_IP_MODE, true)
                 .apply();
     }
 
-    public static void setStaticIPMode(Context context) {
+    public static void setStaticIPMode() {
         getPrefs().edit()
                 .putBoolean(ShecanVpnService.IS_DYNAMIC_IP_MODE, false)
+                .apply();
+    }
+
+    public static void setUpdaterLink(String link) {
+        getPrefs().edit()
+                .putString(ShecanVpnService.UPDATER_LINK, link)
+                .apply();
+    }
+
+    public static void setDynamicIP(String ip) {
+        getPrefs().edit()
+                .putString(ShecanVpnService.DYNAMIC_IP, ip)
                 .apply();
     }
 
