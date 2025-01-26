@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -86,6 +87,10 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     Resources resources;
     View view;
 
+    private int countdownValue = 80; // Start from 80 seconds
+    private boolean isApiSuccess = false;
+    private CountDownTimer countDownTimer;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_main, container, false);
@@ -118,7 +123,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         loadBanner(bannerImageView);
 
 
-        if(!ShecanVpnService.getUpdaterLink().isEmpty()){
+        if (!ShecanVpnService.getUpdaterLink().isEmpty()) {
             clearTextBtn.setVisibility(View.VISIBLE);
             linkUpdaterEditText.setText(ShecanVpnService.getUpdaterLink());
         } else {
@@ -126,11 +131,12 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         }
         linkUpdaterEditText.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(s.length()> 0){
+                if (s.length() > 0) {
                     clearTextBtn.setVisibility(View.VISIBLE);
                 } else {
                     clearTextBtn.setVisibility(View.GONE);
@@ -138,7 +144,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         clearTextBtn.setOnClickListener(new View.OnClickListener() {
@@ -471,11 +478,11 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     private void updateUserInterface() {
         boolean isActive = ShecanVpnService.isActivated();
         View view = getView();
-        Button button = Objects.requireNonNull(view).findViewById(R.id.button_activate);
-        ImageView imageView = Objects.requireNonNull(view).findViewById(R.id.imageLogo);
-        TextView shecanStatus = view.findViewById(R.id.textShecanStatus);
-        ImageView statusIcon = view.findViewById(R.id.imageViewStatus);
-        TextView shecanDescription = view.findViewById(R.id.textShecanDesctiption);
+        btn = Objects.requireNonNull(view).findViewById(R.id.button_activate);
+        imageView = Objects.requireNonNull(view).findViewById(R.id.imageLogo);
+        shecanStatus = view.findViewById(R.id.textShecanStatus);
+        statusIcon = view.findViewById(R.id.imageViewStatus);
+        shecanDescription = view.findViewById(R.id.textShecanDesctiption);
 
         final Button freeModeBtn = view.findViewById(R.id.freeModeBtn);
         final Button proModeBtn = view.findViewById(R.id.proModeBtn);
@@ -515,7 +522,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
                 ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), this);
             } else {
                 view.setBackground(resources.getDrawable(R.drawable.background_on));
-                button.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
+                btn.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
                 imageView.setBackgroundResource(R.drawable.home_logo);
                 shecanStatus.setText(R.string.shecan_status_active);
                 shecanStatus.setTextColor(resources.getColor(R.color.colorStatusConnected));
@@ -524,7 +531,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             }
         } else {
             view.setBackground(resources.getDrawable(R.drawable.background_off));
-            button.setBackground(resources.getDrawable(R.drawable.cloud_connected));
+            btn.setBackground(resources.getDrawable(R.drawable.cloud_connected));
             imageView.setBackgroundResource(R.drawable.home_logo_white);
             shecanStatus.setText(R.string.shecan_status_deactive);
             shecanStatus.setTextColor(resources.getColor(R.color.colorStatusDisconnected));
@@ -589,6 +596,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
     @Override
     public void onConnected() {
+        isApiSuccess = true;
+        stopCountdown();
         view.setBackground(resources.getDrawable(R.drawable.background_on));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
         imageView.setBackgroundResource(R.drawable.home_logo);
@@ -604,17 +613,48 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     }
 
     private void setViewIsConnecting() {
+        isApiSuccess = false;
         view.setBackground(resources.getDrawable(R.drawable.background_off));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_connected));
         imageView.setBackgroundResource(R.drawable.home_logo_white);
-        // todo: set text is connecting
         String text = resources.getString(R.string.shecan_status_connecting);
-        text = text + "\n00:00";
-        shecanStatus.setText(text);
+        startCountdown(shecanStatus, text);
         shecanStatus.setTextColor(resources.getColor(R.color.colorStatusDisconnected));
         statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_disconnected));
         statusIcon.setVisibility(View.GONE);
-        shecanDescription.setText(R.string.notice_main_disconnected);
+//        shecanDescription.setText(R.string.notice_main_disconnected);
+        shecanDescription.setText(resources.getString(R.string.notice_main_disconnected));
+    }
+
+    private void startCountdown(final TextView textView, final String message) {
+        countDownTimer = new CountDownTimer(countdownValue * 1000, 1000) { // 80 seconds, 1-second interval
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                if (isApiSuccess) {
+                    cancel();
+                    return;
+                }
+                countdownValue = (int) (millisUntilFinished / 1000);
+                String text = message + "\n" + countdownValue;
+                textView.setText(text);
+            }
+
+            @Override
+            public void onFinish() {
+                countdownValue = 80; // Reset countdown
+                if (!isApiSuccess)
+                    startCountdown(textView, message);
+            }
+        };
+
+        countDownTimer.start();
+    }
+
+    private void stopCountdown() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
     }
 
     @Override
@@ -635,5 +675,6 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdown();
         }
+        stopCountdown();
     }
 }
