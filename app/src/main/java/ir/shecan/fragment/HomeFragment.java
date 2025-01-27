@@ -617,13 +617,12 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         view.setBackground(resources.getDrawable(R.drawable.background_off));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_connected));
         imageView.setBackgroundResource(R.drawable.home_logo_white);
-        String text = resources.getString(R.string.shecan_status_connecting);
-        startCountdown(shecanStatus, text);
         shecanStatus.setTextColor(resources.getColor(R.color.colorStatusDisconnected));
         statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_disconnected));
         statusIcon.setVisibility(View.GONE);
-//        shecanDescription.setText(R.string.notice_main_disconnected);
         shecanDescription.setText(resources.getString(R.string.notice_main_disconnected));
+        String text = resources.getString(R.string.shecan_status_connecting);
+        startCountdown(shecanStatus, text);
     }
 
     private void startCountdown(final TextView textView, final String message) {

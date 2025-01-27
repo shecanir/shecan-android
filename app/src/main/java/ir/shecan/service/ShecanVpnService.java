@@ -487,7 +487,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         if (listener != null) {
                             listener.onError(error.toString());
                         }
-                        Log.d("APIzzz", error.toString());
                     }
                 }
         );
@@ -510,7 +509,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         } else {
                             listener.onRetry();
                         }
-                        Log.d("APIzzz", result);
                     }
                 },
                 new Response.ErrorListener() {
@@ -519,59 +517,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         // todo: handle error
                         listener.onRetry();
                         Log.d("APIzzz", error.toString());
-                    }
-                }
-        );
-
-        requestQueue.add(stringRequest);
-    }
-
-    public static void callCheckCurrentIP(final Context context) {
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        String apiUrl = "https://shecan.ir/ip";
-        StringRequest stringRequest = new StringRequest(
-                Request.Method.GET,
-                apiUrl,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        // todo: edit later
-                        String result = response;
-                        if (!result.trim().equals(ShecanVpnService.getDynamicIp().trim())) {
-
-                            ShecanVpnService.callCoreAPI(context, new ApiResponseListener() {
-                                @Override
-                                public void onSuccess(String response) {
-
-                                }
-
-                                @Override
-                                public void onError(String errorMessage) {
-
-                                }
-
-                                @Override
-                                public void onInvalid() {
-
-                                }
-
-                                @Override
-                                public void onOutOfRange() {
-
-                                }
-
-                                @Override
-                                public void onInTheRange() {
-
-                                }
-                            });
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // todo: handle error
                     }
                 }
         );

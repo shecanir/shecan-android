@@ -32,7 +32,9 @@ import com.onesignal.OneSignal;
 import ir.shecan.R;
 
 import ir.shecan.activity.MainActivity;
+import ir.shecan.fragment.HomeFragment;
 import ir.shecan.service.ApiResponseListener;
+import ir.shecan.service.ConnectionStatusListener;
 import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.Configurations;
 import ir.shecan.util.LanguageHelper;
@@ -47,6 +49,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Shecan Project
@@ -59,7 +64,7 @@ import java.util.Locale;
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-public class Shecan extends Application {
+public class Shecan extends Application implements ConnectionStatusListener {
     static {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
@@ -98,6 +103,8 @@ public class Shecan extends Application {
     private static final String ONESIGNAL_APP_ID = "64aafa29-46dc-46ea-8ac1-36830a241e90";
     private final Handler handler = new Handler();
 
+    private ScheduledExecutorService scheduler;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -117,14 +124,13 @@ public class Shecan extends Application {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                boolean isRunning = true;
-                if (isRunning) {
-                    ShecanVpnService.callCheckCurrentIP(Shecan.this);
+                if (ShecanVpnService.isActivated() && ShecanVpnService.isProMode()) {
+                    callCheckCurrentIP(Shecan.this);
 
                     handler.postDelayed(this, 20000); // 20 seconds
                 }
             }
-        }, 20000); // Initial delay of 20 seconds
+        }, 20000);
     }
 
     private void initOneSignal() {
@@ -187,6 +193,10 @@ public class Shecan extends Application {
         Log.d("Shecan", "onTerminate");
         super.onTerminate();
 
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+        }
+
         instance = null;
         prefs = null;
         Logger.shutdown();
@@ -212,7 +222,7 @@ public class Shecan extends Application {
         if (intent != null) {
             return false;
         } else {
-            if(ShecanVpnService.isProMode()){
+            if (ShecanVpnService.isProMode()) {
                 ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProPrimary());
                 ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProSecondary());
             } else {
@@ -223,6 +233,57 @@ public class Shecan extends Application {
             context.startService(Shecan.getServiceIntent(context).setAction(ShecanVpnService.ACTION_ACTIVATE));
             return true;
         }
+    }
+
+    public void callCheckCurrentIP(final Context context) {
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        String apiUrl = "https://shecan.ir/ip";
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String result = response;
+                        if (!result.trim().equals(ShecanVpnService.getDynamicIp().trim())) {
+                            ShecanVpnService.callCoreAPI(context, new ApiResponseListener() {
+                                @Override
+                                public void onSuccess(String response) {
+                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this);
+                                }
+
+                                @Override
+                                public void onError(String errorMessage) {
+
+                                }
+
+                                @Override
+                                public void onInvalid() {
+                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this);
+                                }
+
+                                @Override
+                                public void onOutOfRange() {
+
+                                }
+
+                                @Override
+                                public void onInTheRange() {
+
+                                }
+                            });
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // todo: handle error
+                    }
+                }
+        );
+
+        requestQueue.add(stringRequest);
     }
 
     public static void deactivateService(Context context) {
@@ -331,6 +392,23 @@ public class Shecan extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(LocaleHelper.onAttach(base));
+    }
+
+    @Override
+    public void onConnected() {
+
+    }
+
+    @Override
+    public void onRetry() {
+        scheduler = Executors.newScheduledThreadPool(1);
+
+        scheduler.schedule(new Runnable() {
+            @Override
+            public void run() {
+                ShecanVpnService.callConnectionStatusAPI(Shecan.this, Shecan.this);
+            }
+        }, 20, TimeUnit.SECONDS);
     }
 }
 
