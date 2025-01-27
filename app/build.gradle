@@ -32,6 +32,10 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
@@ -57,16 +61,17 @@ dependencies {
     implementation 'com.android.support:multidex:2.0.1'
 
     implementation('com.onesignal:OneSignal:4.8.6')
+//    implementation 'com.onesignal:OneSignal:[5.0.0, 5.99.99]'
 //    implementation "com.google.firebase:firebase-iid:21.1.0"
 
-    implementation('com.google.firebase:firebase-messaging:23.1.2', {
-        exclude group: 'com.google.protobuf', module: 'protobuf-javalite'
-        exclude group: 'com.google.protobuf', module: 'protobuf-lite'
-    })
-    implementation('com.google.firebase:firebase-config-ktx:21.2.0', {
-        exclude group: 'com.google.protobuf', module: 'protobuf-javalite'
-        exclude group: 'com.google.protobuf', module: 'protobuf-lite'
-    })
+//    implementation('com.google.firebase:firebase-messaging:23.1.2', {
+//        exclude group: 'com.google.protobuf', module: 'protobuf-javalite'
+//        exclude group: 'com.google.protobuf', module: 'protobuf-lite'
+//    })
+//    implementation('com.google.firebase:firebase-config-ktx:21.2.0', {
+//        exclude group: 'com.google.protobuf', module: 'protobuf-javalite'
+//        exclude group: 'com.google.protobuf', module: 'protobuf-lite'
+//    })
     implementation('com.google.firebase:firebase-iid:21.1.0', {
         exclude group: 'com.google.protobuf', module: 'protobuf-javalite'
         exclude group: 'com.google.protobuf', module: 'protobuf-lite'
