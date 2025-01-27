@@ -90,7 +90,7 @@
     <string name="shecan_status_pro_static_active">shecan is active with static IP</string>
     <string name="shecan_status_pro_dynamic_active">shecan is active with dynamic IP</string>
     <string name="shecan_status_deactive">shecan is not active</string>
-    <string name="shecan_status_connecting">You are connecting. This process may take some time</string>
+    <string name="shecan_status_connecting">You are connecting.\n This process may take some time</string>
     <string name="donate">Shecan</string>
     <string name="donate_icon">Donate Icon</string>
     <string name="logo_image">Logo Image</string>

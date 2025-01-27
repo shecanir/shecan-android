@@ -59,6 +59,7 @@ import ir.shecan.service.ApiResponseListener;
 import ir.shecan.service.ApiService;
 import ir.shecan.service.ConnectionStatusListener;
 import ir.shecan.service.ShecanVpnService;
+import ir.shecan.util.PersianTools;
 
 /**
  * Shecan Project
@@ -635,7 +636,12 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
                     return;
                 }
                 countdownValue = (int) (millisUntilFinished / 1000);
-                String text = message + "\n" + countdownValue;
+                int minutes = countdownValue / 60;
+                int seconds = countdownValue % 60;
+                String formattedTime =
+                        (minutes < 10 ? "0" + minutes : String.valueOf(minutes)) + ":" +
+                                (seconds < 10 ? "0" + seconds : String.valueOf(seconds));
+                String text = message + "\n" + PersianTools.convertToPersianDigits(formattedTime);
                 textView.setText(text);
             }
 

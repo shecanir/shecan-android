@@ -83,7 +83,7 @@
     <string name="shecan_status_pro_static_active">شکن حرفه ای شما با آی پی ثابت فعال شد</string>
     <string name="shecan_status_pro_dynamic_active">شکن حرفه ای شما با آی پی متغیر فعال شد</string>
     <string name="shecan_status_deactive">شکن فعال نیست</string>
-    <string name="shecan_status_connecting">شما در حال اتصال هستید. این فرآیند ممکن است زمان بر باشد</string>
+    <string name="shecan_status_connecting">شما در حال اتصال هستید.\n این فرآیند ممکن است زمان بر باشد</string>
     <string name="donate">شکن</string>
     <string name="check_and_report">بررسی و گزارش</string>
     <string name="free_shecan">شکن رایگان</string>
