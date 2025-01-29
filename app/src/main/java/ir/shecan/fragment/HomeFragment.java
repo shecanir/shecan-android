@@ -84,6 +84,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     TextView shecanStatus;
     ImageView statusIcon;
     TextView shecanDescription;
+    TextView shecanMainTitle;
 
     Resources resources;
     View view;
@@ -101,6 +102,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         shecanStatus = view.findViewById(R.id.textShecanStatus);
         statusIcon = view.findViewById(R.id.imageViewStatus);
         shecanDescription = view.findViewById(R.id.textShecanDesctiption);
+        shecanMainTitle = view.findViewById(R.id.homeTitle);
 
         final ImageView clearTextBtn = view.findViewById(R.id.clear_btn);
 
@@ -529,6 +531,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
                 shecanStatus.setTextColor(resources.getColor(R.color.colorStatusConnected));
                 statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_connected));
                 shecanDescription.setText(R.string.notice_main_connected);
+                shecanDescription.setTextColor(resources.getColor(R.color.black));
+                shecanMainTitle.setTextColor(resources.getColor(R.color.black));
             }
         } else {
             view.setBackground(resources.getDrawable(R.drawable.background_off));
@@ -538,6 +542,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             shecanStatus.setTextColor(resources.getColor(R.color.colorStatusDisconnected));
             statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_disconnected));
             shecanDescription.setText(R.string.notice_main_disconnected);
+            shecanDescription.setTextColor(resources.getColor(R.color.white));
+            shecanMainTitle.setTextColor(resources.getColor(R.color.white));
         }
 
     }
@@ -611,6 +617,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_connected));
         statusIcon.setVisibility(View.VISIBLE);
         shecanDescription.setText(R.string.notice_main_connected);
+        shecanDescription.setTextColor(resources.getColor(R.color.black));
+        shecanMainTitle.setTextColor(resources.getColor(R.color.black));
     }
 
     private void setViewIsConnecting() {
@@ -622,6 +630,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_disconnected));
         statusIcon.setVisibility(View.GONE);
         shecanDescription.setText(resources.getString(R.string.notice_main_disconnected));
+        shecanDescription.setTextColor(resources.getColor(R.color.white));
+        shecanMainTitle.setTextColor(resources.getColor(R.color.white));
         String text = resources.getString(R.string.shecan_status_connecting);
         startCountdown(shecanStatus, text);
     }
