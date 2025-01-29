@@ -108,7 +108,7 @@
     <string name="update">Update</string>
     <string name="cancel">Cancel</string>
     <string name="new_version_available">A new version of the app is available</string>
-    <string name="out_of_range_ip_error">Your IP is not defined in Shecan </string>
+    <string name="out_of_range_ip_error">Your IP is not on the list of IPs introduced to Shekan or you do not currently have an active service!</string>
     <string name="contact_support">Contact Support</string>
     <string name="empty_link_updater_error">Please Enter Your Link Updater</string>
     <string name="false_link_updater_error">Your Link is not correct</string>

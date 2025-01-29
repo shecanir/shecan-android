@@ -89,9 +89,12 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     Resources resources;
     View view;
 
+    Activity activity;
+
     private int countdownValue = 80; // Start from 80 seconds
     private boolean isApiSuccess = false;
     private CountDownTimer countDownTimer;
+    private static boolean shouldShowSupportDialog = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -158,7 +161,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             }
         });
 
-        final Activity activity = getActivity();
+         activity = getActivity();
 
         // collapse first
         collapse(proModeExpandLayout);
@@ -221,7 +224,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
                                 linkUpdaterInputLayout.setErrorEnabled(true);
                             }
                         } else {
-                            ShecanVpnService.callCoreAPI(getActivity().getApplicationContext(), HomeFragment.this);
+                            startActivity(new Intent(getActivity(), MainActivity.class)
+                                    .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
                         }
                     } else {
                         startActivity(new Intent(activity, MainActivity.class)
@@ -395,12 +399,15 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void showContactSupportDialog() {
+        shouldShowSupportDialog = false;
+
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_contact_support, null);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(dialogView);
 
-        Button openUrlButton = dialogView.findViewById(R.id.contactButton);
+        Button contactButton = dialogView.findViewById(R.id.contactButton);
+        Button renewalButton = dialogView.findViewById(R.id.renewalButton2);
         final AlertDialog dialog = builder.create();
 
         if (dialog.getWindow() != null) {
@@ -408,7 +415,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
         }
 
-        openUrlButton.setOnClickListener(new View.OnClickListener() {
+        contactButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dialog.dismiss();
@@ -416,7 +423,19 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
                 // todo: change the url later
                 String url = "https://shecan.ir"; // Replace with your desired URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(intent);
+                activity.startActivity(intent);
+            }
+        });
+
+        renewalButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+
+                // todo: change the url later
+                String url = "https://shecan.ir"; // Replace with your desired URL
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                activity.startActivity(intent);
             }
         });
 
@@ -544,6 +563,12 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             shecanDescription.setText(R.string.notice_main_disconnected);
             shecanDescription.setTextColor(resources.getColor(R.color.white));
             shecanMainTitle.setTextColor(resources.getColor(R.color.white));
+
+            if(shouldShowSupportDialog){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    showContactSupportDialog();
+                }
+            }
         }
 
     }
@@ -674,14 +699,22 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
     @Override
     public void onRetry() {
-        scheduler = Executors.newScheduledThreadPool(1);
+        if(ShecanVpnService.isDynamicIPMode()){
+            scheduler = Executors.newScheduledThreadPool(1);
 
-        scheduler.schedule(new Runnable() {
-            @Override
-            public void run() {
-                ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), HomeFragment.this);
-            }
-        }, 20, TimeUnit.SECONDS);
+            scheduler.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), HomeFragment.this);
+                }
+            }, 20, TimeUnit.SECONDS);
+        } else {
+            Shecan.deactivateService(activity.getApplicationContext());
+            isApiSuccess = false;
+            shouldShowSupportDialog = true;
+            stopCountdown();
+        }
+
     }
 
     @Override

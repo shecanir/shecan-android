@@ -131,7 +131,7 @@ public class Shecan extends Application implements ConnectionStatusListener {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (ShecanVpnService.isActivated() && ShecanVpnService.isProMode()) {
+                if (ShecanVpnService.isActivated() && ShecanVpnService.isProMode() && ShecanVpnService.isDynamicIPMode()) {
                     callCheckCurrentIP(Shecan.this);
 
                     handler.postDelayed(this, 20000); // 20 seconds
@@ -140,8 +140,8 @@ public class Shecan extends Application implements ConnectionStatusListener {
         }, 20000);
     }
 
-    private void initPushPole(){
-        PushPole.initialize(this,true);
+    private void initPushPole() {
+        PushPole.initialize(this, true);
 
         PushPole.setNotificationListener(new PushPole.NotificationListener() {
             @Override
@@ -186,7 +186,6 @@ public class Shecan extends Application implements ConnectionStatusListener {
         // requestPermission will show the native Android notification permission prompt.
         // NOTE: It's recommended to use a OneSignal In-App Message to prompt instead.
 //        OneSignal.getNotifications().requestPermission(false, Continue.none());
-
 
 
     }

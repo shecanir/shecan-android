@@ -105,7 +105,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     public static String getUpdaterLink() {
-        return Shecan.getPrefs().getString(UPDATER_LINK, "https://ddns.shecan.ir/update");
+        return Shecan.getPrefs().getString(UPDATER_LINK, "");
     }
 
     public static String getDynamicIp() {
