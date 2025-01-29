@@ -15,4 +15,8 @@
     <dimen name="home_links_padding_bottom">0dp</dimen>
     <dimen name="home_links_margin_bottom">30dp</dimen>
     <dimen name="home_links_margin_side">48dp</dimen>
+
+    <dimen name="activate_btn_width">243dp</dimen>
+    <dimen name="activate_btn_height">210dp</dimen>
+    <dimen name="center_vertical_layout_bias">0.4</dimen>
 </resources>

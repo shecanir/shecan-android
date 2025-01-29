@@ -279,7 +279,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
     private void loadBanner(final ImageView imageView) {
         // todo: change the image url later
-        String imageUrl = "https://fakeimg.pl/600x360";
+        String imageUrl = "https://fakeimg.pl/320x100";
 
         Picasso.get()
                 .load(imageUrl) // URL of the image
