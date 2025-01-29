@@ -516,7 +516,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     public void onErrorResponse(VolleyError error) {
                         // todo: handle error
                         listener.onRetry();
-                        Log.d("APIzzz", error.toString());
                     }
                 }
         );

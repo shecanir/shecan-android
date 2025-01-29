@@ -16,6 +16,8 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -27,7 +29,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
-import com.onesignal.OneSignal;
+import com.pushpole.sdk.NotificationButtonData;
+import com.pushpole.sdk.NotificationData;
+import com.pushpole.sdk.PushPole;
+
+import org.json.JSONObject;
 
 import ir.shecan.R;
 
@@ -114,7 +120,8 @@ public class Shecan extends Application implements ConnectionStatusListener {
         Logger.init();
 
         initData();
-        initOneSignal();
+//        initOneSignal();
+        initPushPole();
         initCheckIP();
 
         updateLocale();
@@ -133,17 +140,48 @@ public class Shecan extends Application implements ConnectionStatusListener {
         }, 20000);
     }
 
+    private void initPushPole(){
+        PushPole.initialize(this,true);
+
+        PushPole.setNotificationListener(new PushPole.NotificationListener() {
+            @Override
+            public void onNotificationReceived(@NonNull NotificationData notificationData) {
+                Log.d("NOTIFzzz", notificationData.toString());
+            }
+
+            @Override
+            public void onNotificationClicked(@NonNull NotificationData notificationData) {
+
+            }
+
+            @Override
+            public void onNotificationButtonClicked(@NonNull NotificationData notificationData, @NonNull NotificationButtonData notificationButtonData) {
+
+            }
+
+            @Override
+            public void onCustomContentReceived(@NonNull JSONObject jsonObject) {
+                Log.d("NOTIFzzz", jsonObject.toString());
+            }
+
+            @Override
+            public void onNotificationDismissed(@NonNull NotificationData notificationData) {
+
+            }
+        });
+    }
+
     private void initOneSignal() {
         // Verbose Logging set to help debug issues, remove before releasing your app.
 //        OneSignal.getDebug().setLogLevel(LogLevel.VERBOSE);
 //        OneSignal.getDebug().setLogLevel(LogLevel.DEBUG);
 
         // OneSignal Initialization
-        OneSignal.initWithContext(this);
-        OneSignal.setLogLevel(OneSignal.LOG_LEVEL.VERBOSE, OneSignal.LOG_LEVEL.NONE);
-        OneSignal.setAppId(ONESIGNAL_APP_ID);
-        OneSignal.promptLocation();
-        OneSignal.disableGMSMissingPrompt(true);
+//        OneSignal.initWithContext(this);
+//        OneSignal.setLogLevel(OneSignal.LOG_LEVEL.VERBOSE, OneSignal.LOG_LEVEL.NONE);
+//        OneSignal.setAppId(ONESIGNAL_APP_ID);
+//        OneSignal.promptLocation();
+//        OneSignal.disableGMSMissingPrompt(true);
 
         // requestPermission will show the native Android notification permission prompt.
         // NOTE: It's recommended to use a OneSignal In-App Message to prompt instead.

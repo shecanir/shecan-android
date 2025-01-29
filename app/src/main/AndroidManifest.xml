@@ -33,15 +33,6 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <service
-            android:name=".MyFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
-
         <receiver
             android:name="ir.shecan.receiver.StatusBarBroadcastReceiver"
             android:exported="false">
@@ -87,9 +78,12 @@
             android:name="onesignal_google_project_number"
             android:value="REMOTE" />
 
+        <meta-data android:name="com.pushpole.sdk.token" android:value="PUSHPOLE_"/>
+
     </application>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
