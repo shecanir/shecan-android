@@ -57,8 +57,10 @@ import ir.shecan.R;
 import ir.shecan.activity.MainActivity;
 import ir.shecan.service.ApiResponseListener;
 import ir.shecan.service.ApiService;
+import ir.shecan.service.BaseApiResponseListener;
 import ir.shecan.service.ConnectionStatusListener;
 import ir.shecan.service.ShecanVpnService;
+import ir.shecan.util.AppUtils;
 import ir.shecan.util.PersianTools;
 
 /**
@@ -126,8 +128,6 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         TextView helpLinkUpdater = view.findViewById(R.id.help_link_updater);
 
         bannerImageView = view.findViewById(R.id.banner_image_view);
-        loadBanner(bannerImageView);
-
 
         if (!ShecanVpnService.getUpdaterLink().isEmpty()) {
             clearTextBtn.setVisibility(View.VISIBLE);
@@ -166,17 +166,12 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         // collapse first
         collapse(proModeExpandLayout);
 
-        if (!isUpdateVersionCheck) {
-            checkIsUpdateAvailable();
-            isUpdateVersionCheck = true;
-        }
-
+        fetchData();
 
         helpLinkUpdater.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // todo: change it later
-                String url = "https://shecan.ir"; // Replace with the URL you want to open
+                String url = Shecan.ShecanInfo.getDynamicIpGuideLink(); // Replace with the URL you want to open
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
             }
@@ -283,9 +278,26 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         return view;
     }
 
+    private void fetchData(){
+        Shecan.ShecanInfo.fetchData(getActivity().getApplicationContext(), new BaseApiResponseListener() {
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+
+            @Override
+            public void onSuccess() {
+                if (!isUpdateVersionCheck) {
+                    checkIsUpdateAvailable();
+                    isUpdateVersionCheck = true;
+                }
+                loadBanner(bannerImageView);
+            }
+        });
+    }
+
     private void loadBanner(final ImageView imageView) {
-        // todo: change the image url later
-        String imageUrl = "https://fakeimg.pl/320x100";
+        String imageUrl = Shecan.ShecanInfo.getBannerImageUrl();
 
         Picasso.get()
                 .load(imageUrl) // URL of the image
@@ -304,8 +316,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // todo: change the link later
-                String url = "https://shecan.ir"; // Replace with the URL you want to open
+                String url = Shecan.ShecanInfo.getBannerLink(); // Replace with the URL you want to open
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
             }
@@ -387,8 +398,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             public void onClick(View v) {
                 dialog.dismiss();
 
-                // todo: change the url later
-                String url = "https://shecan.ir"; // Replace with your desired URL
+                String url = Shecan.ShecanInfo.getPurchaseLink(); // Replace with your desired URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
             }
@@ -420,8 +430,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             public void onClick(View v) {
                 dialog.dismiss();
 
-                // todo: change the url later
-                String url = "https://shecan.ir"; // Replace with your desired URL
+                String url = Shecan.ShecanInfo.getTicketingLink(); // Replace with your desired URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 activity.startActivity(intent);
             }
@@ -432,8 +441,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             public void onClick(View v) {
                 dialog.dismiss();
 
-                // todo: change the url later
-                String url = "https://shecan.ir"; // Replace with your desired URL
+                String url = Shecan.ShecanInfo.getPurchaseLink(); // Replace with your desired URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 activity.startActivity(intent);
             }
@@ -469,8 +477,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         openUrlButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // todo: change the url later
-                String url = "https://shecan.ir"; // Replace with your desired URL
+                String url = Shecan.ShecanInfo.getUpdateLink(); // Replace with your desired URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 startActivity(intent);
             }
@@ -488,9 +495,17 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     }
 
     private void checkIsUpdateAvailable() {
-        boolean isAvailable = false;
         boolean isForce = false;
-        if (isAvailable) {
+
+        long currentVersion = AppUtils.getVersionCode(activity);
+        Log.d("VERSIONzzz", String.valueOf(currentVersion));
+        int minVersion = Shecan.ShecanInfo.getMinVersion();
+        int latestVersion = Shecan.ShecanInfo.getCurrentVersion();
+        if(minVersion > currentVersion){
+            isForce = true;
+        }
+
+        if (latestVersion > currentVersion) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 showUpdateDialog(isForce);
             }

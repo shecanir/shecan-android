@@ -40,6 +40,7 @@ import ir.shecan.R;
 import ir.shecan.activity.MainActivity;
 import ir.shecan.fragment.HomeFragment;
 import ir.shecan.service.ApiResponseListener;
+import ir.shecan.service.BaseApiResponseListener;
 import ir.shecan.service.ConnectionStatusListener;
 import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.Configurations;
@@ -456,6 +457,133 @@ public class Shecan extends Application implements ConnectionStatusListener {
                 ShecanVpnService.callConnectionStatusAPI(Shecan.this, Shecan.this);
             }
         }, 20, TimeUnit.SECONDS);
+    }
+
+    public static class ShecanInfo {
+
+        private static final String CURRENT_VERSION = "CURRENT_VERSION";
+        private static final String MIN_VERSION = "MIN_VERSION";
+        private static final String UPDATE_LINK = "UPDATE_LINK";
+        private static final String BANNER_IMAGE_URL = "BANNER_IMAGE_URL";
+        private static final String BANNER_LINK = "CURRENT_VERSION";
+        private static final String DYNAMIC_IP_GUIDE_LINK = "DYNAMIC_IP_GUIDE_LINK";
+        private static final String TICKETING_LINK = "TICKETING_LINK";
+        private static final String PURCHASE_LINK = "PURCHASE_LINK";
+
+        public static void fetchData(Context context, BaseApiResponseListener listener) {
+            RequestQueue requestQueue = Volley.newRequestQueue(context);
+            String apiUrl = "https://check.shecan.ir";
+            StringRequest stringRequest = new StringRequest(
+                    Request.Method.GET,
+                    apiUrl,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            String result = response.trim();
+                            // todo: read from json
+                            setCurrentVersion("");
+                            setMinVersion("");
+                            setUpdateLink("");
+                            setBannerImageUrl("");
+                            setBannerLink("");
+                            setDynamicIpGuideLink("");
+                            setTicketingLink("");
+                            setPurchaseLink("");
+                            listener.onSuccess();
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            listener.onError(error.toString());
+                        }
+                    }
+            );
+
+            // todo: remove it later and uncomment requestQueue
+            listener.onSuccess();
+//            requestQueue.add(stringRequest);
+        }
+
+        private static void setCurrentVersion(String version) {
+            getPrefs().edit()
+                    .putString(CURRENT_VERSION, version)
+                    .apply();
+        }
+
+        private static void setMinVersion(String version) {
+            getPrefs().edit()
+                    .putString(MIN_VERSION, version)
+                    .apply();
+        }
+
+        private static void setUpdateLink(String link) {
+            getPrefs().edit()
+                    .putString(UPDATE_LINK, link)
+                    .apply();
+        }
+
+        private static void setBannerImageUrl(String url) {
+            getPrefs().edit()
+                    .putString(BANNER_IMAGE_URL, url)
+                    .apply();
+        }
+
+        private static void setBannerLink(String link) {
+            getPrefs().edit()
+                    .putString(BANNER_LINK, link)
+                    .apply();
+        }
+
+        private static void setDynamicIpGuideLink(String link) {
+            getPrefs().edit()
+                    .putString(DYNAMIC_IP_GUIDE_LINK, link)
+                    .apply();
+        }
+
+        private static void setTicketingLink(String link) {
+            getPrefs().edit()
+                    .putString(TICKETING_LINK, link)
+                    .apply();
+        }
+
+        private static void setPurchaseLink(String link) {
+            getPrefs().edit()
+                    .putString(PURCHASE_LINK, link)
+                    .apply();
+        }
+
+        public static int getCurrentVersion() {
+            return Shecan.getPrefs().getInt(CURRENT_VERSION, -1);
+        }
+
+        public static int getMinVersion() {
+            return Shecan.getPrefs().getInt(MIN_VERSION, -1);
+        }
+
+        public static String getUpdateLink() {
+            return Shecan.getPrefs().getString(UPDATE_LINK, "https://shecan.ir");
+        }
+
+        public static String getBannerImageUrl() {
+            return Shecan.getPrefs().getString(BANNER_IMAGE_URL, "https://fakeimg.pl/320x100");
+        }
+
+        public static String getBannerLink() {
+            return Shecan.getPrefs().getString(BANNER_LINK, "https://shecan.ir");
+        }
+
+        public static String getDynamicIpGuideLink() {
+            return Shecan.getPrefs().getString(DYNAMIC_IP_GUIDE_LINK, "https://shecan.ir");
+        }
+
+        public static String getTicketingLink() {
+            return Shecan.getPrefs().getString(TICKETING_LINK, "https://shecan.ir");
+        }
+
+        public static String getPurchaseLink() {
+            return Shecan.getPrefs().getString(TICKETING_LINK, "https://shecan.ir");
+        }
     }
 }
 
