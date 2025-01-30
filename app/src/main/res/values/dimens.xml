@@ -19,4 +19,5 @@
     <dimen name="activate_btn_width">243dp</dimen>
     <dimen name="activate_btn_height">210dp</dimen>
     <dimen name="center_vertical_layout_bias">0.4</dimen>
+    <dimen name="tab_button_height">32dp</dimen>
 </resources>
