@@ -1,25 +1,18 @@
 package ir.shecan.fragment;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,21 +20,6 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.Target;
 import com.google.android.material.textfield.TextInputLayout;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -58,10 +36,9 @@ import ir.shecan.activity.MainActivity;
 import ir.shecan.dialog.ContactSupportDialog;
 import ir.shecan.dialog.RenewalDialog;
 import ir.shecan.dialog.UpdateDialog;
-import ir.shecan.service.ApiResponseListener;
-import ir.shecan.service.ApiService;
+import ir.shecan.service.CoreApiResponseListener;
 import ir.shecan.service.BaseApiResponseListener;
-import ir.shecan.service.ConnectionStatusListener;
+import ir.shecan.service.ConnectionStatusApiListener;
 import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.AnimationUtils;
 import ir.shecan.util.AppUtils;
@@ -78,7 +55,7 @@ import ir.shecan.util.PersianTools;
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-public class HomeFragment extends ToolbarFragment implements ApiResponseListener, ConnectionStatusListener {
+public class HomeFragment extends ToolbarFragment implements CoreApiResponseListener, ConnectionStatusApiListener {
 
     ImageView bannerImageView;
 

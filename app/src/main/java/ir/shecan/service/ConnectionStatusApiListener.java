@@ -1,6 +1,6 @@
 package ir.shecan.service;
 
-public interface ConnectionStatusListener {
+public interface ConnectionStatusApiListener {
     void onConnected();
     void onRetry();
 }

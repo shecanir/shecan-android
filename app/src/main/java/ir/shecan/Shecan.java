@@ -35,13 +35,10 @@ import com.pushpole.sdk.PushPole;
 
 import org.json.JSONObject;
 
-import ir.shecan.R;
-
 import ir.shecan.activity.MainActivity;
-import ir.shecan.fragment.HomeFragment;
-import ir.shecan.service.ApiResponseListener;
+import ir.shecan.service.CoreApiResponseListener;
 import ir.shecan.service.BaseApiResponseListener;
-import ir.shecan.service.ConnectionStatusListener;
+import ir.shecan.service.ConnectionStatusApiListener;
 import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.Configurations;
 import ir.shecan.util.LanguageHelper;
@@ -71,7 +68,7 @@ import java.util.concurrent.TimeUnit;
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-public class Shecan extends Application implements ConnectionStatusListener {
+public class Shecan extends Application implements ConnectionStatusApiListener {
     static {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
@@ -271,7 +268,7 @@ public class Shecan extends Application implements ConnectionStatusListener {
                     public void onResponse(String response) {
                         String result = response;
                         if (!result.trim().equals(ShecanVpnService.getDynamicIp().trim())) {
-                            ShecanVpnService.callCoreAPI(context, new ApiResponseListener() {
+                            ShecanVpnService.callCoreAPI(context, new CoreApiResponseListener() {
                                 @Override
                                 public void onSuccess(String response) {
                                     ShecanVpnService.callConnectionStatusAPI(context, Shecan.this);
