@@ -55,11 +55,15 @@ import ir.shecan.Shecan;
 import ir.shecan.R;
 
 import ir.shecan.activity.MainActivity;
+import ir.shecan.dialog.ContactSupportDialog;
+import ir.shecan.dialog.RenewalDialog;
+import ir.shecan.dialog.UpdateDialog;
 import ir.shecan.service.ApiResponseListener;
 import ir.shecan.service.ApiService;
 import ir.shecan.service.BaseApiResponseListener;
 import ir.shecan.service.ConnectionStatusListener;
 import ir.shecan.service.ShecanVpnService;
+import ir.shecan.util.AnimationUtils;
 import ir.shecan.util.AppUtils;
 import ir.shecan.util.PersianTools;
 
@@ -164,7 +168,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
          activity = getActivity();
 
         // collapse first
-        collapse(proModeExpandLayout);
+        AnimationUtils.collapse(proModeExpandLayout);
 
         fetchData();
 
@@ -181,7 +185,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             @Override
             public void onClick(View v) {
                 if (!ShecanVpnService.isDynamicIPMode()) {
-                    expand(dynamicExpandLayout);
+                    AnimationUtils.expand(dynamicExpandLayout);
                 }
                 Shecan.setDynamicIPMode();
             }
@@ -191,7 +195,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             @Override
             public void onClick(View v) {
                 if (ShecanVpnService.isDynamicIPMode()) {
-                    collapse(dynamicExpandLayout);
+                    AnimationUtils.collapse(dynamicExpandLayout);
                 }
                 Shecan.setStaticIPMode();
             }
@@ -236,7 +240,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             public void onClick(View v) {
                 if (!ShecanVpnService.isActivated()) {
                     if (ShecanVpnService.isProMode()) {
-                        collapse(proModeExpandLayout);
+                        AnimationUtils.collapse(proModeExpandLayout);
                         freeModeBtn.setBackgroundResource(R.drawable.rounded_button);
                         freeModeBtn.setTextColor(getResources().getColor(android.R.color.white));
                         proModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
@@ -252,7 +256,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
             public void onClick(View v) {
                 if (!ShecanVpnService.isActivated()) {
                     if (!ShecanVpnService.isProMode()) {
-                        expand(proModeExpandLayout);
+                        AnimationUtils.expand(proModeExpandLayout);
                         proModeBtn.setBackgroundResource(R.drawable.rounded_button);
                         proModeBtn.setTextColor(getResources().getColor(android.R.color.white));
                         freeModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
@@ -324,181 +328,10 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
     }
 
-    // Expand function
-    private void expand(final View view) {
-        view.measure(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        final int targetHeight = view.getMeasuredHeight();
-
-        view.getLayoutParams().height = 0;
-        view.setVisibility(View.VISIBLE);
-
-        Animation animation = new Animation() {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                if (interpolatedTime == 1) {
-                    view.getLayoutParams().height = LinearLayout.LayoutParams.WRAP_CONTENT;
-                } else {
-                    view.getLayoutParams().height = (int) (targetHeight * interpolatedTime);
-                }
-                view.requestLayout();
-            }
-
-            @Override
-            public boolean willChangeBounds() {
-                return true;
-            }
-        };
-
-        animation.setDuration((int) (targetHeight / view.getContext().getResources().getDisplayMetrics().density));
-        view.startAnimation(animation);
-    }
-
-    // Collapse function
-    private void collapse(final View view) {
-        final int initialHeight = view.getMeasuredHeight();
-
-        Animation animation = new Animation() {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                if (interpolatedTime == 1) {
-                    view.setVisibility(View.GONE);
-                } else {
-                    view.getLayoutParams().height = initialHeight - (int) (initialHeight * interpolatedTime);
-                    view.requestLayout();
-                }
-            }
-
-            @Override
-            public boolean willChangeBounds() {
-                return true;
-            }
-        };
-
-        animation.setDuration((int) (initialHeight / view.getContext().getResources().getDisplayMetrics().density));
-        view.startAnimation(animation);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void showRenewalDialog() {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_no_active_service, null);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setView(dialogView);
-
-        Button openUrlButton = dialogView.findViewById(R.id.renewalButton);
-        final AlertDialog dialog = builder.create();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        openUrlButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-
-                String url = Shecan.ShecanInfo.getPurchaseLink(); // Replace with your desired URL
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(intent);
-            }
-        });
-
-        dialog.show();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void showContactSupportDialog() {
-        shouldShowSupportDialog = false;
-
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_contact_support, null);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setView(dialogView);
-
-        Button contactButton = dialogView.findViewById(R.id.contactButton);
-        Button renewalButton = dialogView.findViewById(R.id.renewalButton2);
-        final AlertDialog dialog = builder.create();
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        }
-
-        contactButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-
-                String url = Shecan.ShecanInfo.getTicketingLink(); // Replace with your desired URL
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                activity.startActivity(intent);
-            }
-        });
-
-        renewalButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-
-                String url = Shecan.ShecanInfo.getPurchaseLink(); // Replace with your desired URL
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                activity.startActivity(intent);
-            }
-        });
-
-        dialog.show();
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void showUpdateDialog(Boolean isForceUpdate) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_update_app, null);
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setView(dialogView);
-
-        Button openUrlButton = dialogView.findViewById(R.id.updateBtn);
-        Button cancelBtn = dialogView.findViewById(R.id.cancelBtn);
-        final AlertDialog dialog = builder.create();
-
-        if (isForceUpdate) {
-            cancelBtn.setVisibility(View.GONE);
-            dialog.setCancelable(false);
-        }
-
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);
-            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            if (isForceUpdate) {
-                dialog.setCanceledOnTouchOutside(false);
-            }
-        }
-
-        openUrlButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String url = Shecan.ShecanInfo.getUpdateLink(); // Replace with your desired URL
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                startActivity(intent);
-            }
-        });
-
-
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-
-        dialog.show();
-    }
-
     private void checkIsUpdateAvailable() {
         boolean isForce = false;
 
         long currentVersion = AppUtils.getVersionCode(activity);
-        Log.d("VERSIONzzz", String.valueOf(currentVersion));
         int minVersion = Shecan.ShecanInfo.getMinVersion();
         int latestVersion = Shecan.ShecanInfo.getCurrentVersion();
         if(minVersion > currentVersion){
@@ -507,7 +340,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
         if (latestVersion > currentVersion) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                showUpdateDialog(isForce);
+                new UpdateDialog(activity).show(isForce);
             }
         }
     }
@@ -533,16 +366,16 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
         Resources resources = getResources();
 
         if (ShecanVpnService.isProMode()) {
-            expand(proModeExpandLayout);
+            AnimationUtils.expand(proModeExpandLayout);
             proModeBtn.setBackgroundResource(R.drawable.rounded_button);
             proModeBtn.setTextColor(getResources().getColor(android.R.color.white));
             freeModeBtn.setBackgroundResource(R.drawable.default_no_background_button);
             freeModeBtn.setTextColor(getResources().getColor(android.R.color.black));
             if (ShecanVpnService.isDynamicIPMode()) {
-                expand(dynamicExpandLayout);
+                AnimationUtils.expand(dynamicExpandLayout);
                 dynamicRBtn.setChecked(true);
             } else {
-                collapse(dynamicExpandLayout);
+                AnimationUtils.collapse(dynamicExpandLayout);
                 staticBtn.setChecked(true);
             }
         } else {
@@ -554,7 +387,7 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
         if (isActive) {
             if (ShecanVpnService.isProMode()) {
-                collapse(proModeExpandLayout);
+                AnimationUtils.collapse(proModeExpandLayout);
                 setViewIsConnecting();
                 ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), this);
             } else {
@@ -581,7 +414,8 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
 
             if(shouldShowSupportDialog){
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    showContactSupportDialog();
+                    shouldShowSupportDialog = false;
+                    new ContactSupportDialog(activity).show();
                 }
             }
         }
@@ -624,14 +458,15 @@ public class HomeFragment extends ToolbarFragment implements ApiResponseListener
     @Override
     public void onInvalid() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            showRenewalDialog();
+            new RenewalDialog(activity).show();
         }
     }
 
     @Override
     public void onOutOfRange() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            showContactSupportDialog();
+            shouldShowSupportDialog = false;
+            new ContactSupportDialog(activity).show();
         }
     }
 

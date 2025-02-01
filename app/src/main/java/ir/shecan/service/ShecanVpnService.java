@@ -182,13 +182,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
         return START_NOT_STICKY;
     }
 
-    private void callCoreAPI() {
-        String apiUrl = "https://ddns.shecan.ir/update";
-        if (ShecanVpnService.isDynamicIPMode()) {
-
-        }
-    }
-
     private List<Pair<String, Integer>> getResolvedDNS(AbstractDNSServer dnsServer) {
         List<Pair<String, Integer>> resolvedDNSServers = new ArrayList<>();
         InetAddress[] addresses;

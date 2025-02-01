@@ -107,7 +107,6 @@ public class Shecan extends Application implements ConnectionStatusListener {
     private static Shecan instance = null;
     private SharedPreferences prefs;
 
-    private static final String ONESIGNAL_APP_ID = "64aafa29-46dc-46ea-8ac1-36830a241e90";
     private final Handler handler = new Handler();
 
     private ScheduledExecutorService scheduler;
@@ -121,7 +120,6 @@ public class Shecan extends Application implements ConnectionStatusListener {
         Logger.init();
 
         initData();
-//        initOneSignal();
         initPushPole();
         initCheckIP();
 
@@ -147,7 +145,6 @@ public class Shecan extends Application implements ConnectionStatusListener {
         PushPole.setNotificationListener(new PushPole.NotificationListener() {
             @Override
             public void onNotificationReceived(@NonNull NotificationData notificationData) {
-                Log.d("NOTIFzzz", notificationData.toString());
             }
 
             @Override
@@ -162,7 +159,6 @@ public class Shecan extends Application implements ConnectionStatusListener {
 
             @Override
             public void onCustomContentReceived(@NonNull JSONObject jsonObject) {
-                Log.d("NOTIFzzz", jsonObject.toString());
             }
 
             @Override
@@ -170,25 +166,6 @@ public class Shecan extends Application implements ConnectionStatusListener {
 
             }
         });
-    }
-
-    private void initOneSignal() {
-        // Verbose Logging set to help debug issues, remove before releasing your app.
-//        OneSignal.getDebug().setLogLevel(LogLevel.VERBOSE);
-//        OneSignal.getDebug().setLogLevel(LogLevel.DEBUG);
-
-        // OneSignal Initialization
-//        OneSignal.initWithContext(this);
-//        OneSignal.setLogLevel(OneSignal.LOG_LEVEL.VERBOSE, OneSignal.LOG_LEVEL.NONE);
-//        OneSignal.setAppId(ONESIGNAL_APP_ID);
-//        OneSignal.promptLocation();
-//        OneSignal.disableGMSMissingPrompt(true);
-
-        // requestPermission will show the native Android notification permission prompt.
-        // NOTE: It's recommended to use a OneSignal In-App Message to prompt instead.
-//        OneSignal.getNotifications().requestPermission(false, Continue.none());
-
-
     }
 
     private void initDirectory(String dir) {
