@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
@@ -142,7 +141,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             }
         });
 
-         activity = getActivity();
+        activity = getActivity();
 
         // collapse first
         AnimationUtils.collapse(proModeExpandLayout);
@@ -259,7 +258,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         return view;
     }
 
-    private void fetchData(){
+    private void fetchData() {
         Shecan.ShecanInfo.fetchData(getActivity().getApplicationContext(), new BaseApiResponseListener() {
             @Override
             public void onError(String errorMessage) {
@@ -311,14 +310,12 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         long currentVersion = AppUtils.getVersionCode(activity);
         int minVersion = Shecan.ShecanInfo.getMinVersion();
         int latestVersion = Shecan.ShecanInfo.getCurrentVersion();
-        if(minVersion > currentVersion){
+        if (minVersion > currentVersion) {
             isForce = true;
         }
 
         if (latestVersion > currentVersion) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                new UpdateDialog(activity).show(isForce);
-            }
+            new UpdateDialog(activity).show(isForce);
         }
     }
 
@@ -389,11 +386,9 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             shecanDescription.setTextColor(resources.getColor(R.color.white));
             shecanMainTitle.setTextColor(resources.getColor(R.color.white));
 
-            if(shouldShowSupportDialog){
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    shouldShowSupportDialog = false;
-                    new ContactSupportDialog(activity).show();
-                }
+            if (shouldShowSupportDialog) {
+                shouldShowSupportDialog = false;
+                new ContactSupportDialog(activity).show();
             }
         }
 
@@ -434,17 +429,13 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onInvalid() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            new RenewalDialog(activity).show();
-        }
+        new RenewalDialog(activity).show();
     }
 
     @Override
     public void onOutOfRange() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            shouldShowSupportDialog = false;
-            new ContactSupportDialog(activity).show();
-        }
+        shouldShowSupportDialog = false;
+        new ContactSupportDialog(activity).show();
     }
 
     @Override
@@ -526,7 +517,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onRetry() {
-        if(ShecanVpnService.isDynamicIPMode()){
+        if (ShecanVpnService.isDynamicIPMode()) {
             scheduler = Executors.newScheduledThreadPool(1);
 
             scheduler.schedule(new Runnable() {

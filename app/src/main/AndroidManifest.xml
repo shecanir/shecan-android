@@ -70,14 +70,6 @@
             </intent-filter>
         </service>
 
-        <meta-data
-            android:name="onesignal_app_id"
-            android:value="64aafa29-46dc-46ea-8ac1-36830a241e90" />
-
-        <meta-data
-            android:name="onesignal_google_project_number"
-            android:value="REMOTE" />
-
         <meta-data android:name="com.pushpole.sdk.token" android:value="PUSHPOLE_"/>
 
     </application>
