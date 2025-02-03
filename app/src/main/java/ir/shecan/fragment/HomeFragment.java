@@ -307,14 +307,15 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private void checkIsUpdateAvailable() {
         boolean isForce = false;
 
-        long currentVersion = AppUtils.getVersionCode(activity);
-        int minVersion = Shecan.ShecanInfo.getMinVersion();
-        int latestVersion = Shecan.ShecanInfo.getCurrentVersion();
-        if (minVersion > currentVersion) {
+        String currentVersion = AppUtils.getVersionName(activity);
+        String minVersion = Shecan.ShecanInfo.getMinVersion();
+        String latestVersion = Shecan.ShecanInfo.getCurrentVersion();
+
+        if (AppUtils.compareVersionNames(minVersion, currentVersion) == 1) { // (greater=1, smaller=-1, equal=0)
             isForce = true;
         }
 
-        if (latestVersion > currentVersion) {
+        if (AppUtils.compareVersionNames(latestVersion, currentVersion) == 1) {
             new UpdateDialog(activity).show(isForce);
         }
     }

@@ -33,6 +33,7 @@ import com.pushpole.sdk.NotificationButtonData;
 import com.pushpole.sdk.NotificationData;
 import com.pushpole.sdk.PushPole;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import ir.shecan.activity.MainActivity;
@@ -439,31 +440,35 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         private static final String MIN_VERSION = "MIN_VERSION";
         private static final String UPDATE_LINK = "UPDATE_LINK";
         private static final String BANNER_IMAGE_URL = "BANNER_IMAGE_URL";
-        private static final String BANNER_LINK = "CURRENT_VERSION";
+        private static final String BANNER_LINK = "BANNER_LINK";
         private static final String DYNAMIC_IP_GUIDE_LINK = "DYNAMIC_IP_GUIDE_LINK";
         private static final String TICKETING_LINK = "TICKETING_LINK";
         private static final String PURCHASE_LINK = "PURCHASE_LINK";
 
         public static void fetchData(Context context, BaseApiResponseListener listener) {
             RequestQueue requestQueue = Volley.newRequestQueue(context);
-            String apiUrl = "https://check.shecan.ir";
+            String apiUrl = "https://shecan.ir/app/home-page";
             StringRequest stringRequest = new StringRequest(
                     Request.Method.GET,
                     apiUrl,
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            String result = response.trim();
-                            // todo: read from json
-                            setCurrentVersion("");
-                            setMinVersion("");
-                            setUpdateLink("");
-                            setBannerImageUrl("");
-                            setBannerLink("");
-                            setDynamicIpGuideLink("");
-                            setTicketingLink("");
-                            setPurchaseLink("");
-                            listener.onSuccess();
+                            try{
+                                JSONObject jsonObject = new JSONObject(response);
+                                setCurrentVersion(jsonObject.getString("current_version"));
+
+                                setMinVersion(jsonObject.getString("min_version"));
+                                setUpdateLink(jsonObject.getString("update_link"));
+                                setBannerImageUrl(jsonObject.getString("banner_image_url"));
+                                setBannerLink(jsonObject.getString("banner_link"));
+                                setDynamicIpGuideLink(jsonObject.getString("dynamic_ip_guide_link"));
+                                setTicketingLink(jsonObject.getString("ticketing_link"));
+                                setPurchaseLink(jsonObject.getString("purchase_link"));
+                                listener.onSuccess();
+                            }catch (JSONException e){
+                                listener.onError("خطای سرور");
+                            }
                         }
                     },
                     new Response.ErrorListener() {
@@ -474,9 +479,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                     }
             );
 
-            // todo: remove it later and uncomment requestQueue
-            listener.onSuccess();
-//            requestQueue.add(stringRequest);
+            requestQueue.add(stringRequest);
         }
 
         private static void setCurrentVersion(String version) {
@@ -527,12 +530,12 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                     .apply();
         }
 
-        public static int getCurrentVersion() {
-            return Shecan.getPrefs().getInt(CURRENT_VERSION, -1);
+        public static String getCurrentVersion() {
+            return Shecan.getPrefs().getString(CURRENT_VERSION, "1.0.0");
         }
 
-        public static int getMinVersion() {
-            return Shecan.getPrefs().getInt(MIN_VERSION, -1);
+        public static String getMinVersion() {
+            return Shecan.getPrefs().getString(MIN_VERSION, "1.0.0");
         }
 
         public static String getUpdateLink() {
