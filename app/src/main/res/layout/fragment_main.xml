@@ -128,7 +128,7 @@
                     android:id="@+id/freeModeBtn"
                     style="@style/ButtonStyle"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/tab_button_height"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_button"
                     android:text="@string/free_shecan"
@@ -143,7 +143,7 @@
                     android:id="@+id/proModeBtn"
                     style="@style/ButtonStyle"
                     android:layout_width="0dp"
-                    android:layout_height="@dimen/tab_button_height"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:background="@drawable/default_no_background_button"
                     android:text="@string/pro_shecan"
@@ -240,12 +240,14 @@
                         android:layout_height="wrap_content"
                         android:layoutDirection="ltr"
                         android:gravity="center"
+                        android:baselineAligned="false"
                         android:orientation="horizontal">
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/link_updater_input_layout"
                             style="@style/TextInputStyle"
                             android:layout_width="0dp"
+                            android:padding="0dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp">
@@ -253,10 +255,9 @@
                             <EditText
                                 android:id="@+id/link_updater_edit_text"
                                 android:layout_width="match_parent"
-                                android:layout_height="32dp"
+                                android:layout_height="wrap_content"
                                 android:layoutDirection="ltr"
                                 android:maxLines="1"
-                                android:padding="0dp"
                                 android:singleLine="true"
                                 android:inputType="text"
                                 android:textSize="12sp"
@@ -268,6 +269,7 @@
                         <ImageView
                             android:id="@+id/clear_btn"
                             android:visibility="gone"
+                            tools:visibility="visible"
                             android:src="@drawable/ic_clear"
                             android:layout_width="20dp"
                             android:layout_marginStart="4dp"
