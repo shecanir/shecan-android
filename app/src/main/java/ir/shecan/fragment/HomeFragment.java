@@ -77,6 +77,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private boolean isApiSuccess = false;
     private CountDownTimer countDownTimer;
     private static boolean shouldShowSupportDialog = false;
+    private int remainStaticCheckTry = 4;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -364,7 +365,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             if (ShecanVpnService.isProMode()) {
                 AnimationUtils.collapse(proModeExpandLayout);
                 setViewIsConnecting();
-                ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), this);
+                ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), this, null);
             } else {
                 view.setBackground(resources.getDrawable(R.drawable.background_on));
                 btn.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
@@ -441,6 +442,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onInTheRange() {
+        Shecan.setStaticIPMode();
         startActivity(new Intent(getActivity(), MainActivity.class)
                 .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
     }
@@ -524,14 +526,28 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             scheduler.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), HomeFragment.this);
+                    ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), HomeFragment.this, null);
                 }
             }, 20, TimeUnit.SECONDS);
         } else {
-            Shecan.deactivateService(activity.getApplicationContext());
-            isApiSuccess = false;
-            shouldShowSupportDialog = true;
-            stopCountdown();
+            if (remainStaticCheckTry > 0) {
+                scheduler = Executors.newScheduledThreadPool(1);
+
+                scheduler.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        remainStaticCheckTry--;
+                        ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), HomeFragment.this, 5000);
+                    }
+                }, 5, TimeUnit.SECONDS);
+            } else {
+                Shecan.deactivateService(activity.getApplicationContext());
+                isApiSuccess = false;
+                shouldShowSupportDialog = true;
+                remainStaticCheckTry = 4;
+                stopCountdown();
+            }
+
         }
 
     }

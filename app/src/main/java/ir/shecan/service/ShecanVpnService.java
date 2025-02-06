@@ -15,6 +15,7 @@ import androidx.core.util.Pair;
 import android.system.OsConstants;
 import android.util.Log;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -487,7 +488,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
         requestQueue.add(stringRequest);
     }
 
-    public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener) {
+    public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {
         RequestQueue requestQueue = Volley.newRequestQueue(context);
         String apiUrl = "https://check.shecan.ir";
         StringRequest stringRequest = new StringRequest(
@@ -512,6 +513,14 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     }
                 }
         );
+
+        int finalTimeout = (timeoutMs != null) ? timeoutMs : DefaultRetryPolicy.DEFAULT_TIMEOUT_MS;
+
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                finalTimeout,  // Timeout in milliseconds (5 seconds)
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,  // Number of retries
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT  // Backoff multiplier
+        ));
 
         requestQueue.add(stringRequest);
     }

@@ -32,18 +32,6 @@
             android:layout_height="wrap_content">
 
             <Button
-                android:id="@+id/renewalButton2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/purchase_service"
-                style="@style/ButtonStyle"
-                android:stateListAnimator="@null"
-                android:paddingHorizontal="16dp"
-                android:layout_marginBottom="8dp"
-                android:textColor="@android:color/white"
-                android:background="@drawable/rounded_button" />
-
-            <Button
                 android:id="@+id/contactButton"
                 style="@style/ButtonStyle"
                 android:layout_width="wrap_content"

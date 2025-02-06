@@ -25,7 +25,6 @@ public class ContactSupportDialog {
         builder.setView(dialogView);
 
         Button contactButton = dialogView.findViewById(R.id.contactButton);
-        Button renewalButton = dialogView.findViewById(R.id.renewalButton2);
         final AlertDialog dialog = builder.create();
 
         if (dialog.getWindow() != null) {
@@ -39,17 +38,6 @@ public class ContactSupportDialog {
                 dialog.dismiss();
 
                 String url = Shecan.ShecanInfo.getTicketingLink(); // Replace with your desired URL
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                activity.startActivity(intent);
-            }
-        });
-
-        renewalButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-
-                String url = Shecan.ShecanInfo.getPurchaseLink(); // Replace with your desired URL
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                 activity.startActivity(intent);
             }

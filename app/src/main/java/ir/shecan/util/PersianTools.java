@@ -12,7 +12,9 @@ public class PersianTools {
                 persianString.append(c); // Keep non-digit characters as is (e.g., ':')
             }
         }
+        if(LanguageHelper.getLanguage().equals("fa"))
+            return persianString.toString();
 
-        return persianString.toString();
+        return input;
     }
 }

@@ -272,7 +272,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                             ShecanVpnService.callCoreAPI(context, new CoreApiResponseListener() {
                                 @Override
                                 public void onSuccess(String response) {
-                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this);
+                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this, null);
                                 }
 
                                 @Override
@@ -282,7 +282,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
                                 @Override
                                 public void onInvalid() {
-                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this);
+                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this, null);
                                 }
 
                                 @Override
@@ -429,7 +429,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         scheduler.schedule(new Runnable() {
             @Override
             public void run() {
-                ShecanVpnService.callConnectionStatusAPI(Shecan.this, Shecan.this);
+                ShecanVpnService.callConnectionStatusAPI(Shecan.this, Shecan.this, null);
             }
         }, 20, TimeUnit.SECONDS);
     }
