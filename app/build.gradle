@@ -11,8 +11,8 @@ android {
         applicationId "co.bonyan.shecan"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 10005
-        versionName "1.0.5"
+        versionCode 10100
+        versionName "1.1.0"
 
         buildConfigField "String", "BUILD_TIME", "\"${System.currentTimeMillis()}\""
         buildConfigField "String", "GIT_COMMIT", "\"${gitCommit}\""
