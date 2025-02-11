@@ -103,7 +103,7 @@
     <string name="static_ip">Static IP</string>
     <string name="please_enter_your_link_updater">Please Enter Your Link Updater</string>
     <string name="help">Help</string>
-    <string name="no_active_service">You don\'t have active service</string>
+    <string name="no_active_service">The Updater Link is not valid or You don\'t have active service</string>
     <string name="purchase_service">Purchase/Renewal Service</string>
     <string name="update">Update</string>
     <string name="cancel">Cancel</string>

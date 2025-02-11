@@ -92,7 +92,7 @@
     <string name="static_ip">آی پی ثابت</string>
     <string name="please_enter_your_link_updater">لینک بروزرسان خود را وارد کنید</string>
     <string name="help">راهنما</string>
-    <string name="no_active_service">شما سرویس فعال ندارید</string>
+    <string name="no_active_service">لینک بروزرسان وارد شده صحیح نمی باشد یا شما سرویس فعال ندارید</string>
     <string name="purchase_service">خرید/تمدید سرویس</string>
     <string name="update">بروزرسانی</string>
     <string name="cancel">لغو</string>

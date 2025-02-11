@@ -17,10 +17,11 @@
 
     <TextView
         android:id="@+id/dialogMessage"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/no_active_service"
         style="@style/TextViewBoldStyle"
+        android:textAlignment="center"
         android:textColor="@color/colorAccent"
         android:layout_marginBottom="20dp"/>
 
