@@ -479,6 +479,8 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                     }
             );
 
+            stringRequest.setShouldCache(false);
+            requestQueue.getCache().clear();
             requestQueue.add(stringRequest);
         }
 
