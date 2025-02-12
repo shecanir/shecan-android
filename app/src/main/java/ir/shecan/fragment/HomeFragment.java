@@ -20,8 +20,6 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 
 import com.google.android.material.textfield.TextInputLayout;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -41,6 +39,7 @@ import ir.shecan.service.ConnectionStatusApiListener;
 import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.AnimationUtils;
 import ir.shecan.util.AppUtils;
+import ir.shecan.util.ImageUtils;
 import ir.shecan.util.PersianTools;
 
 /**
@@ -279,19 +278,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private void loadBanner(final ImageView imageView) {
         String imageUrl = Shecan.ShecanInfo.getBannerImageUrl();
 
-        Picasso.get()
-                .load(imageUrl) // URL of the image
-                .into(imageView, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        imageView.setVisibility(View.VISIBLE);
-                    }
-
-                    @Override
-                    public void onError(Exception e) {
-                        imageView.setVisibility(View.GONE); // Keep the ImageView hidden if image loading fails
-                    }
-                });
+        ImageUtils.INSTANCE.loadImage(activity.getApplicationContext(), imageUrl, imageView);
 
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
