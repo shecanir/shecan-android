@@ -133,7 +133,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, createNotificationChannel(false));
 
                         Intent mainIntent = new Intent(this, MainActivity.class);
-                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
 
                         Intent deactivateIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION);
                         Intent settingIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_SETTINGS_CLICK_ACTION);
@@ -152,10 +152,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
                                 .setContentIntent(pendingIntent)
                                 .addAction(R.drawable.ic_clear, getResources().getString(R.string.button_text_deactivate),
                                         PendingIntent.getBroadcast(this, 0, deactivateIntent
-                                                , 0))
+                                                , PendingIntent.FLAG_MUTABLE))
                                 .addAction(R.drawable.ic_settings, getResources().getString(R.string.action_settings),
                                         PendingIntent.getBroadcast(this, 0,
-                                                settingIntent, 0));
+                                                settingIntent, PendingIntent.FLAG_MUTABLE));
 
                         Notification notification = builder.build();
 
@@ -307,7 +307,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     .setSession("shecan")
                     .setConfigureIntent(PendingIntent.getActivity(this, 0,
                             new Intent(this, MainActivity.class).putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS),
-                            PendingIntent.FLAG_ONE_SHOT));
+                            PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE));
             String format = null;
             for (String prefix : new String[]{"10.0.0", "192.0.2", "198.51.100", "203.0.113", "192.168.50"}) {
                 try {

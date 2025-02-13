@@ -545,7 +545,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         }
 
         public static String getBannerImageUrl() {
-            return Shecan.getPrefs().getString(BANNER_IMAGE_URL, "https://fakeimg.pl/320x100");
+            return Shecan.getPrefs().getString(BANNER_IMAGE_URL, "https://fakeimg.pl/320x80");
         }
 
         public static String getBannerLink() {

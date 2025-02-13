@@ -59,6 +59,7 @@ dependencies {
 
     implementation("io.coil-kt:coil:2.5.0") // Coil Core
     implementation("io.coil-kt:coil-gif:2.5.0") // GIF Support
+    // AVIF Decoder (Third-party implementation)
 
     implementation 'com.android.support:multidex:2.0.1'
 
