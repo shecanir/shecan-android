@@ -541,11 +541,11 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         }
 
         public static String getUpdateLink() {
-            return Shecan.getPrefs().getString(UPDATE_LINK, "https://shecan.ir");
+            return Shecan.getPrefs().getString(UPDATE_LINK, "https://shecan.ir/app");
         }
 
         public static String getBannerImageUrl() {
-            return Shecan.getPrefs().getString(BANNER_IMAGE_URL, "https://fakeimg.pl/320x80");
+            return Shecan.getPrefs().getString(BANNER_IMAGE_URL, "");
         }
 
         public static String getBannerLink() {
@@ -553,15 +553,15 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         }
 
         public static String getDynamicIpGuideLink() {
-            return Shecan.getPrefs().getString(DYNAMIC_IP_GUIDE_LINK, "https://shecan.ir");
+            return Shecan.getPrefs().getString(DYNAMIC_IP_GUIDE_LINK, "https://shecan.ir/tutorials");
         }
 
         public static String getTicketingLink() {
-            return Shecan.getPrefs().getString(TICKETING_LINK, "https://shecan.ir");
+            return Shecan.getPrefs().getString(TICKETING_LINK, "https://my.shecan.ir");
         }
 
         public static String getPurchaseLink() {
-            return Shecan.getPrefs().getString(TICKETING_LINK, "https://shecan.ir");
+            return Shecan.getPrefs().getString(TICKETING_LINK, "https://shecan.ir/order?order=9");
         }
     }
 }
