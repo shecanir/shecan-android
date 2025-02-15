@@ -25,6 +25,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -125,6 +126,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         super.onCreate();
 
         instance = this;
+        Fresco.initialize(this);
 
         Logger.init();
         handleSSLHandshake();

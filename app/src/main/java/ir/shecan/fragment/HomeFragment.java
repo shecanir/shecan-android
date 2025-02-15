@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.Objects;
@@ -56,7 +57,7 @@ import ir.shecan.util.PersianTools;
  */
 public class HomeFragment extends ToolbarFragment implements CoreApiResponseListener, ConnectionStatusApiListener {
 
-    ImageView bannerImageView;
+    SimpleDraweeView bannerImageView;
 
     private static boolean isUpdateVersionCheck = false;
     private ScheduledExecutorService scheduler;
@@ -275,7 +276,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         });
     }
 
-    private void loadBanner(final ImageView imageView) {
+    private void loadBanner(final SimpleDraweeView imageView) {
         String imageUrl = Shecan.ShecanInfo.getBannerImageUrl();
 
         ImageUtils.INSTANCE.loadImage(activity.getApplicationContext(), imageUrl, imageView);
