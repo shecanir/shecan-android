@@ -452,7 +452,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     public static void callCoreAPI(final Context context, final CoreApiResponseListener listener) {
         String apiUrl = ShecanVpnService.getUpdaterLink();
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
 
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
@@ -479,6 +479,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     public void onErrorResponse(VolleyError error) {
                         // todo: handle error
                         if (listener != null) {
+                            Log.d("Apizzz", error.toString());
                             listener.onError(error.toString());
                         }
                     }
@@ -489,7 +490,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
         String apiUrl = "https://check.shecan.ir";
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,

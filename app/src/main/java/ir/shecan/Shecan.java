@@ -24,7 +24,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.gson.Gson;
@@ -43,6 +42,7 @@ import ir.shecan.service.CoreApiResponseListener;
 import ir.shecan.service.BaseApiResponseListener;
 import ir.shecan.service.ConnectionStatusApiListener;
 import ir.shecan.service.ShecanVpnService;
+import ir.shecan.service.VolleyHelper;
 import ir.shecan.util.Configurations;
 import ir.shecan.util.LanguageHelper;
 import ir.shecan.util.Logger;
@@ -129,46 +129,12 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         Fresco.initialize(this);
 
         Logger.init();
-        handleSSLHandshake();
 
         initData();
         initPushPole();
         initCheckIP();
 
         updateLocale();
-    }
-
-    /**
-     * Enables https connections
-     */
-    @SuppressLint("TrulyRandom")
-    public static void handleSSLHandshake() {
-        try {
-            TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return new X509Certificate[0];
-                }
-
-                @Override
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-
-                @Override
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            }};
-
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-            HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String arg0, SSLSession arg1) {
-                    return true;
-                }
-            });
-        } catch (Exception ignored) {
-        }
     }
 
     private void initCheckIP() {
@@ -306,7 +272,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
     }
 
     public void callCheckCurrentIP(final Context context) {
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
         String apiUrl = "https://shecan.ir/ip";
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
@@ -493,7 +459,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         private static final String PURCHASE_LINK = "PURCHASE_LINK";
 
         public static void fetchData(Context context, BaseApiResponseListener listener) {
-            RequestQueue requestQueue = Volley.newRequestQueue(context);
+            RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
             String apiUrl = "https://shecan.ir/app/home-page";
             StringRequest stringRequest = new StringRequest(
                     Request.Method.GET,
