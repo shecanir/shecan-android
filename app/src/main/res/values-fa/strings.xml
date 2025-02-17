@@ -96,6 +96,7 @@
     <string name="purchase_service">خرید/تمدید سرویس</string>
     <string name="update">بروزرسانی</string>
     <string name="cancel">لغو</string>
+    <string name="cancel2">لغو</string>
     <string name="new_version_available">نسخه ی جدیدی از اپلیکیشن در دسترس است</string>
     <string name="out_of_range_ip_error">آی پی شما در لیست آی پی‌های معرفی شده به شکن نمی باشد!</string>
     <string name="contact_support">ارتباط با پشتیبانی</string>

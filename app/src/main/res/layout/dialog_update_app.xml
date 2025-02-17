@@ -40,7 +40,7 @@
                 android:background="@drawable/default_no_background_button"
                 android:paddingHorizontal="8dp"
                 android:stateListAnimator="@null"
-                android:text="@string/cancel"
+                android:text="@string/cancel2"
                 android:textColor="#000000" />
 
             <Button

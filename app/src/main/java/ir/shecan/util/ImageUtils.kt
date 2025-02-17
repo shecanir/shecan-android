@@ -11,7 +11,7 @@ import coil.ImageLoader
 import coil.decode.BitmapFactoryDecoder
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
-import coil.request.ImageRequest
+//import coil.request.ImageRequest
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -23,6 +23,8 @@ import com.facebook.drawee.view.SimpleDraweeView
 import com.facebook.imagepipeline.common.ImageDecodeOptions
 import com.facebook.imagepipeline.image.ImageInfo
 import com.facebook.imagepipeline.request.ImageRequestBuilder
+
+import com.facebook.imagepipeline.request.ImageRequest
 
 
 object ImageUtils {
@@ -56,7 +58,7 @@ object ImageUtils {
             }
             .build()
 
-        val request = ImageRequest.Builder(context)
+        val request = coil.request.ImageRequest.Builder(context)
             .data(imageUrl)
             .crossfade(true)
             .target(
@@ -120,6 +122,7 @@ object ImageUtils {
         val imageRequest = ImageRequestBuilder.newBuilderWithSource(uri)
             .setImageDecodeOptions(decodeOptions)
 //            .setLowestPermittedRequestLevel(ImageRequest.RequestLevel.FULL_FETCH)
+            .setLowestPermittedRequestLevel(ImageRequest.RequestLevel.DISK_CACHE)
             .setProgressiveRenderingEnabled(true) // Enables progressive loading for large images
             .build()
 

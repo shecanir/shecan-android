@@ -148,8 +148,6 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         // collapse first
         AnimationUtils.collapse(proModeExpandLayout);
 
-        fetchData();
-
         helpLinkUpdater.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -260,10 +258,17 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        fetchData();
+    }
+
     private void fetchData() {
         Shecan.ShecanInfo.fetchData(getActivity().getApplicationContext(), new BaseApiResponseListener() {
             @Override
             public void onError(String errorMessage) {
+                loadBanner(bannerImageView);
             }
 
             @Override
