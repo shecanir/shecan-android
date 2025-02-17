@@ -5,10 +5,10 @@
         android:key="settings_system"
         android:title="@string/settings_system">
 
-        <ListPreference
+        <!--<ListPreference
             android:key="settings_language"
             android:title="@string/settings_language"
-            />
+            />-->
         <SwitchPreference
             android:key="settings_notification"
             android:title="@string/settings_notification"

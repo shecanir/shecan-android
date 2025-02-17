@@ -40,6 +40,8 @@ public class GlobalConfigFragment extends PreferenceFragment {
 
         addPreferencesFromResource(R.xml.perf_settings);
 
+        /*
+        // Commented temporary (it can be used later if needed)
         ListPreference language = (ListPreference) findPreference("settings_language");
         language.setEntries(LanguageHelper.getNames());
         language.setEntryValues(LanguageHelper.getIds());
@@ -53,6 +55,7 @@ public class GlobalConfigFragment extends PreferenceFragment {
                 return true;
             }
         });
+        */
 
         EditTextPreference logSize = (EditTextPreference) findPreference("settings_log_size");
         logSize.setSummary(logSize.getText());
