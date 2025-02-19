@@ -49,6 +49,7 @@ import java.util.Random;
 import de.measite.minidns.DNSMessage;
 import de.measite.minidns.Question;
 import de.measite.minidns.Record;
+import ir.shecan.util.server.OkHttpLogger;
 
 /**
  * Shecan Project
@@ -490,6 +491,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {
+        OkHttpLogger.requestWithIPLogging("https://check.shecan.ir");
         RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
         String apiUrl = "https://check.shecan.ir";
         StringRequest stringRequest = new StringRequest(
@@ -509,7 +511,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        // todo: handle error
+                        // show the cached connected IP connected before the api call, when gets error
+                        Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
                         listener.onRetry();
                     }
                 }
