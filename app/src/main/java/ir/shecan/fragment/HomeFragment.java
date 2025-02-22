@@ -78,7 +78,6 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private boolean isApiSuccess = false;
     private CountDownTimer countDownTimer;
     private static boolean shouldShowSupportDialog = false;
-    private int remainStaticCheckTry = 6;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -462,6 +461,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     private void setViewIsConnecting() {
         isApiSuccess = false;
+        shouldShowSupportDialog = false;
         view.setBackground(resources.getDrawable(R.drawable.background_off));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_connected));
         imageView.setBackgroundResource(R.drawable.home_logo_white);
@@ -523,29 +523,11 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                 }
             }, 20, TimeUnit.SECONDS);
         } else {
-            if(remainStaticCheckTry > 0){
-                scheduler = Executors.newScheduledThreadPool(1);
-
-                scheduler.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        remainStaticCheckTry--;
-                        ShecanVpnService.callConnectionStatusAPI(getActivity().getApplicationContext(), HomeFragment.this, 5000);
-                    }
-                }, 5, TimeUnit.SECONDS);
-
-            } else {
-                Shecan.deactivateService(activity.getApplicationContext());
-                isApiSuccess = false;
-                shouldShowSupportDialog = true;
-                remainStaticCheckTry = 6;
-                stopCountdown();
-
-            }
+            Shecan.deactivateService(activity.getApplicationContext());
+            isApiSuccess = false;
+            shouldShowSupportDialog = true;
+            stopCountdown();
         }
-
-
-
     }
 
     @Override
