@@ -513,7 +513,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onRetry() {
-        if(ShecanVpnService.isDynamicIPMode()){
+        if (ShecanVpnService.isDynamicIPMode()) {
             scheduler = Executors.newScheduledThreadPool(1);
 
             scheduler.schedule(new Runnable() {
@@ -523,9 +523,10 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                 }
             }, 20, TimeUnit.SECONDS);
         } else {
+            if (ShecanVpnService.isActivated())
+                shouldShowSupportDialog = true;
             Shecan.deactivateService(activity.getApplicationContext());
             isApiSuccess = false;
-            shouldShowSupportDialog = true;
             stopCountdown();
         }
     }

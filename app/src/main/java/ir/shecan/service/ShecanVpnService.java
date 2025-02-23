@@ -501,7 +501,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     @Override
                     public void onResponse(String response) {
                         String result = response.trim();
-                        if(result.equals("2")){
+                        if (result.equals("2")) {
                             listener.onConnected();
                         } else {
                             listener.onRetry();
@@ -512,7 +512,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // show the cached connected IP connected before the api call, when gets error
-                        Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
+                        if (ShecanVpnService.isActivated())
+                            Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
                         listener.onRetry();
                     }
                 }
