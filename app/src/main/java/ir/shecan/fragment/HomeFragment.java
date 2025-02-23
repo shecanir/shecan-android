@@ -1,6 +1,7 @@
 package ir.shecan.fragment;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -184,6 +185,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                 if (isConnectBtnEnabled)
                     if (ShecanVpnService.isActivated()) {
                         ShecanVpnService.cancelConnectionStatusAPI(activity.getApplicationContext());
+                        ShecanVpnService.cancelCoreAPI(activity.getApplicationContext());
                         Shecan.deactivateService(activity.getApplicationContext());
                     } else {
                         if (ShecanVpnService.isProMode()) {
@@ -202,6 +204,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                                     linkUpdaterInputLayout.setErrorEnabled(true);
                                 }
                             } else {
+                                isConnectBtnEnabled = false;
                                 startActivity(new Intent(getActivity(), MainActivity.class)
                                         .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
                             }
@@ -211,11 +214,6 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                         }
 
                     }
-
-                isConnectBtnEnabled = false; // Disable the button
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    isConnectBtnEnabled = true; // Re-enable after 500ms
-                }, 1000);
             }
         });
 
@@ -421,13 +419,13 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onSuccess(String response) {
-        startActivity(new Intent(getActivity(), MainActivity.class)
-                .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+        if (getActivity() != null)
+            startActivity(new Intent(getActivity(), MainActivity.class)
+                    .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
     }
 
     @Override
     public void onError(String errorMessage) {
-        // todo: show toast
     }
 
     @Override
@@ -443,17 +441,25 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onInTheRange() {
-        Shecan.setStaticIPMode();
-        startActivity(new Intent(getActivity(), MainActivity.class)
-                .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+        if (getActivity() != null){
+            Shecan.setStaticIPMode();
+            startActivity(new Intent(activity, MainActivity.class)
+                    .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+        }
     }
 
     @Override
     public void onConnected() {
         isApiSuccess = true;
+        isConnectBtnEnabled = true;
         stopCountdown();
         view.setBackground(resources.getDrawable(R.drawable.background_on));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
+        if (isConnectBtnEnabled) {
+            btn.setAlpha(1f);
+        } else {
+            btn.setAlpha(0.5f);
+        }
         imageView.setBackgroundResource(R.drawable.home_logo);
         if (ShecanVpnService.isDynamicIPMode()) {
             shecanStatus.setText(R.string.shecan_status_pro_dynamic_active);
@@ -473,6 +479,11 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         shouldShowSupportDialog = false;
         view.setBackground(resources.getDrawable(R.drawable.background_off));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_connected));
+        if (isConnectBtnEnabled) {
+            btn.setAlpha(1f);
+        } else {
+            btn.setAlpha(0.5f);
+        }
         imageView.setBackgroundResource(R.drawable.home_logo_white);
         shecanStatus.setTextColor(resources.getColor(R.color.colorStatusDisconnected));
         statusIcon.setImageDrawable(resources.getDrawable(R.drawable.status_disconnected));
@@ -540,6 +551,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                 }
             }, 20, TimeUnit.SECONDS);
         } else {
+            isConnectBtnEnabled = true;
             if (ShecanVpnService.isActivated())
                 shouldShowSupportDialog = true;
             Shecan.deactivateService(activity.getApplicationContext());

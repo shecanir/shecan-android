@@ -72,6 +72,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static final String DYNAMIC_IP = "DYNAMIC_IP";
 
     private static final String ConnectionStatusRequest = "connection_status_request";
+    private static final String CoreApiRequest = "core_api_request";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
 
@@ -489,6 +490,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 }
         );
 
+        stringRequest.setTag(CoreApiRequest);
         requestQueue.add(stringRequest);
     }
 
@@ -537,6 +539,11 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static void cancelConnectionStatusAPI(Context context) {
         RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
         requestQueue.cancelAll(ConnectionStatusRequest);
+    }
+
+    public static void cancelCoreAPI(Context context) {
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+        requestQueue.cancelAll(CoreApiRequest);
     }
 
 
