@@ -71,6 +71,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static final String UPDATER_LINK = "UPDATER_LINK";
     public static final String DYNAMIC_IP = "DYNAMIC_IP";
 
+    private static final String ConnectionStatusRequest = "connection_status_request";
+
     private static final int NOTIFICATION_ACTIVATED = 0;
 
     private static final String TAG = "ShecanVpnService";
@@ -512,9 +514,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // show the cached connected IP connected before the api call, when gets error
-                        if (ShecanVpnService.isActivated())
+                        if (ShecanVpnService.isActivated()) {
                             Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
-                        listener.onRetry();
+                            listener.onRetry();
+                        }
                     }
                 }
         );
@@ -527,7 +530,13 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT  // Backoff multiplier
         ));
 
+        stringRequest.setTag(ConnectionStatusRequest);
         requestQueue.add(stringRequest);
+    }
+
+    public static void cancelConnectionStatusAPI(Context context) {
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+        requestQueue.cancelAll(ConnectionStatusRequest);
     }
 
 

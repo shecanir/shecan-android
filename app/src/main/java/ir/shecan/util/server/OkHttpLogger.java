@@ -1,5 +1,6 @@
 package ir.shecan.util.server;
 
+
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -17,7 +18,7 @@ public class OkHttpLogger {
     private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void requestWithIPLogging(String urlString) {
-        executor.execute(()-> {
+        executor.execute(() -> {
             try {
                 // Extract hostname from URL
                 URL url = new URL(urlString);

@@ -6,9 +6,10 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -78,6 +79,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private boolean isApiSuccess = false;
     private CountDownTimer countDownTimer;
     private static boolean shouldShowSupportDialog = false;
+    private static boolean isConnectBtnEnabled = true;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -179,34 +181,41 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ShecanVpnService.isActivated()) {
-                    Shecan.deactivateService(activity.getApplicationContext());
-                } else {
-                    if (ShecanVpnService.isProMode()) {
-                        if (ShecanVpnService.isDynamicIPMode()) {
-                            linkUpdaterInputLayout.setError(null);
-                            linkUpdaterInputLayout.setErrorEnabled(false);
-                            String updaterUrl = linkUpdaterEditText.getText().toString();
-                            if (updaterUrl.isEmpty()) {
-                                linkUpdaterInputLayout.setError(getString(R.string.empty_link_updater_error));
-                                linkUpdaterInputLayout.setErrorEnabled(true);
-                            } else if (updaterUrl.contains("https://ddns.shecan.ir/update?password=")) {
-                                Shecan.setUpdaterLink(updaterUrl);
-                                ShecanVpnService.callCoreAPI(getActivity().getApplicationContext(), HomeFragment.this);
+                if (isConnectBtnEnabled)
+                    if (ShecanVpnService.isActivated()) {
+                        ShecanVpnService.cancelConnectionStatusAPI(activity.getApplicationContext());
+                        Shecan.deactivateService(activity.getApplicationContext());
+                    } else {
+                        if (ShecanVpnService.isProMode()) {
+                            if (ShecanVpnService.isDynamicIPMode()) {
+                                linkUpdaterInputLayout.setError(null);
+                                linkUpdaterInputLayout.setErrorEnabled(false);
+                                String updaterUrl = linkUpdaterEditText.getText().toString();
+                                if (updaterUrl.isEmpty()) {
+                                    linkUpdaterInputLayout.setError(getString(R.string.empty_link_updater_error));
+                                    linkUpdaterInputLayout.setErrorEnabled(true);
+                                } else if (updaterUrl.contains("https://ddns.shecan.ir/update?password=")) {
+                                    Shecan.setUpdaterLink(updaterUrl);
+                                    ShecanVpnService.callCoreAPI(getActivity().getApplicationContext(), HomeFragment.this);
+                                } else {
+                                    linkUpdaterInputLayout.setError(getString(R.string.false_link_updater_error));
+                                    linkUpdaterInputLayout.setErrorEnabled(true);
+                                }
                             } else {
-                                linkUpdaterInputLayout.setError(getString(R.string.false_link_updater_error));
-                                linkUpdaterInputLayout.setErrorEnabled(true);
+                                startActivity(new Intent(getActivity(), MainActivity.class)
+                                        .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
                             }
                         } else {
-                            startActivity(new Intent(getActivity(), MainActivity.class)
+                            startActivity(new Intent(activity, MainActivity.class)
                                     .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
                         }
-                    } else {
-                        startActivity(new Intent(activity, MainActivity.class)
-                                .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
+
                     }
 
-                }
+                isConnectBtnEnabled = false; // Disable the button
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    isConnectBtnEnabled = true; // Re-enable after 500ms
+                }, 1000);
             }
         });
 
@@ -476,6 +485,10 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     }
 
     private void startCountdown(final TextView textView, final String message) {
+        if (ShecanVpnService.isDynamicIPMode())
+            countdownValue = 80;
+        else
+            countdownValue = 5;
         countDownTimer = new CountDownTimer(countdownValue * 1000, 1000) { // 80 seconds, 1-second interval
 
             @Override
@@ -496,7 +509,11 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
             @Override
             public void onFinish() {
-                countdownValue = 80; // Reset countdown
+                // Reset countdown
+                if (ShecanVpnService.isDynamicIPMode())
+                    countdownValue = 80;
+                else
+                    countdownValue = 5;
                 if (!isApiSuccess)
                     startCountdown(textView, message);
             }
