@@ -3,4 +3,9 @@
     <color name="colorPrimary">#21AF72</color>
     <color name="colorPrimaryDark">#269867</color>
     <color name="colorAccent">#DE6737</color>
+    <color name="colorStatusConnected">#41A88A</color>
+    <color name="colorStatusDisconnected">#FF3A3A</color>
+    <color name="disconnectButtonBorder">#3D1F3F</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>
