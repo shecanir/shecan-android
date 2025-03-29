@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="activate_btn_width">208dp</dimen>
+    <dimen name="activate_btn_height">180dp</dimen>
+    <dimen name="center_vertical_layout_bias">0.32</dimen>
+</resources>

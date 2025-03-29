@@ -36,32 +36,6 @@ public class AboutFragment extends ToolbarFragment {
         ((TextView) view.findViewById(R.id.telegram_link)).setMovementMethod(LinkMovementMethod.getInstance());
         ((TextView) view.findViewById(R.id.email_link)).setMovementMethod(LinkMovementMethod.getInstance());
         ((TextView) view.findViewById(R.id.github_link)).setMovementMethod(LinkMovementMethod.getInstance());
-
-        view.findViewById(R.id.saramad_logo).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                intent.setData(Uri.parse(getString(R.string.saramad_url)));
-                startActivity(intent);
-            }
-        });
-
-        Typeface bonyanTypeface = Typeface.createFromAsset(getActivity().getAssets(), "fonts/bonyan_font.ttf");
-        TextView bonyanLogo = view.findViewById(R.id.bonyan_logo);
-        bonyanLogo.setTypeface(bonyanTypeface);
-        bonyanLogo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.setAction(Intent.ACTION_VIEW);
-                intent.addCategory(Intent.CATEGORY_BROWSABLE);
-                intent.setData(Uri.parse(getString(R.string.bonyan_url)));
-                startActivity(intent);
-            }
-        });
-
         return view;
     }
 

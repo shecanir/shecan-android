@@ -222,8 +222,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
         if (result == Activity.RESULT_OK) {
-            ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
-            ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+            if (ShecanVpnService.isProMode()) {
+                ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProPrimary());
+                ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProSecondary());
+            } else {
+                ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+                ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+            }
+
             Shecan.getInstance().startService(Shecan.getServiceIntent(getApplicationContext()).setAction(ShecanVpnService.ACTION_ACTIVATE));
             Shecan.updateShortcut(getApplicationContext());
         }

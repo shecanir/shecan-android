@@ -2,34 +2,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:key="settingsServer"
-        android:title="@string/settings_server">
-
-        <ListPreference
-            android:key="primary_server"
-            android:title="@string/primary_server"
-            android:defaultValue="0">
-        </ListPreference>
-
-        <ListPreference
-            android:key="secondary_server"
-            android:title="@string/secondary_server"
-            android:defaultValue="1">
-        </ListPreference>
-        <EditTextPreference
-            android:key="dns_test_servers"
-            android:selectAllOnFocus="true"
-            android:singleLine="true"
-            android:title="@string/settings_dns_test_servers"/>
-    </PreferenceCategory>
-    <PreferenceCategory
         android:key="settings_system"
         android:title="@string/settings_system">
 
-        <ListPreference
+        <!--<ListPreference
             android:key="settings_language"
             android:title="@string/settings_language"
-            />
+            />-->
         <SwitchPreference
             android:key="settings_notification"
             android:title="@string/settings_notification"

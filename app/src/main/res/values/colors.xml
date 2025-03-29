@@ -6,4 +6,6 @@
     <color name="colorStatusConnected">#41A88A</color>
     <color name="colorStatusDisconnected">#FF3A3A</color>
     <color name="disconnectButtonBorder">#3D1F3F</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
 </resources>

@@ -1,134 +1,371 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/fragment_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background_on"
     android:fillViewport="true"
+    android:paddingTop="80dp"
     tools:context="ir.shecan.fragment.HomeFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <ScrollView
+        android:id="@+id/fragment_main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent">
 
-        <LinearLayout
-            android:id="@+id/linearLayoutHeader"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:gravity="center|center_horizontal"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/button_activate"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0">
+            android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:id="@+id/linearLayoutLogo"
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/topGuideLine"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:orientation="horizontal"
-                tools:ignore="UseCompoundDrawables"
-                tools:layout_editor_absoluteY="140dp">
+                app:layout_constraintGuide_begin="80dp" />
 
-                <ImageView
-                    android:id="@+id/imageLogo"
-                    style="@style/HomeImageLogoStyle"
-                    android:contentDescription="@string/logo_image" />
+            <LinearLayout
+                android:id="@+id/linearLayoutHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="center|center_horizontal"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tabLinearLayout">
 
-                <TextView
-                    android:id="@+id/homeTitle"
-                    style="@style/TextViewLogoStyle"
+                <LinearLayout
+                    android:id="@+id/linearLayoutLogo"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:includeFontPadding="false"
-                    android:text="@string/logo_text"
-                    android:textAlignment="gravity" />
-            </LinearLayout>
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    tools:ignore="UseCompoundDrawables"
+                    tools:layout_editor_absoluteY="140dp">
 
-            <TextView
-                android:id="@+id/textShecanDesctiption"
-                style="@style/TextViewNoticeStyle"
-                android:layout_width="264dp"
-                android:layout_height="80dp"
-                android:layout_marginTop="28dp"
-                android:fontFamily="@font/iran_yekan_light"
-                android:gravity="center_horizontal|top"
-                android:lineSpacingMultiplier="0.8"
-                android:paddingBottom="0.5dp"
-                android:paddingTop="0.5dp"
-                android:text="@string/notice_main_disconnected"
-                android:textAlignment="center"
-                android:textSize="12sp" />
+                    <ImageView
+                        android:id="@+id/imageLogo"
+                        style="@style/HomeImageLogoStyle"
+                        android:contentDescription="@string/logo_image" />
 
-            <LinearLayout
-                android:id="@+id/linearLayoutStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="24dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/imageViewStatus"
-                    style="@style/ImageViewStatus"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:contentDescription="@string/status_icon"
-                    android:src="@drawable/status_connected" />
+                    <TextView
+                        android:id="@+id/homeTitle"
+                        style="@style/TextViewLogoStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:includeFontPadding="false"
+                        android:text="@string/logo_text"
+                        android:textAlignment="gravity" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/textShecanStatus"
-                    style="@style/TextViewStatus"
-                    android:layout_height="wrap_content"
+                    android:id="@+id/textShecanDesctiption"
+                    style="@style/TextViewNoticeStyle"
+                    android:layout_width="264dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/iran_yekan_light"
+                    android:gravity="center_horizontal|top"
+                    android:lineSpacingMultiplier="0.8"
+                    android:paddingTop="0.5dp"
+                    android:paddingBottom="0.5dp"
+                    android:text="@string/notice_main_disconnected"
                     android:textAlignment="center"
-                    android:textSize="12sp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/linearLayoutStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rounded_white_background"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp">
+
+                    <ImageView
+                        android:id="@+id/imageViewStatus"
+                        style="@style/ImageViewStatus"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:contentDescription="@string/status_icon"
+                        android:src="@drawable/status_connected" />
+
+                    <TextView
+                        android:id="@+id/textShecanStatus"
+                        style="@style/TextViewStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAlignment="center"
+                        android:textSize="12sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
+                </LinearLayout>
+
             </LinearLayout>
 
-        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/tabLinearLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:background="@drawable/rounded_white_background"
+                android:orientation="vertical"
+                android:padding="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-        <Button
-            android:id="@+id/button_activate"
-            android:layout_width="243dp"
-            android:layout_height="210dp"
-            android:layout_marginBottom="35dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-            app:layout_constraintBottom_toTopOf="@+id/linearLayoutDonate"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+                    <Button
+                        android:id="@+id/freeModeBtn"
+                        style="@style/ButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/rounded_button"
+                        android:stateListAnimator="@null"
+                        android:text="@string/free_shecan"
+                        android:textColor="#ffffff" />
 
-        <LinearLayout
-            android:id="@+id/linearLayoutDonate"
-            android:layout_width="wrap_content"
-            android:layout_height="20dp"
-            android:layout_marginEnd="72dp"
-            android:layout_marginBottom="@dimen/home_links_margin_bottom"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingBottom="@dimen/home_links_padding_bottom"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+                    <View
+                        android:layout_width="16dp"
+                        android:layout_height="2dp" />
 
-        </LinearLayout>
+                    <Button
+                        android:id="@+id/proModeBtn"
+                        style="@style/ButtonStyle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/default_no_background_button"
+                        android:stateListAnimator="@null"
+                        android:text="@string/pro_shecan"
+                        android:textColor="#000000" />
 
-        <Space
-            android:id="@+id/space"
-            android:layout_width="2dp"
-            android:layout_height="3dp"
-            android:layout_marginBottom="90dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/pro_mode_expand_layout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginHorizontal="8dp"
+                        android:layout_marginBottom="8dp">
+
+                        <RadioGroup
+                            android:id="@+id/radio_group"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/dynamic_radio_btn"
+                                style="@style/TextViewBoldStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:button="@null"
+                                android:checked="true"
+                                android:drawableStart="@drawable/custom_radio_button"
+                                android:drawablePadding="8dp"
+                                android:text="@string/dynamic_ip"
+                                android:textColor="#000000"
+                                android:textSize="12sp" />
+
+                            <RadioButton
+                                android:id="@+id/static_radio_btn"
+                                style="@style/TextViewBoldStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="32dp"
+                                android:button="@null"
+                                android:drawableStart="@drawable/custom_radio_button"
+                                android:drawablePadding="8dp"
+                                android:text="@string/static_ip"
+                                android:textColor="#000000"
+                                android:textSize="12sp" />
+
+                        </RadioGroup>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/dynamic_expand_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="8dp">
+
+                            <TextView
+                                style="@style/TextViewBoldStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/please_enter_your_link_updater"
+                                android:textColor="#000000"
+                                android:textSize="11sp" />
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="1dp"
+                                android:layout_weight="1" />
+
+                            <TextView
+                                android:id="@+id/help_link_updater"
+                                style="@style/TextViewRegularStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingHorizontal="8dp"
+                                android:text="@string/help"
+                                android:textColor="@color/colorAccent"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:layoutDirection="ltr"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/link_updater_input_layout"
+                                style="@style/TextInputStyle"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:layoutDirection="locale"
+                                android:layout_weight="1"
+                                android:background="@null"
+                                android:padding="0dp">
+
+                                <EditText
+                                    android:id="@+id/link_updater_edit_text"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="text"
+                                    android:layoutDirection="ltr"
+                                    android:maxLines="1"
+                                    android:singleLine="true"
+                                    android:textColor="#000000"
+                                    android:textDirection="ltr"
+                                    android:textSize="12sp" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <ImageView
+                                android:id="@+id/clear_btn"
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginStart="4dp"
+                                android:layout_marginTop="20dp"
+                                android:background="@drawable/clear_btn_background"
+                                android:src="@drawable/ic_clear"
+                                android:visibility="gone"
+                                tools:visibility="visible" />
+
+                        </LinearLayout>
 
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/g20"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.20" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/g80"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintGuide_percent="0.80" />
+
+            <Button
+                android:id="@+id/button_activate"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="35dp"
+                app:layout_constraintBottom_toTopOf="@id/banner_image_view"
+                app:layout_constraintDimensionRatio="1:0.86"
+                app:layout_constraintEnd_toEndOf="@id/g80"
+                app:layout_constraintStart_toStartOf="@id/g20"
+                app:layout_constraintTop_toBottomOf="@+id/linearLayoutHeader" />
+
+            <LinearLayout
+                android:id="@+id/linearLayoutDonate"
+                android:layout_width="wrap_content"
+                android:layout_height="20dp"
+                android:layout_marginEnd="72dp"
+                android:layout_marginBottom="@dimen/home_links_margin_bottom"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingBottom="@dimen/home_links_padding_bottom"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+            </LinearLayout>
+
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/banner_image_view"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginHorizontal="16dp"
+                android:maxHeight="80dp"
+                app:layout_constraintDimensionRatio="4:1"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                tools:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="@id/bottomGuideLine"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/bottomGuideLine"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_end="56dp" />
+
+            <Space
+                android:id="@+id/space"
+                android:layout_width="2dp"
+                android:layout_height="3dp"
+                android:layout_marginBottom="90dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -42,6 +42,14 @@ public class DNSServerHelper {
         return String.valueOf(DNSServerHelper.checkServerId(Integer.parseInt(Shecan.getPrefs().getString("secondary_server", "1"))));
     }
 
+    public static String getProPrimary() {
+        return String.valueOf(DNSServerHelper.checkServerId(Integer.parseInt(Shecan.getPrefs().getString("pro_primary_server", "2"))));
+    }
+
+    public static String getProSecondary() {
+        return String.valueOf(DNSServerHelper.checkServerId(Integer.parseInt(Shecan.getPrefs().getString("pro_secondary_server", "3"))));
+    }
+
     private static int checkServerId(int id) {
         if (id < Shecan.DNS_SERVERS.size()) {
             return id;

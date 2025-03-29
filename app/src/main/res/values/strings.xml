@@ -57,6 +57,8 @@
 
     <string name="server_shecan_primary">Shecan</string>
     <string name="server_shecan_secondary">Standard Shecan</string>
+    <string name="server_shecan_pro_primary">Pro</string>
+    <string name="server_shecan_pro_secondary">Standard Pro</string>
 
     <string name="primary_server">Primary DNS server</string>
     <string name="secondary_server">Secondary DNS server</string>
@@ -78,17 +80,37 @@
     <string name="website_link"><a href="https://shecan.ir/">shecan.ir</a></string>
     <string name="telegram_link"><a href="https://t.me/shecan_ir">@shecan_ir</a></string>
     <string name="email_link"><a href="mailto:info@shecan.ir">info@shecan.ir</a></string>
-    <string name="github_link"><a href="https://github.com/bonyan-co/shecan-android">bonyan-co/shecan-android</a></string>
+    <string name="github_link"><a href="https://github.com/shecanir/shecan-android">shecanir/shecan-android</a></string>
     <string name="saramad_url">http://logo.saramad.ir/verify.aspx?CodeShamad=1-2-691804-63-0-3</string>
     <string name="shecan_logo_description">Shecan Logo</string>
     <string name="saramad_logo_description">Saramad Logo</string>
     <string name="ic_bonyan_logo">\ue809</string>
     <string name="bonyan_url">https://bonyan.co</string>
     <string name="shecan_status_active">shecan is active</string>
+    <string name="shecan_status_pro_static_active">shecan is active with static IP</string>
+    <string name="shecan_status_pro_dynamic_active">shecan is active with dynamic IP</string>
     <string name="shecan_status_deactive">shecan is not active</string>
+    <string name="shecan_status_connecting">You are connecting.\n This process may take some time</string>
     <string name="donate">Shecan</string>
     <string name="donate_icon">Donate Icon</string>
     <string name="logo_image">Logo Image</string>
     <string name="check_and_report">Check and Report</string>
     <string name="status_icon">Status Icon</string>
+
+    <string name="free_shecan">Free Shecan</string>
+    <string name="pro_shecan">Pro Shecan</string>
+    <string name="dynamic_ip">Dynamic IP</string>
+    <string name="static_ip">Static IP</string>
+    <string name="please_enter_your_link_updater">Please Enter Your Link Updater</string>
+    <string name="help">Help</string>
+    <string name="no_active_service">The Updater Link is not valid or You don\'t have active service</string>
+    <string name="purchase_service">Purchase/Renewal Service</string>
+    <string name="update">Update</string>
+    <string name="cancel">Cancel</string>
+    <string name="cancel2">Cancel</string>
+    <string name="new_version_available">A new version of the app is available</string>
+    <string name="out_of_range_ip_error">Your IP is not on the list of IPs introduced to Shekan!</string>
+    <string name="contact_support">Contact Support</string>
+    <string name="empty_link_updater_error">Please Enter Your Link Updater</string>
+    <string name="false_link_updater_error">Your Link is not correct</string>
 </resources>

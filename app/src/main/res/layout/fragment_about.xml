@@ -116,32 +116,6 @@
                     tools:ignore="RtlHardcoded" />
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layoutDirection="ltr"
-            android:layout_marginTop="10dp">
 
-            <ImageView
-                android:id="@+id/saramad_logo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/saramad"
-                android:layout_marginBottom="30dp"
-                android:contentDescription="@string/saramad_logo_description"
-                android:layout_marginEnd="20dp"
-                android:layout_marginStart="20dp" />
-            <TextView
-                android:id="@+id/bonyan_logo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="100sp"
-                android:text="@string/ic_bonyan_logo"
-                android:layout_marginEnd="20dp"
-                android:layout_marginStart="20dp"
-                android:textAlignment="center"/>
-
-        </LinearLayout>
     </LinearLayout>
 </ScrollView>

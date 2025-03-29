@@ -12,19 +12,36 @@ import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.net.VpnService;
 import android.os.Build;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.facebook.drawee.backends.pipeline.Fresco;
 import com.google.firebase.crash.FirebaseCrash;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
+import com.pushpole.sdk.NotificationButtonData;
+import com.pushpole.sdk.NotificationData;
+import com.pushpole.sdk.PushPole;
 
-import ir.shecan.R;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import ir.shecan.activity.MainActivity;
+import ir.shecan.service.CoreApiResponseListener;
+import ir.shecan.service.BaseApiResponseListener;
+import ir.shecan.service.ConnectionStatusApiListener;
 import ir.shecan.service.ShecanVpnService;
+import ir.shecan.service.VolleyHelper;
 import ir.shecan.util.Configurations;
 import ir.shecan.util.LanguageHelper;
 import ir.shecan.util.Logger;
@@ -38,6 +55,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 
 /**
  * Shecan Project
@@ -50,7 +71,7 @@ import java.util.Locale;
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  */
-public class Shecan extends Application {
+public class Shecan extends Application implements ConnectionStatusApiListener {
     static {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
@@ -65,6 +86,9 @@ public class Shecan extends Application {
     public static final List<DNSServer> DNS_SERVERS = new ArrayList<DNSServer>() {{
         add(new DNSServer("dns.shecan.ir", R.string.server_shecan_primary, 5353));
         add(new DNSServer("dns.shecan.ir", R.string.server_shecan_secondary, 53));
+        // Pro DNS
+        add(new DNSServer("pro.shecan.ir", R.string.server_shecan_pro_primary, 5353));
+        add(new DNSServer("pro.shecan.ir", R.string.server_shecan_pro_secondary, 53));
     }};
 
     public static final List<Rule> RULES = new ArrayList<Rule>() {{
@@ -83,17 +107,66 @@ public class Shecan extends Application {
     private static Shecan instance = null;
     private SharedPreferences prefs;
 
+    private final Handler handler = new Handler();
+
+    private ScheduledExecutorService scheduler;
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         instance = this;
+        Fresco.initialize(this);
 
         Logger.init();
 
         initData();
+        initPushPole();
+        initCheckIP();
 
         updateLocale();
+    }
+
+    private void initCheckIP() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (ShecanVpnService.isActivated() && ShecanVpnService.isProMode() && ShecanVpnService.isDynamicIPMode()) {
+                    callCheckCurrentIP(Shecan.this);
+
+                    handler.postDelayed(this, 20000); // 20 seconds
+                }
+            }
+        }, 20000);
+    }
+
+    private void initPushPole() {
+        PushPole.initialize(this, true);
+
+        PushPole.setNotificationListener(new PushPole.NotificationListener() {
+            @Override
+            public void onNotificationReceived(@NonNull NotificationData notificationData) {
+            }
+
+            @Override
+            public void onNotificationClicked(@NonNull NotificationData notificationData) {
+
+            }
+
+            @Override
+            public void onNotificationButtonClicked(@NonNull NotificationData notificationData, @NonNull NotificationButtonData notificationButtonData) {
+
+            }
+
+            @Override
+            public void onCustomContentReceived(@NonNull JSONObject jsonObject) {
+            }
+
+            @Override
+            public void onNotificationDismissed(@NonNull NotificationData notificationData) {
+
+            }
+        });
     }
 
     private void initDirectory(String dir) {
@@ -146,9 +219,14 @@ public class Shecan extends Application {
         Log.d("Shecan", "onTerminate");
         super.onTerminate();
 
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+        }
+
         instance = null;
         prefs = null;
         Logger.shutdown();
+        handler.removeCallbacksAndMessages(null);
     }
 
     public static Intent getServiceIntent(Context context) {
@@ -170,17 +248,111 @@ public class Shecan extends Application {
         if (intent != null) {
             return false;
         } else {
-            ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
-            ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+            if (ShecanVpnService.isProMode()) {
+                ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProPrimary());
+                ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProSecondary());
+            } else {
+                ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+                ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+            }
+
             context.startService(Shecan.getServiceIntent(context).setAction(ShecanVpnService.ACTION_ACTIVATE));
             return true;
         }
+    }
+
+    public void callCheckCurrentIP(final Context context) {
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+        String apiUrl = "https://shecan.ir/ip";
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String result = response;
+                        if (!result.trim().equals(ShecanVpnService.getDynamicIp().trim())) {
+                            ShecanVpnService.callCoreAPI(context, new CoreApiResponseListener() {
+                                @Override
+                                public void onSuccess(String response) {
+                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this, null);
+                                }
+
+                                @Override
+                                public void onError(String errorMessage) {
+
+                                }
+
+                                @Override
+                                public void onInvalid() {
+                                    ShecanVpnService.callConnectionStatusAPI(context, Shecan.this, null);
+                                }
+
+                                @Override
+                                public void onOutOfRange() {
+
+                                }
+
+                                @Override
+                                public void onInTheRange() {
+
+                                }
+                            });
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // todo: handle error
+                    }
+                }
+        );
+
+        requestQueue.add(stringRequest);
     }
 
     public static void deactivateService(Context context) {
         context.startService(getServiceIntent(context).setAction(ShecanVpnService.ACTION_DEACTIVATE));
         context.stopService(getServiceIntent(context));
     }
+
+    public static void setFreeMode() {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_PRO_MODE, false)
+                .apply();
+    }
+
+    public static void setProMode() {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_PRO_MODE, true)
+                .apply();
+    }
+
+    public static void setDynamicIPMode() {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_DYNAMIC_IP_MODE, true)
+                .apply();
+    }
+
+    public static void setStaticIPMode() {
+        getPrefs().edit()
+                .putBoolean(ShecanVpnService.IS_DYNAMIC_IP_MODE, false)
+                .apply();
+    }
+
+    public static void setUpdaterLink(String link) {
+        getPrefs().edit()
+                .putString(ShecanVpnService.UPDATER_LINK, link)
+                .apply();
+    }
+
+    public static void setDynamicIP(String ip) {
+        getPrefs().edit()
+                .putString(ShecanVpnService.DYNAMIC_IP, ip)
+                .apply();
+    }
+
 
     public static void updateShortcut(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
@@ -246,6 +418,155 @@ public class Shecan extends Application {
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(LocaleHelper.onAttach(base));
+    }
+
+    @Override
+    public void onConnected() {
+
+    }
+
+    @Override
+    public void onRetry() {
+        scheduler = Executors.newScheduledThreadPool(1);
+
+        scheduler.schedule(new Runnable() {
+            @Override
+            public void run() {
+                if (ShecanVpnService.isActivated())
+                    ShecanVpnService.callConnectionStatusAPI(Shecan.this, Shecan.this, null);
+            }
+        }, 20, TimeUnit.SECONDS);
+    }
+
+    public static class ShecanInfo {
+
+        private static final String CURRENT_VERSION = "CURRENT_VERSION";
+        private static final String MIN_VERSION = "MIN_VERSION";
+        private static final String UPDATE_LINK = "UPDATE_LINK";
+        private static final String BANNER_IMAGE_URL = "BANNER_IMAGE_URL";
+        private static final String BANNER_LINK = "BANNER_LINK";
+        private static final String DYNAMIC_IP_GUIDE_LINK = "DYNAMIC_IP_GUIDE_LINK";
+        private static final String TICKETING_LINK = "TICKETING_LINK";
+        private static final String PURCHASE_LINK = "PURCHASE_LINK";
+
+        public static void fetchData(Context context, BaseApiResponseListener listener) {
+            RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+            String apiUrl = "https://shecan.ir/app/home-page";
+            StringRequest stringRequest = new StringRequest(
+                    Request.Method.GET,
+                    apiUrl,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            try {
+                                JSONObject jsonObject = new JSONObject(response);
+                                setCurrentVersion(jsonObject.getString("current_version"));
+
+                                setMinVersion(jsonObject.getString("min_version"));
+                                setUpdateLink(jsonObject.getString("update_link"));
+                                setBannerImageUrl(jsonObject.getString("banner_image_url"));
+                                setBannerLink(jsonObject.getString("banner_link"));
+                                setDynamicIpGuideLink(jsonObject.getString("dynamic_ip_guide_link"));
+                                setTicketingLink(jsonObject.getString("ticketing_link"));
+                                setPurchaseLink(jsonObject.getString("purchase_link"));
+                                listener.onSuccess();
+                            } catch (JSONException e) {
+                                listener.onError("خطای سرور");
+                            }
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            listener.onError(error.toString());
+                        }
+                    }
+            );
+
+            stringRequest.setShouldCache(false);
+            requestQueue.getCache().clear();
+            requestQueue.add(stringRequest);
+        }
+
+        private static void setCurrentVersion(String version) {
+            getPrefs().edit()
+                    .putString(CURRENT_VERSION, version)
+                    .apply();
+        }
+
+        private static void setMinVersion(String version) {
+            getPrefs().edit()
+                    .putString(MIN_VERSION, version)
+                    .apply();
+        }
+
+        private static void setUpdateLink(String link) {
+            getPrefs().edit()
+                    .putString(UPDATE_LINK, link)
+                    .apply();
+        }
+
+        private static void setBannerImageUrl(String url) {
+            getPrefs().edit()
+                    .putString(BANNER_IMAGE_URL, url)
+                    .apply();
+        }
+
+        private static void setBannerLink(String link) {
+            getPrefs().edit()
+                    .putString(BANNER_LINK, link)
+                    .apply();
+        }
+
+        private static void setDynamicIpGuideLink(String link) {
+            getPrefs().edit()
+                    .putString(DYNAMIC_IP_GUIDE_LINK, link)
+                    .apply();
+        }
+
+        private static void setTicketingLink(String link) {
+            getPrefs().edit()
+                    .putString(TICKETING_LINK, link)
+                    .apply();
+        }
+
+        private static void setPurchaseLink(String link) {
+            getPrefs().edit()
+                    .putString(PURCHASE_LINK, link)
+                    .apply();
+        }
+
+        public static String getCurrentVersion() {
+            return Shecan.getPrefs().getString(CURRENT_VERSION, "1.0.0");
+        }
+
+        public static String getMinVersion() {
+            return Shecan.getPrefs().getString(MIN_VERSION, "1.0.0");
+        }
+
+        public static String getUpdateLink() {
+            return Shecan.getPrefs().getString(UPDATE_LINK, "https://shecan.ir/app");
+        }
+
+        public static String getBannerImageUrl() {
+            return Shecan.getPrefs().getString(BANNER_IMAGE_URL, "");
+        }
+
+        public static String getBannerLink() {
+            return Shecan.getPrefs().getString(BANNER_LINK, "https://shecan.ir");
+        }
+
+        public static String getDynamicIpGuideLink() {
+            return Shecan.getPrefs().getString(DYNAMIC_IP_GUIDE_LINK, "https://shecan.ir/tutorials");
+        }
+
+        public static String getTicketingLink() {
+            return Shecan.getPrefs().getString(TICKETING_LINK, "https://my.shecan.ir");
+        }
+
+        public static String getPurchaseLink() {
+            return Shecan.getPrefs().getString(TICKETING_LINK, "https://shecan.ir/order?order=9");
+        }
     }
 }
 

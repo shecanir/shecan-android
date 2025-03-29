@@ -27,6 +27,8 @@ public class LanguageHelper {
     }
 
     public static String getLanguage() {
-        return Shecan.getPrefs().getString("settings_language", "fa");
+        // comment it now (maybe in the future we need it
+//        return Shecan.getPrefs().getString("settings_language", "fa");
+        return "fa";
     }
 }

@@ -33,49 +33,15 @@ public class GlobalConfigFragment extends PreferenceFragment {
         Shecan.getPrefs().edit()
                 .putString("primary_server", DNSServerHelper.getPrimary())
                 .putString("secondary_server", DNSServerHelper.getSecondary())
+                .putString("pro_primary_server", DNSServerHelper.getProPrimary())
+                .putString("pro_secondary_server", DNSServerHelper.getProSecondary())
                 .putString("settings_language", LanguageHelper.getLanguage())
                 .apply();
 
         addPreferencesFromResource(R.xml.perf_settings);
 
-        ListPreference primaryServer = (ListPreference) findPreference("primary_server");
-        primaryServer.setEntries(DNSServerHelper.getNames(Shecan.getInstance()));
-        primaryServer.setEntryValues(DNSServerHelper.getIds());
-        primaryServer.setSummary(DNSServerHelper.getDescription(primaryServer.getValue(), Shecan.getInstance()));
-        primaryServer.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                preference.setSummary(DNSServerHelper.getDescription((String) newValue, Shecan.getInstance()));
-                /*Snackbar.make(getView(), R.string.notice_need_restart, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                return true;
-            }
-        });
-
-        ListPreference secondaryServer = (ListPreference) findPreference("secondary_server");
-        secondaryServer.setEntries(DNSServerHelper.getNames(Shecan.getInstance()));
-        secondaryServer.setEntryValues(DNSServerHelper.getIds());
-        secondaryServer.setSummary(DNSServerHelper.getDescription(secondaryServer.getValue(), Shecan.getInstance()));
-        secondaryServer.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                preference.setSummary(DNSServerHelper.getDescription((String) newValue, Shecan.getInstance()));
-                /*Snackbar.make(getView(), R.string.notice_need_restart, Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();*/
-                return true;
-            }
-        });
-
-        EditTextPreference testDNSServers = (EditTextPreference) findPreference("dns_test_servers");
-        testDNSServers.setSummary(testDNSServers.getText());
-        testDNSServers.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                preference.setSummary((String) newValue);
-                return true;
-            }
-        });
-
+        /*
+        // Commented temporary (it can be used later if needed)
         ListPreference language = (ListPreference) findPreference("settings_language");
         language.setEntries(LanguageHelper.getNames());
         language.setEntryValues(LanguageHelper.getIds());
@@ -89,6 +55,7 @@ public class GlobalConfigFragment extends PreferenceFragment {
                 return true;
             }
         });
+        */
 
         EditTextPreference logSize = (EditTextPreference) findPreference("settings_log_size");
         logSize.setSummary(logSize.getText());

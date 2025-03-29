@@ -15,6 +15,14 @@ import androidx.core.util.Pair;
 import android.system.OsConstants;
 import android.util.Log;
 
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import ir.shecan.Shecan;
 import ir.shecan.R;
 
@@ -41,6 +49,7 @@ import java.util.Random;
 import de.measite.minidns.DNSMessage;
 import de.measite.minidns.Question;
 import de.measite.minidns.Record;
+import ir.shecan.util.server.OkHttpLogger;
 
 /**
  * Shecan Project
@@ -56,6 +65,14 @@ import de.measite.minidns.Record;
 public class ShecanVpnService extends VpnService implements Runnable {
     public static final String ACTION_ACTIVATE = "ir.shecan.service.ShecanVpnService.ACTION_ACTIVATE";
     public static final String ACTION_DEACTIVATE = "ir.shecan.service.ShecanVpnService.ACTION_DEACTIVATE";
+
+    public static final String IS_PRO_MODE = "IS_PRO_MODE";
+    public static final String IS_DYNAMIC_IP_MODE = "IS_DYNAMIC_IP_MODE";
+    public static final String UPDATER_LINK = "UPDATER_LINK";
+    public static final String DYNAMIC_IP = "DYNAMIC_IP";
+
+    private static final String ConnectionStatusRequest = "connection_status_request";
+    private static final String CoreApiRequest = "core_api_request";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
 
@@ -84,6 +101,22 @@ public class ShecanVpnService extends VpnService implements Runnable {
         return activated;
     }
 
+    public static boolean isProMode() {
+        return Shecan.getPrefs().getBoolean(IS_PRO_MODE, false);
+    }
+
+    public static boolean isDynamicIPMode() {
+        return Shecan.getPrefs().getBoolean(IS_DYNAMIC_IP_MODE, true);
+    }
+
+    public static String getUpdaterLink() {
+        return Shecan.getPrefs().getString(UPDATER_LINK, "");
+    }
+
+    public static String getDynamicIp() {
+        return Shecan.getPrefs().getString(DYNAMIC_IP, "");
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -104,7 +137,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, createNotificationChannel(false));
 
                         Intent mainIntent = new Intent(this, MainActivity.class);
-                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
 
                         Intent deactivateIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION);
                         Intent settingIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_SETTINGS_CLICK_ACTION);
@@ -123,10 +156,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
                                 .setContentIntent(pendingIntent)
                                 .addAction(R.drawable.ic_clear, getResources().getString(R.string.button_text_deactivate),
                                         PendingIntent.getBroadcast(this, 0, deactivateIntent
-                                                , 0))
+                                                , PendingIntent.FLAG_MUTABLE))
                                 .addAction(R.drawable.ic_settings, getResources().getString(R.string.action_settings),
                                         PendingIntent.getBroadcast(this, 0,
-                                                settingIntent, 0));
+                                                settingIntent, PendingIntent.FLAG_MUTABLE));
 
                         Notification notification = builder.build();
 
@@ -278,7 +311,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     .setSession("shecan")
                     .setConfigureIntent(PendingIntent.getActivity(this, 0,
                             new Intent(this, MainActivity.class).putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS),
-                            PendingIntent.FLAG_ONE_SHOT));
+                            PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE));
             String format = null;
             for (String prefix : new String[]{"10.0.0", "192.0.2", "198.51.100", "203.0.113", "192.168.50"}) {
                 try {
@@ -419,6 +452,98 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } else {
             return "defaultchannel";
         }
+    }
+
+    public static void callCoreAPI(final Context context, final CoreApiResponseListener listener) {
+        String apiUrl = ShecanVpnService.getUpdaterLink();
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String result = response.trim();
+                        if (result.equals("invalid")) {
+                            listener.onInvalid();
+                        } else if (result.equals("in the range")) {
+                            listener.onInTheRange();
+                        } else if (result.equals("out of the range")) {
+                            listener.onOutOfRange();
+                        } else {
+                            listener.onSuccess(result);
+                            Shecan.setDynamicIP(result.trim());
+                        }
+
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // todo: handle error
+                        if (listener != null) {
+                            Log.d("Apizzz", error.toString());
+                            listener.onError(error.toString());
+                        }
+                    }
+                }
+        );
+
+        stringRequest.setTag(CoreApiRequest);
+        requestQueue.add(stringRequest);
+    }
+
+    public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {
+        OkHttpLogger.requestWithIPLogging("https://check.shecan.ir");
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+        String apiUrl = "https://check.shecan.ir";
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String result = response.trim();
+                        if (result.equals("2")) {
+                            listener.onConnected();
+                        } else {
+                            listener.onRetry();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // show the cached connected IP connected before the api call, when gets error
+                        if (ShecanVpnService.isActivated()) {
+                            Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
+                            listener.onRetry();
+                        }
+                    }
+                }
+        );
+
+        int finalTimeout = (timeoutMs != null) ? timeoutMs : DefaultRetryPolicy.DEFAULT_TIMEOUT_MS;
+
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                finalTimeout,  // Timeout in milliseconds (5 seconds)
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,  // Number of retries
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT  // Backoff multiplier
+        ));
+
+        stringRequest.setTag(ConnectionStatusRequest);
+        requestQueue.add(stringRequest);
+    }
+
+    public static void cancelConnectionStatusAPI(Context context) {
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+        requestQueue.cancelAll(ConnectionStatusRequest);
+    }
+
+    public static void cancelCoreAPI(Context context) {
+        RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
+        requestQueue.cancelAll(CoreApiRequest);
     }
 
 

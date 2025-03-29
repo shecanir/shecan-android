@@ -21,7 +21,9 @@ import java.util.Locale;
 public class LocaleHelper {
 
     public static Context onAttach(Context context) {
-        return setLocale(context, Shecan.getLanguageType(context));
+//        return setLocale(context, Shecan.getLanguageType(context));
+        // we force persian now, maybe in the future we need to made it dynamic
+        return setLocale(context, new Locale("fa"));
     }
 
     public static Context setLocale(Context context, Locale locale) {
