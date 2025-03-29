@@ -80,7 +80,7 @@
     <string name="website_link"><a href="https://shecan.ir/">shecan.ir</a></string>
     <string name="telegram_link"><a href="https://t.me/shecan_ir">@shecan_ir</a></string>
     <string name="email_link"><a href="mailto:info@shecan.ir">info@shecan.ir</a></string>
-    <string name="github_link"><a href="https://github.com/bonyan-co/shecan-android">bonyan-co/shecan-android</a></string>
+    <string name="github_link"><a href="https://github.com/shecanir/shecan-android">shecanir/shecan-android</a></string>
     <string name="saramad_url">http://logo.saramad.ir/verify.aspx?CodeShamad=1-2-691804-63-0-3</string>
     <string name="shecan_logo_description">Shecan Logo</string>
     <string name="saramad_logo_description">Saramad Logo</string>
