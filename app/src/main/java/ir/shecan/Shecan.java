@@ -84,8 +84,8 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
     private static final String SHORTCUT_ID_ACTIVATE = "shortcut_activate";
 
     public static final List<DNSServer> DNS_SERVERS = new ArrayList<DNSServer>() {{
-        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_primary, 5353));
-        add(new DNSServer("dns.shecan.ir", R.string.server_shecan_secondary, 53));
+        add(new DNSServer("free.shecan.ir", R.string.server_shecan_primary, 5353));
+        add(new DNSServer("free.shecan.ir", R.string.server_shecan_secondary, 53));
         // Pro DNS
         add(new DNSServer("pro.shecan.ir", R.string.server_shecan_pro_primary, 5353));
         add(new DNSServer("pro.shecan.ir", R.string.server_shecan_pro_secondary, 53));
@@ -460,15 +460,20 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                         public void onResponse(String response) {
                             try {
                                 JSONObject jsonObject = new JSONObject(response);
-                                setCurrentVersion(jsonObject.getString("current_version"));
 
-                                setMinVersion(jsonObject.getString("min_version"));
+                                JSONObject versionObject = jsonObject.getJSONObject("version");
+                                JSONObject androidVersion = versionObject.getJSONObject("android");
+
+                                setCurrentVersion(androidVersion.getString("current_version"));
+                                setMinVersion(androidVersion.getString("min_version"));
+
                                 setUpdateLink(jsonObject.getString("update_link"));
                                 setBannerImageUrl(jsonObject.getString("banner_image_url"));
                                 setBannerLink(jsonObject.getString("banner_link"));
                                 setDynamicIpGuideLink(jsonObject.getString("dynamic_ip_guide_link"));
                                 setTicketingLink(jsonObject.getString("ticketing_link"));
                                 setPurchaseLink(jsonObject.getString("purchase_link"));
+
                                 listener.onSuccess();
                             } catch (JSONException e) {
                                 listener.onError("خطای سرور");
@@ -487,6 +492,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
             requestQueue.getCache().clear();
             requestQueue.add(stringRequest);
         }
+
 
         private static void setCurrentVersion(String version) {
             getPrefs().edit()
