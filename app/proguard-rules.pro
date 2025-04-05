@@ -47,6 +47,8 @@
 -keep class org.pcap4j.core.** { *; }
 -keep class org.pcap4j.util.** { *; }
 
+-keep class com.pushpole.sdk.** { *; }
+
 # Keep native methods if Pcap4j is using JNI
 -keepclasseswithmembernames class * { native <methods>; }
 
