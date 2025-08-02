@@ -9,6 +9,10 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
+import android.view.animation.LinearInterpolator;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -81,6 +85,8 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private CountDownTimer countDownTimer;
     private static boolean shouldShowSupportDialog = false;
     private static boolean isConnectBtnEnabled = true;
+
+    private ObjectAnimator blinkAnimator;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -188,6 +194,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                         ShecanVpnService.cancelCoreAPI(activity.getApplicationContext());
                         Shecan.deactivateService(activity.getApplicationContext());
                     } else {
+                        setViewIsConnecting();
                         if (ShecanVpnService.isProMode()) {
                             if (ShecanVpnService.isDynamicIPMode()) {
                                 linkUpdaterInputLayout.setError(null);
@@ -426,16 +433,19 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     @Override
     public void onError(String errorMessage) {
+        stopBlinkAnimation();
     }
 
     @Override
     public void onInvalid() {
+        stopBlinkAnimation();
         new RenewalDialog(activity).show();
     }
 
     @Override
     public void onOutOfRange() {
         shouldShowSupportDialog = false;
+        stopBlinkAnimation();
         new ContactSupportDialog(activity).show();
     }
 
@@ -446,6 +456,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             startActivity(new Intent(activity, MainActivity.class)
                     .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_ACTIVATE));
         }
+        stopBlinkAnimation();
     }
 
     @Override
@@ -453,6 +464,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         isApiSuccess = true;
         isConnectBtnEnabled = true;
         stopCountdown();
+        stopBlinkAnimation();
         view.setBackground(resources.getDrawable(R.drawable.background_on));
         btn.setBackground(resources.getDrawable(R.drawable.cloud_disconnected));
         if (isConnectBtnEnabled) {
@@ -491,6 +503,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         shecanDescription.setText(resources.getString(R.string.notice_main_disconnected));
         shecanDescription.setTextColor(resources.getColor(R.color.white));
         shecanMainTitle.setTextColor(resources.getColor(R.color.white));
+        startBlinkAnimation();
         String text = resources.getString(R.string.shecan_status_connecting);
         startCountdown(shecanStatus, text);
     }
@@ -539,6 +552,29 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         }
     }
 
+    private void startBlinkAnimation() {
+        if (blinkAnimator != null) return;
+        PropertyValuesHolder scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.1f);
+        PropertyValuesHolder scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.1f);
+        PropertyValuesHolder alpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.6f);
+        blinkAnimator = ObjectAnimator.ofPropertyValuesHolder(btn, scaleX, scaleY, alpha);
+        blinkAnimator.setDuration(800);
+        blinkAnimator.setInterpolator(new LinearInterpolator());
+        blinkAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        blinkAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        blinkAnimator.start();
+    }
+
+    private void stopBlinkAnimation() {
+        if (blinkAnimator != null) {
+            blinkAnimator.cancel();
+            btn.setAlpha(1f);
+            btn.setScaleX(1f);
+            btn.setScaleY(1f);
+            blinkAnimator = null;
+        }
+    }
+
     @Override
     public void onRetry() {
         if (ShecanVpnService.isDynamicIPMode()) {
@@ -557,6 +593,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             Shecan.deactivateService(activity.getApplicationContext());
             isApiSuccess = false;
             stopCountdown();
+            stopBlinkAnimation();
         }
     }
 
@@ -567,5 +604,6 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             scheduler.shutdown();
         }
         stopCountdown();
+        stopBlinkAnimation();
     }
 }
