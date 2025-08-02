@@ -2,8 +2,6 @@ Shecan
 ===============
 __Android DNS changer for [Shecan](https://shecan.ir) anti-sanction service with no root required.__
 
-[<img alt='Get it on IranApps' src='http://iranapps.ir/iranapps-badge.png'>](http://iranapps.ir/app/co.bonyan.shecan)
-
 Features
 -------------
 This application can create a VPN tunnel to modify the DNS settings on Android.<br>
