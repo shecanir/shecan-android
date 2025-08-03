@@ -44,3 +44,5 @@ captures/
 *.jks
 
 app/google-services.json
+.DS_Store
+.gitignore
