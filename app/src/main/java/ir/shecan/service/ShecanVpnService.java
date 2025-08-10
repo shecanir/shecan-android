@@ -45,6 +45,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import de.measite.minidns.DNSMessage;
 import de.measite.minidns.Question;
@@ -75,6 +78,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private static final String CoreApiRequest = "core_api_request";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
+    private static final int DEFAULT_API_TIMEOUT_MS = 1000;
 
     private static final String TAG = "ShecanVpnService";
 
@@ -220,6 +224,26 @@ public class ShecanVpnService extends VpnService implements Runnable {
         }
     }
 
+    private List<Pair<String, Integer>> resolveDNSServers(AbstractDNSServer... servers) {
+        ExecutorService executor = Executors.newFixedThreadPool(servers.length);
+        List<Future<List<Pair<String, Integer>>>> futures = new ArrayList<>();
+        for (AbstractDNSServer server : servers) {
+            if (server != null) {
+                futures.add(executor.submit(() -> getResolvedDNS(server)));
+            }
+        }
+        List<Pair<String, Integer>> result = new ArrayList<>();
+        for (Future<List<Pair<String, Integer>>> future : futures) {
+            try {
+                result.addAll(future.get());
+            } catch (Exception e) {
+                Logger.logException(e);
+            }
+        }
+        executor.shutdown();
+        return result;
+    }
+
     @Override
     public void onDestroy() {
         stopThread();
@@ -297,8 +321,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     @Override
     public void run() {
         try {
-            resolvedDNS = getResolvedDNS(primaryServer);
-            resolvedDNS.addAll(getResolvedDNS(secondaryServer));
+            resolvedDNS = resolveDNSServers(primaryServer, secondaryServer);
 
             if (resolvedDNS.size() == 0) {
                 Log.d(TAG, "No DNS server is reachable.");
@@ -490,6 +513,12 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 }
         );
 
+        stringRequest.setRetryPolicy(new DefaultRetryPolicy(
+                DEFAULT_API_TIMEOUT_MS,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
+
         stringRequest.setTag(CoreApiRequest);
         requestQueue.add(stringRequest);
     }
@@ -524,7 +553,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 }
         );
 
-        int finalTimeout = (timeoutMs != null) ? timeoutMs : DefaultRetryPolicy.DEFAULT_TIMEOUT_MS;
+        int finalTimeout = (timeoutMs != null) ? timeoutMs : DEFAULT_API_TIMEOUT_MS;
 
         stringRequest.setRetryPolicy(new DefaultRetryPolicy(
                 finalTimeout,  // Timeout in milliseconds (5 seconds)
