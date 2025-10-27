@@ -7,33 +7,19 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.VpnService;
+import android.os.Build;
 import android.os.ParcelFileDescriptor;
-
-import androidx.core.app.NotificationCompat;
-import androidx.core.util.Pair;
-
 import android.system.OsConstants;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.util.Pair;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import ir.shecan.Shecan;
-import ir.shecan.R;
-
-import ir.shecan.activity.MainActivity;
-import ir.shecan.fragment.DNSQuery;
-import ir.shecan.provider.Provider;
-import ir.shecan.provider.TcpProvider;
-import ir.shecan.provider.UdpProvider;
-import ir.shecan.receiver.StatusBarBroadcastReceiver;
-import ir.shecan.util.Logger;
-import ir.shecan.util.server.AbstractDNSServer;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -44,23 +30,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Random;
 
 import de.measite.minidns.DNSMessage;
 import de.measite.minidns.Question;
 import de.measite.minidns.Record;
+import ir.shecan.R;
+import ir.shecan.Shecan;
+import ir.shecan.activity.MainActivity;
+import ir.shecan.fragment.DNSQuery;
+import ir.shecan.provider.Provider;
+import ir.shecan.provider.TcpProvider;
+import ir.shecan.provider.UdpProvider;
+import ir.shecan.receiver.StatusBarBroadcastReceiver;
+import ir.shecan.util.Logger;
+import ir.shecan.util.server.AbstractDNSServer;
 import ir.shecan.util.server.OkHttpLogger;
 
 /**
- * Shecan Project
- *
- * @author iTX Technologies
- * @link https://itxtech.org
- * <p>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Fixed and hardened ShecanVpnService
  */
 public class ShecanVpnService extends VpnService implements Runnable {
     public static final String ACTION_ACTIVATE = "ir.shecan.service.ShecanVpnService.ACTION_ACTIVATE";
@@ -81,11 +70,9 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static AbstractDNSServer primaryServer;
     public static AbstractDNSServer secondaryServer;
 
-    private List<Pair<String, Integer>> resolvedDNS;
-
     private NotificationCompat.Builder notification = null;
 
-    private boolean running = false;
+    private volatile boolean running = false;
     private long lastUpdate = 0;
     private boolean statisticQuery;
     private Provider provider;
@@ -125,7 +112,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
-            switch (intent.getAction()) {
+            switch (Objects.requireNonNull(intent.getAction())) {
                 case ACTION_ACTIVATE:
                     activated = true;
 
@@ -134,10 +121,19 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
                         NotificationManager manager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, createNotificationChannel(false));
+                        String channelId = createNotificationChannel(false);
+
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId);
 
                         Intent mainIntent = new Intent(this, MainActivity.class);
-                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_MUTABLE);
+                        mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                        int pendingIntentFlag = PendingIntent.FLAG_UPDATE_CURRENT;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            pendingIntentFlag |= PendingIntent.FLAG_IMMUTABLE;
+                        }
+
+                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, pendingIntentFlag);
 
                         Intent deactivateIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION);
                         Intent settingIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_SETTINGS_CLICK_ACTION);
@@ -146,24 +142,27 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         deactivateIntent.setClass(applicationContext, StatusBarBroadcastReceiver.class);
                         settingIntent.setClass(applicationContext, StatusBarBroadcastReceiver.class);
 
+                        int broadcastFlag = 0;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            broadcastFlag = PendingIntent.FLAG_MUTABLE;
+                        }
+
                         builder.setWhen(0)
                                 .setContentTitle(getResources().getString(R.string.notice_activated))
                                 .setSmallIcon(R.drawable.ic_notification)
-                                .setColor(getResources().getColor(R.color.colorPrimary)) //backward compatibility
+                                .setColor(getResources().getColor(R.color.colorPrimary)) // backward compatibility
                                 .setAutoCancel(false)
                                 .setOngoing(true)
                                 .setTicker(getResources().getString(R.string.notice_activated))
                                 .setContentIntent(pendingIntent)
                                 .addAction(R.drawable.ic_clear, getResources().getString(R.string.button_text_deactivate),
-                                        PendingIntent.getBroadcast(this, 0, deactivateIntent
-                                                , PendingIntent.FLAG_MUTABLE))
+                                        PendingIntent.getBroadcast(this, 0, deactivateIntent, broadcastFlag))
                                 .addAction(R.drawable.ic_settings, getResources().getString(R.string.action_settings),
-                                        PendingIntent.getBroadcast(this, 0,
-                                                settingIntent, PendingIntent.FLAG_MUTABLE));
+                                        PendingIntent.getBroadcast(this, 0, settingIntent, broadcastFlag));
 
-                        Notification notification = builder.build();
+                        Notification notificationBuilt = builder.build();
 
-                        manager.notify(NOTIFICATION_ACTIVATED, notification);
+                        manager.notify(NOTIFICATION_ACTIVATED, notificationBuilt);
 
                         this.notification = builder;
                     }
@@ -174,10 +173,13 @@ public class ShecanVpnService extends VpnService implements Runnable {
                         this.mThread.start();
                     }
                     Shecan.updateShortcut(applicationContext);
-                    if (MainActivity.getInstance() != null) {
-                        MainActivity.getInstance().startActivity(new Intent(applicationContext, MainActivity.class)
-                                .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_SERVICE_DONE));
-                    }
+
+                    // Use application context to start activity to avoid leaking activity instances
+                    Intent launchIntent = new Intent(applicationContext, MainActivity.class)
+                            .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_SERVICE_DONE);
+                    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    applicationContext.startActivity(launchIntent);
+
                     return START_STICKY;
                 case ACTION_DEACTIVATE:
                     stopThread();
@@ -189,6 +191,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     private List<Pair<String, Integer>> getResolvedDNS(AbstractDNSServer dnsServer) {
         List<Pair<String, Integer>> resolvedDNSServers = new ArrayList<>();
+        if (dnsServer == null || dnsServer.getAddress() == null || dnsServer.getAddress().trim().isEmpty()) {
+            return resolvedDNSServers;
+        }
+
         InetAddress[] addresses;
         try {
             addresses = InetAddress.getAllByName(dnsServer.getAddress());
@@ -197,7 +203,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     resolvedDNSServers.add(new Pair<>(address.getHostAddress(), dnsServer.getPort()));
             }
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            Log.w(TAG, "Unable to resolve DNS server " + dnsServer.getAddress());
         }
 
         return resolvedDNSServers;
@@ -213,9 +219,22 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 .setResponseCode(DNSMessage.RESPONSE_CODE.NO_ERROR)
                 .setQrFlag(false);
         try {
-            DNSMessage response = new DNSQuery().query(message.build(), address, port);
-            return response.answerSection.size() > 0;
-        } catch (IOException ignored) {
+            // add small retry loop to be resilient to transient network failures
+            for (int i = 0; i < 3; i++) {
+                try {
+                    DNSMessage response = new DNSQuery().query(message.build(), address, port);
+                    if (response != null && response.answerSection != null && !response.answerSection.isEmpty()) {
+                        return true;
+                    }
+                } catch (IOException ignored) {
+                    // retry
+                    if (i == 2) return false;
+                    Thread.sleep(100);
+                }
+            }
+            return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return false;
         }
     }
@@ -230,42 +249,91 @@ public class ShecanVpnService extends VpnService implements Runnable {
         activated = false;
         boolean shouldRefresh = false;
         try {
-            if (this.descriptor != null) {
-                this.descriptor.close();
-                this.descriptor = null;
-            }
-            if (mThread != null) {
+            // Take a snapshot to avoid races (mThread might change concurrently)
+            Thread t = mThread;
+            if (t != null) {
+                // mark running false so provider loops see it
                 running = false;
                 shouldRefresh = true;
+
+                // stop provider first (if exists)
                 if (provider != null) {
-                    provider.shutdown();
-                    mThread.interrupt();
-                    provider.stop();
-                } else {
-                    mThread.interrupt();
+                    try {
+                        provider.stop();
+                    } catch (Exception ex) {
+                        Logger.logException(ex);
+                    }
+                    try {
+                        provider.shutdown();
+                    } catch (Exception ex) {
+                        Logger.logException(ex);
+                    }
+                    // optional: set provider = null; // if you want to free reference
                 }
-                mThread = null;
+
+                // Only interrupt/join if we're NOT the same thread (avoid self-join deadlock)
+                if (t != Thread.currentThread()) {
+                    try {
+                        if (t.isAlive()) {
+                            t.interrupt();
+                            try {
+                                t.join(2000);
+                            } catch (InterruptedException ignored) {
+                                Thread.currentThread().interrupt();
+                            }
+                        }
+                    } catch (Exception ex) {
+                        Logger.logException(ex);
+                    }
+                } else {
+                    // We're being called from inside the worker thread itself (no join)
+                    Log.d(TAG, "stopThread called from the worker thread; skipping join to avoid deadlock");
+                }
+
+                // Clear the reference AFTER we've handled the thread (use compare-and-set style)
+                if (mThread == t) {
+                    mThread = null;
+                } else {
+                    // another thread replaced it meanwhile; still safe to set to null to avoid leaks
+                    mThread = null;
+                }
             }
+
+            if (this.descriptor != null) {
+                try {
+                    this.descriptor.close();
+                } catch (IOException ignored) {
+                }
+                this.descriptor = null;
+            }
+
             if (notification != null) {
                 NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                notificationManager.cancel(NOTIFICATION_ACTIVATED);
+                if (notificationManager != null) notificationManager.cancel(NOTIFICATION_ACTIVATED);
                 notification = null;
             }
             dnsServers = null;
         } catch (Exception e) {
             Logger.logException(e);
         }
-        stopSelf();
+        // stop the service (safe to call from background thread)
+        try {
+            stopSelf();
+        } catch (Exception ignored) {
+        }
 
         if (shouldRefresh) {
             Logger.info("shecan service has stopped");
-        }
-
-        if (shouldRefresh && MainActivity.getInstance() != null) {
-            MainActivity.getInstance().startActivity(new Intent(getApplicationContext(), MainActivity.class)
-                    .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_SERVICE_DONE));
-        } else if (shouldRefresh) {
-            Shecan.updateShortcut(getApplicationContext());
+            // Launch UI update on main thread (UI-safe)
+            try {
+                Context applicationContext = getApplicationContext();
+                Intent intent = new Intent(applicationContext, MainActivity.class)
+                        .putExtra(MainActivity.LAUNCH_ACTION, MainActivity.LAUNCH_ACTION_SERVICE_DONE);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                applicationContext.startActivity(intent);
+            } catch (Exception ex) {
+                Logger.logException(ex);
+            }
         }
     }
 
@@ -276,14 +344,15 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     private InetAddress addDnsServer(Builder builder, String format, byte[] ipv6Template, Pair<String, Integer> destination) throws UnknownHostException {
         InetAddress address = InetAddress.getByName(destination.first);
-        int size = dnsServers.size();
+        int size = (dnsServers != null) ? dnsServers.size() : 0;
         size++;
         if (address instanceof Inet6Address && ipv6Template == null) {
             Log.i(TAG, "addDnsServer: Ignoring DNS server " + address);
         } else if (address instanceof Inet4Address) {
             String alias = String.format(Locale.US, format, size + 1);
             dnsServers.put(alias, destination);
-            builder.addRoute(alias, 32);
+            // Do NOT add route per-dns alias here — keep routing simple. The alias is used only as a local virtual address.
+            // builder.addRoute(alias, 32); // removed to avoid incorrect routing
             return InetAddress.getByName(alias);
         } else if (address instanceof Inet6Address) {
             ipv6Template[ipv6Template.length - 1] = (byte) (size + 1);
@@ -297,21 +366,27 @@ public class ShecanVpnService extends VpnService implements Runnable {
     @Override
     public void run() {
         try {
-            resolvedDNS = getResolvedDNS(primaryServer);
-            resolvedDNS.addAll(getResolvedDNS(secondaryServer));
+            List<Pair<String, Integer>> resolvedDNS = new ArrayList<>();
+            if (primaryServer != null) resolvedDNS.addAll(getResolvedDNS(primaryServer));
+            if (secondaryServer != null) resolvedDNS.addAll(getResolvedDNS(secondaryServer));
 
-            if (resolvedDNS.size() == 0) {
+            if (resolvedDNS.isEmpty()) {
                 Log.d(TAG, "No DNS server is reachable.");
                 stopThread();
                 return;
             }
-//            DNSServerHelper.buildPortCache(resolvedDNS);
 
             Builder builder = new Builder()
-                    .setSession("shecan")
-                    .setConfigureIntent(PendingIntent.getActivity(this, 0,
-                            new Intent(this, MainActivity.class).putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS),
-                            PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE));
+                    .setSession("shecan");
+
+            // Configure intent: use proper flags depending on API
+            Intent configIntent = new Intent(this, MainActivity.class).putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS);
+            int configPendingFlags = PendingIntent.FLAG_ONE_SHOT;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                configPendingFlags |= PendingIntent.FLAG_IMMUTABLE;
+
+            builder.setConfigureIntent(PendingIntent.getActivity(this, 0, configIntent, configPendingFlags));
+
             String format = null;
             for (String prefix : new String[]{"10.0.0", "192.0.2", "198.51.100", "203.0.113", "192.168.50"}) {
                 try {
@@ -324,7 +399,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 break;
             }
 
-            boolean advanced = true; //Shecan.getPrefs().getBoolean("settings_advanced_switch", false);
+            boolean advanced = true; // feature flag - kept true for advanced behavior
 
             statisticQuery = Shecan.getPrefs().getBoolean("settings_count_query_times", false);
             byte[] ipv6Template = new byte[]{32, 1, 13, (byte) (184 & 0xFF), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -332,21 +407,19 @@ public class ShecanVpnService extends VpnService implements Runnable {
             boolean hasIPv6 = false;
 
             for (Pair<String, Integer> pair : resolvedDNS) {
-                if (pair.first.contains(":"))
+                if (pair.first.contains(":")) {
                     hasIPv6 = true;
-
-//                if (!advanced && pair.second != AbstractDNSServer.DNS_SERVER_DEFAULT_PORT)
-//                    advanced = true;
+                    break;
+                }
             }
 
             if (hasIPv6) {//IPv6
                 try {
-                    InetAddress addr = Inet6Address.getByAddress(ipv6Template);
-                    Log.d(TAG, "configure: Adding IPv6 address" + addr);
-                    builder.addAddress(addr, 120);
+                    InetAddress intentAddress = Inet6Address.getByAddress(ipv6Template);
+                    Log.d(TAG, "configure: Adding IPv6 address" + intentAddress);
+                    builder.addAddress(intentAddress, 120);
                 } catch (Exception e) {
                     Logger.logException(e);
-
                     ipv6Template = null;
                 }
             } else {
@@ -355,44 +428,37 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
             InetAddress alias;
 
-            if (advanced)
-                dnsServers = new HashMap<>();
+            dnsServers = new HashMap<>();
 
             for (Pair<String, Integer> pair : resolvedDNS) {
-                if (advanced) {
-                    alias = addDnsServer(builder, format, ipv6Template, pair);
-                } else {
-                    alias = InetAddress.getByName(pair.first);
-                }
+                alias = addDnsServer(builder, format, ipv6Template, pair);
 
                 Logger.info("shecan is listening on " + pair.first + ":" + pair.second + " as " + alias);
-                builder.addDnsServer(alias);
+                if (alias != null) builder.addDnsServer(alias);
             }
 
-
-            if (advanced) {
-                builder.setBlocking(true);
+            builder.setBlocking(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 builder.allowFamily(OsConstants.AF_INET);
                 builder.allowFamily(OsConstants.AF_INET6);
             }
 
             descriptor = builder.establish();
+            if (descriptor == null) {
+                Log.e(TAG, "Failed to establish VPN interface (user likely denied permission)");
+                stopThread();
+                return;
+            }
+
             Logger.info("shecan service is started");
 
-            if (advanced) {
-                if (Shecan.getPrefs().getBoolean("settings_dns_over_tcp", false)) {
-                    provider = new TcpProvider(descriptor, this);
-                } else {
-                    provider = new UdpProvider(descriptor, this);
-                }
-                provider.start();
-                provider.process();
+            if (Shecan.getPrefs().getBoolean("settings_dns_over_tcp", false)) {
+                provider = new TcpProvider(descriptor, this);
             } else {
-                while (running) {
-                    Thread.sleep(1000);
-                }
+                provider = new UdpProvider(descriptor, this);
             }
-        } catch (InterruptedException ignored) {
+            provider.start();
+            provider.process();
         } catch (Exception e) {
             Logger.logException(e);
         } finally {
@@ -411,10 +477,16 @@ public class ShecanVpnService extends VpnService implements Runnable {
         long time = System.currentTimeMillis();
         if (time - lastUpdate >= 1000) {
             lastUpdate = time;
-            if (notification != null) {
-                notification.setContentTitle(getResources().getString(R.string.notice_queries) + " " + String.valueOf(provider.getDnsQueryTimes()));
-                NotificationManager manager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-                manager.notify(NOTIFICATION_ACTIVATED, notification.build());
+            if (notification != null && provider != null) {
+                try {
+                    long queries = provider.getDnsQueryTimes();
+                    notification.setContentTitle(getResources().getString(R.string.notice_queries) + " " + String.valueOf(queries));
+                    NotificationManager manager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+                    if (manager != null)
+                        manager.notify(NOTIFICATION_ACTIVATED, notification.build());
+                } catch (Exception e) {
+                    Logger.logException(e);
+                }
             }
         }
     }
@@ -432,22 +504,30 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     public String createNotificationChannel(boolean allowHiding) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager == null) return "defaultchannel";
+
             if (allowHiding && Shecan.getPrefs().getBoolean("hide_notification_icon", false)) {
-                NotificationChannel channel = new NotificationChannel("noIconChannel", getString(R.string.notification_channel_hiddenicon), NotificationManager.IMPORTANCE_MIN);
-                channel.enableLights(false);
-                channel.enableVibration(false);
-                channel.setDescription(getString(R.string.notification_channel_hiddenicon_description));
-                notificationManager.createNotificationChannel(channel);
-                return "noIconChannel";
+                String id = "noIconChannel";
+                if (notificationManager.getNotificationChannel(id) == null) {
+                    NotificationChannel channel = new NotificationChannel(id, getString(R.string.notification_channel_hiddenicon), NotificationManager.IMPORTANCE_MIN);
+                    channel.enableLights(false);
+                    channel.enableVibration(false);
+                    channel.setDescription(getString(R.string.notification_channel_hiddenicon_description));
+                    notificationManager.createNotificationChannel(channel);
+                }
+                return id;
             } else {
-                NotificationChannel channel = new NotificationChannel("defaultchannel", getString(R.string.notification_channel_default), NotificationManager.IMPORTANCE_LOW);
-                channel.enableLights(false);
-                channel.enableVibration(false);
-                channel.setDescription(getString(R.string.notification_channel_default_description));
-                notificationManager.createNotificationChannel(channel);
-                return "defaultchannel";
+                String id = "defaultchannel";
+                if (notificationManager.getNotificationChannel(id) == null) {
+                    NotificationChannel channel = new NotificationChannel(id, getString(R.string.notification_channel_default), NotificationManager.IMPORTANCE_LOW);
+                    channel.enableLights(false);
+                    channel.enableVibration(false);
+                    channel.setDescription(getString(R.string.notification_channel_default_description));
+                    notificationManager.createNotificationChannel(channel);
+                }
+                return id;
             }
         } else {
             return "defaultchannel";
@@ -461,31 +541,29 @@ public class ShecanVpnService extends VpnService implements Runnable {
         StringRequest stringRequest = new StringRequest(
                 Request.Method.GET,
                 apiUrl,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        String result = response.trim();
-                        if (result.equals("invalid")) {
+                response -> {
+                    String result = (response != null) ? response.trim() : "";
+                    switch (result) {
+                        case "invalid":
                             listener.onInvalid();
-                        } else if (result.equals("in the range")) {
+                            break;
+                        case "in the range":
                             listener.onInTheRange();
-                        } else if (result.equals("out of the range")) {
+                            break;
+                        case "out of the range":
                             listener.onOutOfRange();
-                        } else {
+                            break;
+                        default:
                             listener.onSuccess(result);
                             Shecan.setDynamicIP(result.trim());
-                        }
-
+                            break;
                     }
+
                 },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // todo: handle error
-                        if (listener != null) {
-                            Log.d("Apizzz", error.toString());
-                            listener.onError(error.toString());
-                        }
+                error -> {
+                    if (listener != null) {
+                        Log.d("Apizzz", error.toString());
+                        listener.onError(error.toString());
                     }
                 }
         );
@@ -497,43 +575,43 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {
         OkHttpLogger.requestWithIPLogging("https://check.shecan.ir");
         RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
-        String apiUrl = "https://check.shecan.ir";
-        StringRequest stringRequest = new StringRequest(
-                Request.Method.GET,
-                apiUrl,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        String result = response.trim();
-                        if (result.equals("2")) {
-                            listener.onConnected();
-                        } else {
-                            listener.onRetry();
-                        }
-                    }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        // show the cached connected IP connected before the api call, when gets error
-                        if (ShecanVpnService.isActivated()) {
-                            Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
-                            listener.onRetry();
-                        }
-                    }
-                }
-        );
+        StringRequest stringRequest = getStringRequest(listener);
 
         int finalTimeout = (timeoutMs != null) ? timeoutMs : DefaultRetryPolicy.DEFAULT_TIMEOUT_MS;
 
         stringRequest.setRetryPolicy(new DefaultRetryPolicy(
-                finalTimeout,  // Timeout in milliseconds (5 seconds)
+                finalTimeout,  // Timeout in milliseconds
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,  // Number of retries
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT  // Backoff multiplier
         ));
 
         stringRequest.setTag(ConnectionStatusRequest);
         requestQueue.add(stringRequest);
+    }
+
+    @NonNull
+    private static StringRequest getStringRequest(ConnectionStatusApiListener listener) {
+        String apiUrl = "https://check.shecan.ir";
+        // show the cached connected IP connected before the api call, when gets error
+        return new StringRequest(
+                Request.Method.GET,
+                apiUrl,
+                response -> {
+                    String result = (response != null) ? response.trim() : "";
+                    if (result.equals("2")) {
+                        listener.onConnected();
+                    } else {
+                        listener.onRetry();
+                    }
+                },
+                error -> {
+                    // show the cached connected IP connected before the api call, when gets error
+                    if (ShecanVpnService.isActivated()) {
+                        Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
+                        listener.onRetry();
+                    }
+                }
+        );
     }
 
     public static void cancelConnectionStatusAPI(Context context) {
@@ -545,6 +623,4 @@ public class ShecanVpnService extends VpnService implements Runnable {
         RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
         requestQueue.cancelAll(CoreApiRequest);
     }
-
-
 }

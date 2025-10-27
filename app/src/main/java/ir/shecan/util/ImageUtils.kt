@@ -5,11 +5,10 @@ package ir.shecan.util
 import android.content.Context
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
+import androidx.core.net.toUri
 import coil.ImageLoader
 import coil.decode.BitmapFactoryDecoder
 import coil.decode.GifDecoder
@@ -109,7 +108,7 @@ object ImageUtils {
     }
 
     fun loadImage(context: Context, imageUrl: String, imageView: SimpleDraweeView){
-        val uri = Uri.parse(imageUrl)
+        val uri = imageUrl.toUri()
         val isGif = imageUrl.lowercase().endsWith(".gif")
         val isWebP = imageUrl.lowercase().endsWith(".webp")
         val isAvif = imageUrl.lowercase().endsWith(".avif")

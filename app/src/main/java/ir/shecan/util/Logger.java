@@ -2,12 +2,15 @@ package ir.shecan.util;
 
 import android.util.Log;
 
-import ir.shecan.Shecan;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import io.sentry.Breadcrumb;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
+import ir.shecan.Shecan;
 
 /**
  * Shecan Project
@@ -41,22 +44,36 @@ public class Logger {
 
     public static void error(String message) {
         send("[ERROR] " + message);
+        createBreadcrumb("error", message, SentryLevel.ERROR);
     }
 
     public static void warning(String message) {
         send("[WARNING] " + message);
+        createBreadcrumb("warning", message, SentryLevel.WARNING);
     }
 
     public static void info(String message) {
         send("[INFO] " + message);
+        createBreadcrumb("info", message, SentryLevel.INFO);
     }
 
     public static void debug(String message) {
         send("[DEBUG] " + message);
+        createBreadcrumb("debug", message, SentryLevel.DEBUG);
     }
 
     public static void logException(Throwable e) {
         error(getExceptionMessage(e));
+//        Sentry.captureException(e);
+        createBreadcrumb("logException", e.getMessage(), SentryLevel.FATAL);
+    }
+
+    private static void createBreadcrumb(String category, String message, SentryLevel level) {
+        Breadcrumb breadcrumb = new Breadcrumb();
+        breadcrumb.setCategory("CustomLog " + category);
+        breadcrumb.setMessage(message);
+        breadcrumb.setLevel(level);
+        Sentry.addBreadcrumb(breadcrumb);
     }
 
     public static String getExceptionMessage(Throwable e) {

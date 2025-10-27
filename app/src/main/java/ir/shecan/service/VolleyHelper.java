@@ -1,9 +1,11 @@
 package ir.shecan.service;
 
 import android.content.Context;
+
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.Volley;
+
 import javax.net.ssl.SSLSocketFactory;
 
 public class VolleyHelper {

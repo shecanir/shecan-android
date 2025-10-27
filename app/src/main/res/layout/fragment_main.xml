@@ -334,6 +334,7 @@
 
             </LinearLayout>
 
+<!--            <ImageView-->
             <com.facebook.drawee.view.SimpleDraweeView
                 android:id="@+id/banner_image_view"
                 android:layout_width="0dp"
@@ -341,8 +342,9 @@
                 android:layout_marginHorizontal="16dp"
                 android:maxHeight="80dp"
                 app:layout_constraintDimensionRatio="4:1"
-                android:scaleType="centerCrop"
                 android:visibility="gone"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
                 tools:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="@id/bottomGuideLine"
                 app:layout_constraintEnd_toEndOf="parent"

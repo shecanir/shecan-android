@@ -2,10 +2,10 @@ package ir.shecan.util.server;
 
 import android.content.Context;
 
+import java.util.ArrayList;
+
 import ir.shecan.Shecan;
 import ir.shecan.service.ShecanVpnService;
-
-import java.util.ArrayList;
 
 /**
  * Shecan Project

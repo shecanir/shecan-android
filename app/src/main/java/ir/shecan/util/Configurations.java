@@ -2,14 +2,15 @@ package ir.shecan.util;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import ir.shecan.Shecan;
-import ir.shecan.util.server.CustomDNSServer;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import ir.shecan.Shecan;
+import ir.shecan.util.server.CustomDNSServer;
 
 /**
  * Shecan Project

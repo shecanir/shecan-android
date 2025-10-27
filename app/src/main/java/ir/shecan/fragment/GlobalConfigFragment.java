@@ -1,34 +1,20 @@
 package ir.shecan.fragment;
 
 import android.os.Bundle;
-import android.preference.EditTextPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.view.View;
 
-import ir.shecan.Shecan;
+import androidx.preference.EditTextPreference;
+import androidx.preference.PreferenceFragmentCompat;
+
 import ir.shecan.R;
-
+import ir.shecan.Shecan;
 import ir.shecan.util.LanguageHelper;
 import ir.shecan.util.server.DNSServerHelper;
 
-/**
- * Shecan Project
- *
- * @author iTX Technologies
- * @link https://itxtech.org
- * <p>
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-public class GlobalConfigFragment extends PreferenceFragment {
+public class GlobalConfigFragment extends PreferenceFragmentCompat {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        setPreferencesFromResource(R.xml.perf_settings, rootKey);
 
         Shecan.getPrefs().edit()
                 .putString("primary_server", DNSServerHelper.getPrimary())
@@ -38,40 +24,28 @@ public class GlobalConfigFragment extends PreferenceFragment {
                 .putString("settings_language", LanguageHelper.getLanguage())
                 .apply();
 
-        addPreferencesFromResource(R.xml.perf_settings);
+        EditTextPreference logSize = findPreference("settings_log_size");
+        if (logSize != null) {
+            logSize.setSummaryProvider(EditTextPreference.SimpleSummaryProvider.getInstance());
+            logSize.setOnPreferenceChangeListener((preference, newValue) -> {
+                return true;
+            });
+        }
 
         /*
-        // Commented temporary (it can be used later if needed)
-        ListPreference language = (ListPreference) findPreference("settings_language");
-        language.setEntries(LanguageHelper.getNames());
-        language.setEntryValues(LanguageHelper.getIds());
-        language.setSummary(LanguageHelper.getDescription(language.getValue()));
-        language.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
+        // اگر خواستی زبان را هم فعال کنی:
+        ListPreference language = findPreference("settings_language");
+        if (language != null) {
+            language.setEntries(LanguageHelper.getNames());
+            language.setEntryValues(LanguageHelper.getIds());
+            language.setSummary(LanguageHelper.getDescription(language.getValue()));
+            language.setOnPreferenceChangeListener((preference, newValue) -> {
                 preference.setSummary(LanguageHelper.getDescription((String) newValue));
                 Shecan.changeLanguageType((String) newValue);
-                getActivity().recreate();
+                requireActivity().recreate();
                 return true;
-            }
-        });
+            });
+        }
         */
-
-        EditTextPreference logSize = (EditTextPreference) findPreference("settings_log_size");
-        logSize.setSummary(logSize.getText());
-        logSize.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
-            @Override
-            public boolean onPreferenceChange(Preference preference, Object newValue) {
-                preference.setSummary((String) newValue);
-                return true;
-            }
-        });
-
-    }
-
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
     }
 }

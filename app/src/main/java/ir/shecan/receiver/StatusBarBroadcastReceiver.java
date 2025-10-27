@@ -3,11 +3,10 @@ package ir.shecan.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
 import ir.shecan.Shecan;
 import ir.shecan.activity.MainActivity;
 import ir.shecan.util.Logger;
-
-import java.lang.reflect.Method;
 
 /**
  * Shecan Project
@@ -26,20 +25,25 @@ public class StatusBarBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION)) {
-            Shecan.deactivateService(context);
-        }
-        if (intent.getAction().equals(STATUS_BAR_BTN_SETTINGS_CLICK_ACTION)) {
-            Intent settingsIntent = new Intent(context, MainActivity.class).putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS);
-            settingsIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(settingsIntent);
-            try {
-                Object statusBarManager = context.getSystemService("statusbar");
-                Method collapse = statusBarManager.getClass().getMethod("collapsePanels");
-                collapse.invoke(statusBarManager);
-            } catch (Exception e) {
-                Logger.logException(e);
+        if (intent == null || intent.getAction() == null) return;
+
+        try {
+            String action = intent.getAction();
+
+            if (action.equals(STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION)) {
+                Shecan.deactivateService(context);
             }
+
+            if (action.equals(STATUS_BAR_BTN_SETTINGS_CLICK_ACTION)) {
+                Intent settingsIntent = new Intent(context, MainActivity.class)
+                        .putExtra(MainActivity.LAUNCH_FRAGMENT, MainActivity.FRAGMENT_SETTINGS)
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                context.startActivity(settingsIntent);
+            }
+
+        } catch (Exception e) {
+            Logger.logException(e);
         }
     }
 }

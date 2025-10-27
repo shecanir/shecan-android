@@ -3,27 +3,33 @@ package ir.shecan.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.*;
-import de.measite.minidns.DNSMessage;
-import de.measite.minidns.Question;
-import de.measite.minidns.Record;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.Spinner;
+import android.widget.TextView;
 
-import ir.shecan.Shecan;
-import ir.shecan.R;
-
-import ir.shecan.util.Logger;
-import ir.shecan.util.server.AbstractDNSServer;
-import ir.shecan.util.server.DNSServerHelper;
+import androidx.annotation.NonNull;
 
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Random;
+
+import de.measite.minidns.DNSMessage;
+import de.measite.minidns.Question;
+import de.measite.minidns.Record;
+import ir.shecan.R;
+import ir.shecan.Shecan;
+import ir.shecan.util.Logger;
+import ir.shecan.util.server.AbstractDNSServer;
+import ir.shecan.util.server.DNSServerHelper;
 
 /**
  * Shecan Project
@@ -37,9 +43,9 @@ import java.util.Random;
  * (at your option) any later version.
  */
 public class DNSTestFragment extends ToolbarFragment {
-    private class Type {
-        private Record.TYPE type;
-        private String name;
+    private static class Type {
+        private final Record.TYPE type;
+        private final String name;
 
         private Type(String name, Record.TYPE type) {
             this.name = name;
@@ -50,6 +56,7 @@ public class DNSTestFragment extends ToolbarFragment {
             return type;
         }
 
+        @NonNull
         @Override
         public String toString() {
             return name;
@@ -64,10 +71,10 @@ public class DNSTestFragment extends ToolbarFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_dns_test, container, false);
 
-        final TextView textViewTestInfo = (TextView) view.findViewById(R.id.textView_test_info);
+        final TextView textViewTestInfo = view.findViewById(R.id.textView_test_info);
 
-        final Spinner spinnerServerChoice = (Spinner) view.findViewById(R.id.spinner_server_choice);
-        ArrayAdapter spinnerArrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, DNSServerHelper.getAllServers());
+        final Spinner spinnerServerChoice = view.findViewById(R.id.spinner_server_choice);
+        ArrayAdapter<AbstractDNSServer> spinnerArrayAdapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, DNSServerHelper.getAllServers());
         spinnerServerChoice.setAdapter(spinnerArrayAdapter);
         spinnerServerChoice.setSelection(DNSServerHelper.getPosition(DNSServerHelper.getPrimary()));
 
@@ -93,12 +100,12 @@ public class DNSTestFragment extends ToolbarFragment {
             add(new Type("DLV", Record.TYPE.DLV));
         }};
 
-        final Spinner spinnerType = (Spinner) view.findViewById(R.id.spinner_type);
-        ArrayAdapter<Type> typeAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, types);
+        final Spinner spinnerType = view.findViewById(R.id.spinner_type);
+        ArrayAdapter<Type> typeAdapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, types);
         spinnerType.setAdapter(typeAdapter);
 
-        final AutoCompleteTextView textViewTestDomain = (AutoCompleteTextView) view.findViewById(R.id.autoCompleteTextView_test_url);
-        ArrayAdapter autoCompleteArrayAdapter = new ArrayAdapter<>(Shecan.getInstance(), android.R.layout.simple_list_item_1, Shecan.DEFAULT_TEST_DOMAINS);
+        final AutoCompleteTextView textViewTestDomain = view.findViewById(R.id.autoCompleteTextView_test_url);
+        ArrayAdapter<String> autoCompleteArrayAdapter = new ArrayAdapter<>(Shecan.getInstance(), android.R.layout.simple_list_item_1, Shecan.DEFAULT_TEST_DOMAINS);
         textViewTestDomain.setAdapter(autoCompleteArrayAdapter);
 
         mRunnable = new Runnable() {
@@ -106,14 +113,14 @@ public class DNSTestFragment extends ToolbarFragment {
             public void run() {
                 try {
                     String testDomain = textViewTestDomain.getText().toString();
-                    if (testDomain.equals("")) {
+                    if (testDomain.isEmpty()) {
                         testDomain = Shecan.DEFAULT_TEST_DOMAINS[0];
                     }
                     StringBuilder testText = new StringBuilder();
                     ArrayList<AbstractDNSServer> dnsServers = new ArrayList<AbstractDNSServer>() {{
                         add(((AbstractDNSServer) spinnerServerChoice.getSelectedItem()));
                         String servers = Shecan.getPrefs().getString("dns_test_servers", "");
-                        if (!servers.equals("")) {
+                        if (!servers.isEmpty()) {
                             for (String server : servers.split(",")) {
                                 if (server.contains(".") && server.contains(":")) {//IPv4
                                     String[] pieces = servers.split(":");
@@ -169,20 +176,34 @@ public class DNSTestFragment extends ToolbarFragment {
                             .setQrFlag(false);
 
                     long startTime = System.currentTimeMillis();
-                    DNSMessage response = dnsQuery.query(message.build(), InetAddress.getByName(server.getAddress()), server.getPort());
+
+                    InetAddress inetAddress;
+                    try {
+                        // تلاش برای resolve آدرس از ورودی کاربر
+                        inetAddress = InetAddress.getByName(server.getAddress());
+                    } catch (Exception ex) {
+                        Logger.logException(ex);
+                        testText.append("\n").append(getString(R.string.test_failed))
+                                .append(" (Cannot resolve or fallback address invalid)");
+                        mHandler.obtainMessage(DnsTestHandler.MSG_DISPLAY_STATUS, testText.toString()).sendToTarget();
+                        return testText;
+                    }
+
+                    DNSMessage response = dnsQuery.query(message.build(), inetAddress, server.getPort());
                     long endTime = System.currentTimeMillis();
 
-                    if (response.answerSection.size() > 0) {
+                    if (response != null && !response.answerSection.isEmpty()) {
                         for (Record record : response.answerSection) {
                             if (record.getPayload().getType() == type) {
                                 testText.append("\n").append(getString(R.string.test_result_resolved)).append(" ").append(record.getPayload().toString());
                             }
                         }
                         testText.append("\n").append(getString(R.string.test_time_used)).append(" ").
-                                append(String.valueOf(endTime - startTime)).append(" ms");
+                                append(endTime - startTime).append(" ms");
                         succ = true;
                     }
-                } catch (SocketTimeoutException ignored){
+                } catch (SocketTimeoutException ignored) {
+                    Logger.debug("DNS query timeout for server: " + server.getAddress());
                 } catch (Exception e) {
                     Logger.logException(e);
                 }
@@ -252,6 +273,10 @@ public class DNSTestFragment extends ToolbarFragment {
     }
 
     private static class DnsTestHandler extends Handler {
+        DnsTestHandler() {
+            super(Looper.getMainLooper());
+        }
+
         static final int MSG_DISPLAY_STATUS = 0;
         static final int MSG_TEST_DONE = 1;
 
@@ -268,12 +293,11 @@ public class DNSTestFragment extends ToolbarFragment {
             textViewTestInfo = null;
         }
 
-        public void handleMessage(Message msg) {
+        @Override
+        public void handleMessage(@NonNull Message msg) {
             super.handleMessage(msg);
 
-            if (startTestBtn == null) {
-                return;
-            }
+            if (startTestBtn == null) return;
 
             switch (msg.what) {
                 case MSG_DISPLAY_STATUS:
@@ -286,5 +310,4 @@ public class DNSTestFragment extends ToolbarFragment {
             }
         }
     }
-
 }

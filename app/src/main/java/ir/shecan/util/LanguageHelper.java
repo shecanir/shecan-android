@@ -1,9 +1,5 @@
 package ir.shecan.util;
 
-import ir.shecan.Shecan;
-
-import java.util.Locale;
-
 public class LanguageHelper {
 
     private static final String[] ids = {"fa", "en"};

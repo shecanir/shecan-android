@@ -5,19 +5,25 @@
         android:key="settings_system"
         android:title="@string/settings_system">
 
-        <!--<ListPreference
+        <!-- زبان (در صورت نیاز فعال کن)
+        <ListPreference
             android:key="settings_language"
             android:title="@string/settings_language"
-            />-->
-        <SwitchPreference
+            android:entries="@array/language_names"
+            android:entryValues="@array/language_ids"
+            android:defaultValue="en" />
+        -->
+
+        <SwitchPreferenceCompat
             android:key="settings_notification"
             android:title="@string/settings_notification"
-            android:defaultValue="true"/>
+            android:defaultValue="true" />
+
         <EditTextPreference
             android:key="settings_log_size"
             android:selectAllOnFocus="false"
             android:singleLine="true"
-            android:numeric="integer"
+            android:inputType="number"
             android:defaultValue="10000"
             android:title="@string/settings_log_size"/>
     </PreferenceCategory>
@@ -25,11 +31,13 @@
     <PreferenceCategory
         android:key="settings_advanced"
         android:title="@string/settings_advanced">
-        <SwitchPreference
+
+        <SwitchPreferenceCompat
             android:key="settings_dns_over_tcp"
             android:title="@string/settings_dns_over_tcp"
             android:defaultValue="false" />
-        <SwitchPreference
+
+        <SwitchPreferenceCompat
             android:key="settings_debug_output"
             android:title="@string/settings_debug_output"
             android:defaultValue="false" />

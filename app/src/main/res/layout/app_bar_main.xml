@@ -16,7 +16,8 @@
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
         android:stateListAnimator="@null"
-        android:id="@+id/appBarLayout">
+        android:id="@+id/appBarLayout"
+        android:fitsSystemWindows="false">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"

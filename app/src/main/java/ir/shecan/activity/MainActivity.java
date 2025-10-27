@@ -1,11 +1,13 @@
 package ir.shecan.activity;
 
+import android.Manifest;
 import android.app.Activity;
-import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.VpnService;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -15,13 +17,28 @@ import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.messaging.FirebaseMessaging;
 
-import ir.shecan.Shecan;
 import ir.shecan.R;
-
+import ir.shecan.Shecan;
 import ir.shecan.fragment.AboutFragment;
 import ir.shecan.fragment.DNSTestFragment;
 import ir.shecan.fragment.HomeFragment;
@@ -32,15 +49,6 @@ import ir.shecan.service.ShecanVpnService;
 import ir.shecan.util.Logger;
 import ir.shecan.util.server.DNSServerHelper;
 import ir.shecan.util.server.LocaleHelper;
-
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 
 /**
  * Shecan Project
@@ -77,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private ToolbarFragment currentFragment;
 
+    private ActivityResultLauncher<Intent> vpnPermissionLauncher;
+
     public static MainActivity getInstance() {
         return instance;
     }
@@ -88,16 +98,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
 
         instance = this;
-
         setContentView(R.layout.activity_main);
+
+        vpnPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        onVpnPermissionGranted();
+                    }
+                }
+        );
 
         AppBarLayout appBarLayout = findViewById(R.id.appBarLayout);
         appBarLayout.setPadding(0, getStatusBarHeight(), 0, 0);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
-
-        //setSupportActionBar(toolbar); //causes toolbar issues
-
         DrawerLayout drawer = findViewById(R.id.main_drawer_layout);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -108,8 +123,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        handleIntent(getIntent());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
 
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    String token = task.getResult();
+                    Log.d("FCM", "Token: " + token);
+
+                    FirebaseMessaging.getInstance().subscribeToTopic("afterPushPoleScenarioTopic")
+                            .addOnCompleteListener(subscribeTask -> {
+                                if (!subscribeTask.isSuccessful()) {
+                                    Log.w("FCM", "Subscription to topic failed", subscribeTask.getException());
+                                } else {
+                                    Log.d("FCM", "Successfully subscribed to topic: afterPushPoleScenarioTopic");
+                                }
+                            });
+                });
+
+        handleIntent(getIntent());
     }
 
 
@@ -117,8 +157,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (currentFragment == null || fragmentClass != currentFragment.getClass()) {
             try {
                 ToolbarFragment fragment = (ToolbarFragment) fragmentClass.newInstance();
-                FragmentManager fm = getFragmentManager();
-                fm.beginTransaction().replace(R.id.id_content, fragment).commit();
+                FragmentManager fm = getSupportFragmentManager();
+                fm.beginTransaction().replace(R.id.id_content, fragment).commitAllowingStateLoss();
 
                 currentFragment = fragment;
             } catch (Exception e) {
@@ -161,17 +201,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public int getStatusBarHeight() {
-        int result = 0;
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            result = getResources().getDimensionPixelSize(resourceId);
-        }
-        return result;
+        return (int) Math.ceil(25 * getResources().getDisplayMetrics().density);
     }
 
     private int fetchPrimaryDarkColor() {
         TypedValue typedValue = new TypedValue();
-        getTheme().resolveAttribute(R.attr.colorPrimaryDark, typedValue, true);
+        getTheme().resolveAttribute(R.color.colorPrimaryDark, typedValue, true);
         return typedValue.data;
     }
 
@@ -182,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             drawer.closeDrawer(GravityCompat.START);
         } else if (!(currentFragment instanceof HomeFragment)) {
             switchFragment(HomeFragment.class, true);
-            recreate();
+//            recreate();
         } else {
             super.onBackPressed();
         }
@@ -200,22 +235,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onNewIntent(intent);
 
         handleIntent(intent);
-    }
-
-    public void activateService() {
-        Intent intent = VpnService.prepare(Shecan.getInstance());
-        if (intent != null) {
-            startActivityForResult(intent, 0);
-        } else {
-            onActivityResult(0, Activity.RESULT_OK, null);
-        }
-
-        long activateCounter = Shecan.configurations.getActivateCounter();
-        if (activateCounter == -1) {
-            return;
-        }
-        activateCounter++;
-        Shecan.configurations.setActivateCounter(activateCounter);
     }
 
     @Override
@@ -339,4 +358,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getApplicationContext().setTheme(themeId);
     }
 
+    public void activateService() {
+        Intent intent = VpnService.prepare(Shecan.getInstance());
+        if (intent != null) {
+            // بررسی وجود Activity مقصد
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                vpnPermissionLauncher.launch(intent);
+            } else {
+                Log.e(TAG, "VPN permission activity not found! Device may not support VPN dialogs.");
+                // نمایش پیغام کاربرپسند به جای کرش
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "دستگاه شما از VPN داخلی پشتیبانی نمی‌کند.", Toast.LENGTH_LONG).show();
+                });
+            }
+        } else {
+            onVpnPermissionGranted();
+        }
+
+        long activateCounter = Shecan.configurations.getActivateCounter();
+        if (activateCounter != -1) {
+            Shecan.configurations.setActivateCounter(++activateCounter);
+        }
+    }
+
+    private void onVpnPermissionGranted() {
+        if (ShecanVpnService.isProMode()) {
+            ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProPrimary());
+            ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProSecondary());
+        } else {
+            ShecanVpnService.primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+            ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
+        }
+
+        Shecan.getInstance().startService(
+                Shecan.getServiceIntent(getApplicationContext()).setAction(ShecanVpnService.ACTION_ACTIVATE)
+        );
+        Shecan.updateShortcut(getApplicationContext());
+    }
 }

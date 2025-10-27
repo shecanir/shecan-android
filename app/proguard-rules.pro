@@ -47,10 +47,17 @@
 -keep class org.pcap4j.core.** { *; }
 -keep class org.pcap4j.util.** { *; }
 
--keep class com.pushpole.sdk.** { *; }
+#-keep class com.pushpole.sdk.** { *; }
+-keepattributes Signature
+-dontwarn sun.misc
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
 # Keep native methods if Pcap4j is using JNI
 -keepclasseswithmembernames class * { native <methods>; }
 
 # Keep MiniDNS classes
 -keep class de.measite.minidns.** { *; }
+
+# Suppress warning about missing SLF4J binding
+-dontwarn org.slf4j.impl.StaticLoggerBinder

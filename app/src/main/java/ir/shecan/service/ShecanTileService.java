@@ -5,9 +5,8 @@ import android.os.Build;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
-import ir.shecan.Shecan;
-
 import ir.shecan.R;
+import ir.shecan.Shecan;
 
 /**
  * Shecan Project

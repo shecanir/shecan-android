@@ -13,8 +13,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import ir.shecan.BuildConfig;
-import ir.shecan.Shecan;
 import ir.shecan.R;
+import ir.shecan.Shecan;
 
 /**
  * Shecan Project

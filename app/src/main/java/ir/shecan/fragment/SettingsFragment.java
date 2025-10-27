@@ -1,10 +1,11 @@
 package ir.shecan.fragment;
 
-import android.app.FragmentManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.fragment.app.FragmentManager;
 
 import ir.shecan.R;
 
@@ -28,8 +29,7 @@ public class SettingsFragment extends ToolbarFragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        FragmentManager fm;
-        fm = getChildFragmentManager();
+        FragmentManager fm = getChildFragmentManager();
         fm.beginTransaction().replace(R.id.settings_content, new GlobalConfigFragment()).commit();
     }
 
