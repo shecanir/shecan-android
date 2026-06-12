@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.view.View;
 import android.view.Window;
@@ -20,6 +21,7 @@ import ir.shecan.core.constant.Constant;
 import ir.shecan.data.modelDto.AppConfig;
 import ir.shecan.data.modelDto.VerifyApiViewModel;
 import ir.shecan.data.storage.AppStorage;
+import ir.shecan.ui.activity.BillingPlansActivity;
 
 public class AppUtils {
 //    public static long getVersionCode(Context context) {
@@ -84,9 +86,59 @@ public class AppUtils {
     }
 
     public static void openUrl(String url, Activity activity) {
+        if (openInternalUrlIfSupported(url, activity)) return;
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(android.net.Uri.parse(url));
+        intent.setData(Uri.parse(url));
         activity.startActivity(intent);
+    }
+
+    private static boolean openInternalUrlIfSupported(String url, Activity activity) {
+        if (activity == null || url == null || url.trim().isEmpty()) return false;
+
+        Uri uri;
+        try {
+            uri = Uri.parse(url.trim());
+        } catch (Exception ignored) {
+            return false;
+        }
+
+        if (!isPurchaseDeepLink(uri)) return false;
+
+        activity.startActivity(new Intent(activity, BillingPlansActivity.class));
+        return true;
+    }
+
+    private static boolean isPurchaseDeepLink(Uri uri) {
+        if (uri == null) return false;
+
+        String scheme = lower(uri.getScheme());
+        String host = lower(uri.getHost());
+        String firstSegment = uri.getPathSegments().isEmpty() ? "" : lower(uri.getPathSegments().get(0));
+        String secondSegment = uri.getPathSegments().size() < 2 ? "" : lower(uri.getPathSegments().get(1));
+
+        if ("shecan".equals(scheme)) {
+            return isPurchaseTarget(host) || isPurchaseTarget(firstSegment) || isPurchaseTarget(secondSegment);
+        }
+
+        if (("http".equals(scheme) || "https".equals(scheme))
+                && ("my.shecan.ir".equals(host) || "shecan.ir".equals(host))) {
+            return "app".equals(firstSegment) && isPurchaseTarget(secondSegment);
+        }
+
+        return false;
+    }
+
+    private static boolean isPurchaseTarget(String value) {
+        return "purchase".equals(value)
+                || "billing".equals(value)
+                || "plans".equals(value)
+                || "subscription".equals(value)
+                || "buy-service".equals(value)
+                || "billing-plans".equals(value);
+    }
+
+    private static String lower(String value) {
+        return value == null ? "" : value.trim().toLowerCase();
     }
 
     public static void adjustUIForFragment(Activity activity, int statusBarColor, int bottomNavigationColor) {
