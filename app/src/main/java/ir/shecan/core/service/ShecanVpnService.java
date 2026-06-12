@@ -8,8 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.VpnService;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.system.OsConstants;
 import android.util.Log;
@@ -40,6 +38,7 @@ import de.measite.minidns.Question;
 import de.measite.minidns.Record;
 import ir.shecan.R;
 import ir.shecan.Shecan;
+import ir.shecan.core.monitoring.MonitoringManager;
 import ir.shecan.ui.activity.MainActivityNew;
 import ir.shecan.ui.fragment.DNSQuery;
 import ir.shecan.core.provider.Provider;
@@ -48,6 +47,7 @@ import ir.shecan.core.provider.UdpProvider;
 import ir.shecan.core.receiver.StatusBarBroadcastReceiver;
 import ir.shecan.core.util.Logger;
 import ir.shecan.core.util.server.AbstractDNSServer;
+import ir.shecan.core.util.server.OkHttpLogger;
 
 /**
  * Fixed and hardened ShecanVpnService
@@ -65,7 +65,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private static final String CoreApiRequest = "core_api_request";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
-    private static final long CONNECTION_STATUS_RETRY_DELAY_MS = 10_000L;
 
     private static final String TAG = "ShecanVpnService";
 
@@ -79,7 +78,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private boolean statisticQuery;
     private Provider provider;
     private ParcelFileDescriptor descriptor;
-    private final Handler connectionStatusHandler = new Handler(Looper.getMainLooper());
+    private MonitoringManager monitoringManager;
 
     private Thread mThread = null;
 
@@ -112,6 +111,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
+        monitoringManager = new MonitoringManager(getApplicationContext());
     }
 
     @Override
@@ -246,6 +246,9 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private void stopThread() {
         Log.d(TAG, "stopThread");
         activated = false;
+        if (monitoringManager != null) {
+            monitoringManager.stop();
+        }
 
         // ===== SAVE SESSION DURATION =====
         if (sessionStartTime > 0) {
@@ -336,11 +339,11 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } catch (Exception ignored) {
         }
 
-        ((Shecan) getApplicationContext()).getVpnState().postValue(0);
         if (shouldRefresh) {
+            ((Shecan) getApplicationContext()).getVpnState().postValue(0);
+            Shecan.updateShortcut(getApplicationContext());
             Logger.info("shecan service has stopped");
         }
-        Shecan.updateShortcut(getApplicationContext());
     }
 
     @Override
@@ -458,6 +461,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
             }
 
             Logger.info("shecan service is started");
+            ((Shecan) getApplicationContext()).getVpnState().postValue(2);
+            if (monitoringManager != null) {
+                monitoringManager.start();
+            }
 
             // ===== START SESSION TRACKING =====
             sessionStartTime = System.currentTimeMillis();
@@ -469,7 +476,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 provider = new UdpProvider(descriptor, this);
             }
             provider.start();
-            verifyConnectionStatusAfterStart();
             provider.process();
         } catch (Exception e) {
             Logger.logException(e);
@@ -483,33 +489,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
         if (statisticQuery) {
             updateUserInterface();
         }
-    }
-
-    private void verifyConnectionStatusAfterStart() {
-        connectionStatusHandler.postDelayed(this::checkConnectionStatusAfterStart, 1000L);
-    }
-
-    private void checkConnectionStatusAfterStart() {
-        if (!activated || !running) return;
-
-        callConnectionStatusAPI(getApplicationContext(), new ConnectionStatusApiListener() {
-            @Override
-            public void onConnected() {
-                if (!activated || !running) return;
-                ((Shecan) getApplicationContext()).getVpnState().postValue(2);
-            }
-
-            @Override
-            public void onRetry() {
-                if (!activated || !running) return;
-
-                ((Shecan) getApplicationContext()).getVpnState().postValue(1);
-                connectionStatusHandler.postDelayed(
-                        ShecanVpnService.this::checkConnectionStatusAfterStart,
-                        CONNECTION_STATUS_RETRY_DELAY_MS
-                );
-            }
-        }, null);
     }
 
     private void updateUserInterface() {
@@ -617,6 +596,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {
+        OkHttpLogger.requestWithIPLogging("https://check.shecan.ir");
         RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
         StringRequest stringRequest = getStringRequest(listener);
 
@@ -641,27 +621,19 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 apiUrl,
                 response -> {
                     String result = (response != null) ? response.trim() : "";
-                    if (isConnectedCheckResult(result)) {
+                    if (result.equals("2")) {
                         listener.onConnected();
                     } else {
-                        Logger.error("Unexpected check.shecan response: " + result);
                         listener.onRetry();
                     }
                 },
                 error -> {
                     if (ShecanVpnService.isActivated()) {
-                        Logger.error("Connecting to: " + apiUrl + " is Failed: " + error);
-                        if (error != null && error.networkResponse != null) {
-                            Logger.error("check.shecan status: " + error.networkResponse.statusCode);
-                        }
+                        Logger.error("Connecting to: " + apiUrl + " Resolved IP: " + OkHttpLogger.resolvedIp + " is Failed");
                     }
                     listener.onRetry();
                 }
         );
-    }
-
-    private static boolean isConnectedCheckResult(String result) {
-        return "0".equals(result) || "2".equals(result);
     }
 
     public static void cancelConnectionStatusAPI(Context context) {

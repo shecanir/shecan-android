@@ -314,7 +314,6 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     @Override
     public void onResume() {
         super.onResume();
-        syncVpnUiWithServiceState();
         maybeShowTestSiteDirectUpdateDialog();
         fetchData();
         ((MainActivityNew) getActivity()).binding.customBar.select(1);
@@ -333,16 +332,6 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             }
         }
 
-    }
-
-    private void syncVpnUiWithServiceState() {
-        if (!isAdded()) return;
-        Shecan app = (Shecan) requireContext().getApplicationContext();
-        Integer currentState = app.getVpnState().getValue();
-        if (currentState != null && currentState == 1) return;
-        if (!ShecanVpnService.isActivated()) {
-            app.getVpnState().setValue(0);
-        }
     }
 
     @Override
@@ -557,24 +546,27 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         if (!isAdded() || isRemoving()) return;
 
         if (ShecanVpnService.isDynamicIPMode()) {
-            scheduleConnectionStatusRetry();
+            if (!isDynamicIpCheckInProgress()) {
+                failDynamicIpStatusCheck();
+                return;
+            }
+            cancelScheduler();
+            scheduler = Executors.newSingleThreadScheduledExecutor();
+            scheduler.schedule(() -> {
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (isAdded() && !isRemoving() && isDynamicIpCheckInProgress()) {
+                        ShecanVpnService.callConnectionStatusAPI(requireContext(), HomeFragment.this, null);
+                    } else if (isAdded() && !isRemoving()) {
+                        failDynamicIpStatusCheck();
+                    }
+                });
+            }, DYNAMIC_IP_CHECK_RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
         } else {
-            scheduleConnectionStatusRetry();
-        }
-    }
-
-    private void scheduleConnectionStatusRetry() {
-        Shecan app = (Shecan) requireContext().getApplicationContext();
-        app.getVpnState().setValue(1);
-        cancelScheduler();
-        scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.schedule(() -> {
             new Handler(Looper.getMainLooper()).post(() -> {
-                if (isAdded() && !isRemoving()) {
-                    ShecanVpnService.callConnectionStatusAPI(requireContext(), HomeFragment.this, null);
-                }
+                if (!isAdded() || isRemoving()) return;
+                Shecan.deactivateService(requireContext());
             });
-        }, DYNAMIC_IP_CHECK_RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
+        }
     }
 
     private void waitForDynamicIpActivation() {
