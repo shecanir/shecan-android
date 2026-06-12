@@ -85,6 +85,7 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
     public static final int FRAGMENT_LOG = 6;
     public static final String LAUNCH_ACTION = "ir.shecan.ui.activity.MainActivityNew.LAUNCH_ACTION";
     public static final String LAUNCH_FRAGMENT = "ir.shecan.ui.activity.MainActivityNew.LAUNCH_FRAGMENT";
+    public static final String LAUNCH_TAB = "ir.shecan.ui.activity.MainActivityNew.LAUNCH_TAB";
     public static final String LAUNCH_NEED_RECREATE = "ir.shecan.ui.activity.MainActivityNew.LAUNCH_NEED_RECREATE";
     public static final String LAUNCH_PAYMENT_RESULT = "ir.shecan.ui.activity.MainActivityNew.LAUNCH_PAYMENT_RESULT";
     public static final String PAYMENT_RESULT_SUCCESS = "success";
@@ -428,34 +429,42 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
         bar.addItem(getString(R.string.connect), R.drawable.ic_vpn_inactive, R.drawable.ic_vpn_active);
         bar.addItem(settingTitle, R.drawable.ic_setting_inactive, R.drawable.ic_profile_active);
 
-        // ⭐⭐ ذخیره تاریخچه تب‌ها ⭐⭐
         bar.setOnItemSelected(index -> {
-
-            if (currentTab != index) {
-                tabHistory.push(currentTab);
-            }
-
-            currentTab = index;
-            logTabSelected(index);
-            updateFragment(index);
-
-            switch (index) {
-                case 0:
-                    adjustUIForFragment(this, R.color.mainBack, R.color.mainBack);
-                    binding.toolbar.appBarLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.mainBack));
-                    break;
-
-                case 1:
-                    adjustUIForFragment(this, R.color.lightBack, R.color.mainBack);
-                    binding.toolbar.appBarLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.lightBack));
-                    break;
-
-                case 2:
-                    adjustUIForFragment(this, R.color.profileBackground, R.color.mainBack);
-                    binding.toolbar.appBarLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.profileBackground));
-                    break;
-            }
+            selectMainTab(index, true);
         });
+    }
+
+    public void selectMainTab(int index, boolean addToHistory) {
+        if (binding == null) return;
+
+        if (addToHistory && currentTab != index) {
+            tabHistory.push(currentTab);
+        }
+
+        currentTab = index;
+        binding.customBar.select(index);
+        logTabSelected(index);
+        updateFragment(index);
+        applyTabUi(index);
+    }
+
+    private void applyTabUi(int index) {
+        switch (index) {
+            case 0:
+                adjustUIForFragment(this, R.color.mainBack, R.color.mainBack);
+                binding.toolbar.appBarLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.mainBack));
+                break;
+
+            case 1:
+                adjustUIForFragment(this, R.color.lightBack, R.color.mainBack);
+                binding.toolbar.appBarLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.lightBack));
+                break;
+
+            case 2:
+                adjustUIForFragment(this, R.color.profileBackground, R.color.mainBack);
+                binding.toolbar.appBarLayout.setBackgroundColor(ContextCompat.getColor(this, R.color.profileBackground));
+                break;
+        }
     }
 
     private void logTabSelected(int index) {

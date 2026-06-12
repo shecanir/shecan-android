@@ -26,10 +26,16 @@ public final class LaunchHandler {
 
         int launchAction = intent.getIntExtra(MainActivityNew.LAUNCH_ACTION, MainActivityNew.LAUNCH_ACTION_NONE);
         int launchFragment = intent.getIntExtra(MainActivityNew.LAUNCH_FRAGMENT, MainActivityNew.FRAGMENT_NONE);
+        int launchTab = intent.getIntExtra(MainActivityNew.LAUNCH_TAB, MainActivityNew.FRAGMENT_NONE);
         boolean needRecreate = intent.getBooleanExtra(MainActivityNew.LAUNCH_NEED_RECREATE, false);
 
         // ---- Step 1: Handle Action ----
         handleLaunchAction(activity, launchAction);
+
+        if (launchTab != MainActivityNew.FRAGMENT_NONE) {
+            activity.selectMainTab(launchTab, false);
+            return;
+        }
 
         // ---- Step 2: handle recreate request ----
         if (needRecreate) {

@@ -22,6 +22,10 @@ import ir.shecan.data.modelDto.AppConfig;
 import ir.shecan.data.modelDto.VerifyApiViewModel;
 import ir.shecan.data.storage.AppStorage;
 import ir.shecan.ui.activity.BillingPlansActivity;
+import ir.shecan.ui.activity.MainActivityNew;
+import ir.shecan.ui.activity.PanelWebActivity;
+import ir.shecan.ui.activity.ThemeActivity;
+import ir.shecan.ui.activity.UpdateProfileActivity;
 
 public class AppUtils {
 //    public static long getVersionCode(Context context) {
@@ -102,14 +106,15 @@ public class AppUtils {
             return false;
         }
 
-        if (!isPurchaseDeepLink(uri)) return false;
+        String target = getInternalTarget(uri);
+        if (target == null) return false;
 
-        activity.startActivity(new Intent(activity, BillingPlansActivity.class));
+        openInternalTarget(target, activity);
         return true;
     }
 
-    private static boolean isPurchaseDeepLink(Uri uri) {
-        if (uri == null) return false;
+    private static String getInternalTarget(Uri uri) {
+        if (uri == null) return null;
 
         String scheme = lower(uri.getScheme());
         String host = lower(uri.getHost());
@@ -117,24 +122,94 @@ public class AppUtils {
         String secondSegment = uri.getPathSegments().size() < 2 ? "" : lower(uri.getPathSegments().get(1));
 
         if ("shecan".equals(scheme)) {
-            return isPurchaseTarget(host) || isPurchaseTarget(firstSegment) || isPurchaseTarget(secondSegment);
+            return firstNotEmpty(resolveTarget(host), resolveTarget(firstSegment), resolveTarget(secondSegment));
         }
 
         if (("http".equals(scheme) || "https".equals(scheme))
                 && ("my.shecan.ir".equals(host) || "shecan.ir".equals(host))) {
-            return "app".equals(firstSegment) && isPurchaseTarget(secondSegment);
+            return "app".equals(firstSegment) ? resolveTarget(secondSegment) : null;
         }
 
+        return null;
+    }
+
+    private static void openInternalTarget(String target, Activity activity) {
+        switch (target) {
+            case "home":
+                openMainTab(activity, 1);
+                break;
+
+            case "services":
+                openMainTab(activity, 0);
+                break;
+
+            case "settings":
+                openMainTab(activity, 2);
+                break;
+
+            case "purchase":
+                activity.startActivity(new Intent(activity, BillingPlansActivity.class));
+                break;
+
+            case "transactions":
+                PanelWebActivity.openTransactions(activity);
+                break;
+
+            case "domains":
+                PanelWebActivity.openDomainSupport(activity);
+                break;
+
+            case "tickets":
+                PanelWebActivity.openTickets(activity);
+                break;
+
+            case "terms":
+                PanelWebActivity.openTermsNoHeader(activity);
+                break;
+
+            case "theme":
+                activity.startActivity(new Intent(activity, ThemeActivity.class));
+                break;
+
+            case "account":
+                activity.startActivity(new Intent(activity, UpdateProfileActivity.class));
+                break;
+        }
+    }
+
+    private static void openMainTab(Activity activity, int tabIndex) {
+        Intent intent = new Intent(activity, MainActivityNew.class)
+                .putExtra(MainActivityNew.LAUNCH_TAB, tabIndex)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        activity.startActivity(intent);
+    }
+
+    private static String resolveTarget(String value) {
+        if (isAny(value, "home", "main", "connect", "connection", "vpn")) return "home";
+        if (isAny(value, "services", "service", "configs", "config", "connections")) return "services";
+        if (isAny(value, "settings", "setting", "profile")) return "settings";
+        if (isAny(value, "purchase", "billing", "plans", "subscription", "buy-service", "billing-plans")) return "purchase";
+        if (isAny(value, "transactions", "transaction", "payments", "payment")) return "transactions";
+        if (isAny(value, "domains", "domain", "domain-support", "support-domains")) return "domains";
+        if (isAny(value, "tickets", "ticket", "support")) return "tickets";
+        if (isAny(value, "terms", "rules")) return "terms";
+        if (isAny(value, "theme", "appearance", "display")) return "theme";
+        if (isAny(value, "account", "user", "edit-profile")) return "account";
+        return null;
+    }
+
+    private static boolean isAny(String value, String... targets) {
+        for (String target : targets) {
+            if (target.equals(value)) return true;
+        }
         return false;
     }
 
-    private static boolean isPurchaseTarget(String value) {
-        return "purchase".equals(value)
-                || "billing".equals(value)
-                || "plans".equals(value)
-                || "subscription".equals(value)
-                || "buy-service".equals(value)
-                || "billing-plans".equals(value);
+    private static String firstNotEmpty(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isEmpty()) return value;
+        }
+        return null;
     }
 
     private static String lower(String value) {
