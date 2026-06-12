@@ -337,8 +337,10 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     private void syncVpnUiWithServiceState() {
         if (!isAdded()) return;
+        Shecan app = (Shecan) requireContext().getApplicationContext();
+        Integer currentState = app.getVpnState().getValue();
+        if (currentState != null && currentState == 1) return;
         if (!ShecanVpnService.isActivated()) {
-            Shecan app = (Shecan) requireContext().getApplicationContext();
             app.getVpnState().setValue(0);
         }
     }

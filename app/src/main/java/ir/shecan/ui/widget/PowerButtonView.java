@@ -102,6 +102,7 @@ public class PowerButtonView extends ConstraintLayout {
     // -----------------------------------------------------
 
     public void setState(State state) {
+        if (currentState == state) return;
         currentState = state;
         applyState();
     }
