@@ -314,6 +314,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     @Override
     public void onResume() {
         super.onResume();
+        syncVpnUiWithServiceState();
         maybeShowTestSiteDirectUpdateDialog();
         fetchData();
         ((MainActivityNew) getActivity()).binding.customBar.select(1);
@@ -332,6 +333,14 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             }
         }
 
+    }
+
+    private void syncVpnUiWithServiceState() {
+        if (!isAdded()) return;
+        if (!ShecanVpnService.isActivated()) {
+            Shecan app = (Shecan) requireContext().getApplicationContext();
+            app.getVpnState().setValue(0);
+        }
     }
 
     @Override
@@ -564,6 +573,8 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         } else {
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (!isAdded() || isRemoving()) return;
+                Shecan app = (Shecan) requireContext().getApplicationContext();
+                app.getVpnState().setValue(0);
                 Shecan.deactivateService(requireContext());
             });
         }

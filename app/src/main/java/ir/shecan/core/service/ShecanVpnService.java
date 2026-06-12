@@ -339,11 +339,11 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } catch (Exception ignored) {
         }
 
+        ((Shecan) getApplicationContext()).getVpnState().postValue(0);
         if (shouldRefresh) {
-            ((Shecan) getApplicationContext()).getVpnState().postValue(0);
-            Shecan.updateShortcut(getApplicationContext());
             Logger.info("shecan service has stopped");
         }
+        Shecan.updateShortcut(getApplicationContext());
     }
 
     @Override
