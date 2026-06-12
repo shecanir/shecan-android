@@ -67,7 +67,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private static final String CoreApiRequest = "core_api_request";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
-    private static final int CONNECTION_STATUS_MAX_RETRIES = 7;
     private static final long CONNECTION_STATUS_RETRY_DELAY_MS = 10_000L;
 
     private static final String TAG = "ShecanVpnService";
@@ -84,7 +83,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private ParcelFileDescriptor descriptor;
     private MonitoringManager monitoringManager;
     private final Handler connectionStatusHandler = new Handler(Looper.getMainLooper());
-    private int connectionStatusRetryCount = 0;
 
     private Thread mThread = null;
 
@@ -499,7 +497,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     private void verifyConnectionStatusAfterStart() {
-        connectionStatusRetryCount = 0;
         connectionStatusHandler.postDelayed(this::checkConnectionStatusAfterStart, 1000L);
     }
 
@@ -517,25 +514,13 @@ public class ShecanVpnService extends VpnService implements Runnable {
             public void onRetry() {
                 if (!activated || !running) return;
 
-                if (shouldRetryConnectionStatus()) {
-                    connectionStatusRetryCount++;
-                    connectionStatusHandler.postDelayed(
-                            ShecanVpnService.this::checkConnectionStatusAfterStart,
-                            CONNECTION_STATUS_RETRY_DELAY_MS
-                    );
-                    return;
-                }
-
-                ((Shecan) getApplicationContext()).getVpnState().postValue(0);
-                stopThread();
+                ((Shecan) getApplicationContext()).getVpnState().postValue(1);
+                connectionStatusHandler.postDelayed(
+                        ShecanVpnService.this::checkConnectionStatusAfterStart,
+                        CONNECTION_STATUS_RETRY_DELAY_MS
+                );
             }
         }, null);
-    }
-
-    private boolean shouldRetryConnectionStatus() {
-        return isProMode()
-                && isDynamicIPMode()
-                && connectionStatusRetryCount < CONNECTION_STATUS_MAX_RETRIES;
     }
 
     private void updateUserInterface() {
