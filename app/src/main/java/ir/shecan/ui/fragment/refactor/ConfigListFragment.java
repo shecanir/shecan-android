@@ -62,11 +62,6 @@ public class ConfigListFragment extends ToolbarFragment {
         refreshPage();
 
         binding.swipeRefresh.setOnRefreshListener(this::refreshPage);
-        binding.fabBuyService.setOnClickListener(v -> {
-            TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BILLING_PURCHASE_CLICK,
-                    TrackingUtils.bundleOf(TrackingUtils.PARAM_SOURCE, "service_list_fab"));
-            openBillingPlans(null);
-        });
 
         return binding.getRoot();
     }
@@ -219,6 +214,13 @@ public class ConfigListFragment extends ToolbarFragment {
                         logServiceEvent(TrackingUtils.EVENT_SERVICE_DETAILS_CLICK, item);
                         SubscriptionBottomSheet bottomSheet = SubscriptionBottomSheet.newInstance(item);
                         bottomSheet.show(getParentFragmentManager(), "subscription_sheet");
+                    }
+
+                    @Override
+                    public void onPurchaseClicked() {
+                        TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BILLING_PURCHASE_CLICK,
+                                TrackingUtils.bundleOf(TrackingUtils.PARAM_SOURCE, "service_list_fab"));
+                        openBillingPlans(null);
                     }
                 }
         );

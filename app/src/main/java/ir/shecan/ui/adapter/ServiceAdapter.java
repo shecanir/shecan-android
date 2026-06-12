@@ -17,9 +17,13 @@ import java.util.List;
 
 import ir.shecan.R;
 import ir.shecan.data.modelDto.ServiceItem;
+import ir.shecan.databinding.ItemServicePurchaseFooterBinding;
 import ir.shecan.databinding.LayoutItemServiceBinding;
 
-public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHolder> {
+public class ServiceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private static final int VIEW_TYPE_SERVICE = 0;
+    private static final int VIEW_TYPE_PURCHASE_FOOTER = 1;
 
     private final Context context;
     private final List<ServiceItem> items;
@@ -30,6 +34,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHold
     public interface OnMoreClickListener {
         void onBackgroundClicked(ServiceItem item);
         void onOptionClicked(ServiceItem item);
+        void onPurchaseClicked();
     }
 
     public ServiceAdapter(Context context, List<ServiceItem> items, OnMoreClickListener listener) {
@@ -80,9 +85,30 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHold
         }
     }
 
+    public static class PurchaseFooterViewHolder extends RecyclerView.ViewHolder {
+
+        ItemServicePurchaseFooterBinding binding;
+
+        public PurchaseFooterViewHolder(ItemServicePurchaseFooterBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        public void bind(OnMoreClickListener listener) {
+            binding.fabBuyService.setOnClickListener(v -> listener.onPurchaseClicked());
+        }
+    }
+
     @NonNull
     @Override
-    public ServiceAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        if (viewType == VIEW_TYPE_PURCHASE_FOOTER) {
+            ItemServicePurchaseFooterBinding binding = ItemServicePurchaseFooterBinding.inflate(
+                    LayoutInflater.from(parent.getContext()), parent, false
+            );
+            return new PurchaseFooterViewHolder(binding);
+        }
+
         LayoutItemServiceBinding binding = LayoutItemServiceBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false
         );
@@ -90,11 +116,15 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ServiceAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof PurchaseFooterViewHolder) {
+            ((PurchaseFooterViewHolder) holder).bind(listener);
+            return;
+        }
 
         boolean isSelected = position == selectedPosition;
 
-        holder.bind(context, items.get(position), isSelected, new OnMoreClickListener() {
+        ((ViewHolder) holder).bind(context, items.get(position), isSelected, new OnMoreClickListener() {
             @Override
             public void onBackgroundClicked(ServiceItem item) {
                 selectedPosition = holder.getAdapterPosition();
@@ -108,12 +138,22 @@ public class ServiceAdapter extends RecyclerView.Adapter<ServiceAdapter.ViewHold
                 notifyDataSetChanged();
                 listener.onOptionClicked(item);
             }
+
+            @Override
+            public void onPurchaseClicked() {
+                listener.onPurchaseClicked();
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return items.size();
+        return items.size() + 1;
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return position >= items.size() ? VIEW_TYPE_PURCHASE_FOOTER : VIEW_TYPE_SERVICE;
     }
 
     public void setSelectedPosition(int pos) {
