@@ -555,29 +555,24 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         if (!isAdded() || isRemoving()) return;
 
         if (ShecanVpnService.isDynamicIPMode()) {
-            if (!isDynamicIpCheckInProgress()) {
-                failDynamicIpStatusCheck();
-                return;
-            }
-            cancelScheduler();
-            scheduler = Executors.newSingleThreadScheduledExecutor();
-            scheduler.schedule(() -> {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    if (isAdded() && !isRemoving() && isDynamicIpCheckInProgress()) {
-                        ShecanVpnService.callConnectionStatusAPI(requireContext(), HomeFragment.this, null);
-                    } else if (isAdded() && !isRemoving()) {
-                        failDynamicIpStatusCheck();
-                    }
-                });
-            }, DYNAMIC_IP_CHECK_RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
+            scheduleConnectionStatusRetry();
         } else {
-            new Handler(Looper.getMainLooper()).post(() -> {
-                if (!isAdded() || isRemoving()) return;
-                Shecan app = (Shecan) requireContext().getApplicationContext();
-                app.getVpnState().setValue(0);
-                Shecan.deactivateService(requireContext());
-            });
+            scheduleConnectionStatusRetry();
         }
+    }
+
+    private void scheduleConnectionStatusRetry() {
+        Shecan app = (Shecan) requireContext().getApplicationContext();
+        app.getVpnState().setValue(1);
+        cancelScheduler();
+        scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.schedule(() -> {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (isAdded() && !isRemoving()) {
+                    ShecanVpnService.callConnectionStatusAPI(requireContext(), HomeFragment.this, null);
+                }
+            });
+        }, DYNAMIC_IP_CHECK_RETRY_DELAY_SECONDS, TimeUnit.SECONDS);
     }
 
     private void waitForDynamicIpActivation() {
