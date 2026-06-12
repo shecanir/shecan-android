@@ -62,6 +62,11 @@ public class ConfigListFragment extends ToolbarFragment {
         refreshPage();
 
         binding.swipeRefresh.setOnRefreshListener(this::refreshPage);
+        binding.fabBuyService.setOnClickListener(v -> {
+            TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BILLING_PURCHASE_CLICK,
+                    TrackingUtils.bundleOf(TrackingUtils.PARAM_SOURCE, "service_list_fab"));
+            openBillingPlans(null);
+        });
 
         return binding.getRoot();
     }

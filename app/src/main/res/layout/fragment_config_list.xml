@@ -38,4 +38,15 @@
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
     </LinearLayout>
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabBuyService"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="96dp"
+        android:contentDescription="@string/title_billing_plans"
+        android:src="@drawable/ic_plus_white"
+        android:tint="@color/white"
+        app:backgroundTint="@color/greenMain" />
+
 </FrameLayout>
