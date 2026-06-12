@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.VpnService;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.system.OsConstants;
 import android.util.Log;
@@ -65,6 +67,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private static final String CoreApiRequest = "core_api_request";
 
     private static final int NOTIFICATION_ACTIVATED = 0;
+    private static final int CONNECTION_STATUS_MAX_RETRIES = 7;
+    private static final long CONNECTION_STATUS_RETRY_DELAY_MS = 10_000L;
 
     private static final String TAG = "ShecanVpnService";
 
@@ -79,6 +83,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private Provider provider;
     private ParcelFileDescriptor descriptor;
     private MonitoringManager monitoringManager;
+    private final Handler connectionStatusHandler = new Handler(Looper.getMainLooper());
+    private int connectionStatusRetryCount = 0;
 
     private Thread mThread = null;
 
@@ -339,6 +345,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } catch (Exception ignored) {
         }
 
+        connectionStatusHandler.removeCallbacksAndMessages(null);
         ((Shecan) getApplicationContext()).getVpnState().postValue(0);
         if (shouldRefresh) {
             Logger.info("shecan service has stopped");
@@ -461,7 +468,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
             }
 
             Logger.info("shecan service is started");
-            ((Shecan) getApplicationContext()).getVpnState().postValue(2);
             if (monitoringManager != null) {
                 monitoringManager.start();
             }
@@ -476,6 +482,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 provider = new UdpProvider(descriptor, this);
             }
             provider.start();
+            verifyConnectionStatusAfterStart();
             provider.process();
         } catch (Exception e) {
             Logger.logException(e);
@@ -489,6 +496,46 @@ public class ShecanVpnService extends VpnService implements Runnable {
         if (statisticQuery) {
             updateUserInterface();
         }
+    }
+
+    private void verifyConnectionStatusAfterStart() {
+        connectionStatusRetryCount = 0;
+        connectionStatusHandler.postDelayed(this::checkConnectionStatusAfterStart, 1000L);
+    }
+
+    private void checkConnectionStatusAfterStart() {
+        if (!activated || !running) return;
+
+        callConnectionStatusAPI(getApplicationContext(), new ConnectionStatusApiListener() {
+            @Override
+            public void onConnected() {
+                if (!activated || !running) return;
+                ((Shecan) getApplicationContext()).getVpnState().postValue(2);
+            }
+
+            @Override
+            public void onRetry() {
+                if (!activated || !running) return;
+
+                if (shouldRetryConnectionStatus()) {
+                    connectionStatusRetryCount++;
+                    connectionStatusHandler.postDelayed(
+                            ShecanVpnService.this::checkConnectionStatusAfterStart,
+                            CONNECTION_STATUS_RETRY_DELAY_MS
+                    );
+                    return;
+                }
+
+                ((Shecan) getApplicationContext()).getVpnState().postValue(0);
+                stopThread();
+            }
+        }, null);
+    }
+
+    private boolean shouldRetryConnectionStatus() {
+        return isProMode()
+                && isDynamicIPMode()
+                && connectionStatusRetryCount < CONNECTION_STATUS_MAX_RETRIES;
     }
 
     private void updateUserInterface() {
@@ -621,7 +668,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 apiUrl,
                 response -> {
                     String result = (response != null) ? response.trim() : "";
-                    if (result.equals("2")) {
+                    if (isExpectedConnectionStatus(result)) {
                         listener.onConnected();
                     } else {
                         listener.onRetry();
@@ -634,6 +681,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     listener.onRetry();
                 }
         );
+    }
+
+    private static boolean isExpectedConnectionStatus(String result) {
+        return isProMode() ? "2".equals(result) : "0".equals(result);
     }
 
     public static void cancelConnectionStatusAPI(Context context) {
