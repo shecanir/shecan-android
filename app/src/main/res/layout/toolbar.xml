@@ -13,64 +13,29 @@
         android:layout_height="match_parent"
         android:layout_gravity="center">
 
-        <FrameLayout
-            android:id="@+id/toolbar_title_container"
+        <TextView
+            android:id="@+id/toolbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|start"
-            android:layout_marginStart="56dp">
+            android:layout_gravity="center"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="start"
-                android:textColor="@color/black"
-                android:textDirection="rtl"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+        <ImageView
+            android:id="@+id/toolbar_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:src="@drawable/toolbar_logo" />
 
-            <ImageView
-                android:id="@+id/toolbar_logo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/toolbar_logo" />
-
-        </FrameLayout>
-
-        <LinearLayout
+        <ImageView
             android:id="@+id/vip"
-            android:layout_width="112dp"
-            android:layout_height="40dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_vertical|end"
             android:layout_marginEnd="16dp"
-            android:background="@drawable/bg_billing_chip"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?selectableItemBackground"
-            android:gravity="center"
-            android:layoutDirection="ltr"
-            android:orientation="horizontal"
-            android:paddingHorizontal="10dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:includeFontPadding="false"
-                android:singleLine="true"
-                android:text="@string/title_billing_plans"
-                android:textColor="@color/primaryTextColor"
-                android:textSize="13sp" />
-
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_marginStart="4dp"
-                android:src="@drawable/ic_vip" />
-
-        </LinearLayout>
+            android:src="@drawable/ic_vip" />
 
         <ImageView
             android:id="@+id/back"
