@@ -376,6 +376,7 @@ public class OtpFragment extends Fragment {
         showLoading(false);
 
         AppStorage storage = new AppStorage(getContext());
+        storage.prepareServiceSelectionAfterLogin();
         storage.saveToken(res);
         TrackingUtils.setUserId(requireContext(), String.valueOf(res.getId()));
         TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_LOGIN_OTP_SUCCESS,
@@ -419,6 +420,7 @@ public class OtpFragment extends Fragment {
 
                 if (res != null) {
                     AppStorage storage = new AppStorage(getContext());
+                    storage.prepareServiceSelectionAfterLogin();
                     storage.saveToken(res);
 
                     if (!res.getMail().contains("shecan.fake")) {

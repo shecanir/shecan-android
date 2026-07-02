@@ -8,7 +8,6 @@ import android.view.View;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -70,28 +69,49 @@ public class ServiceStatusView extends ConstraintLayout {
     // -------------------------------------------
     // Set status
     // -------------------------------------------
-    public void setStatus(ServiceItem status) throws ParseException {
+    public void setStatus(ServiceItem status) {
+        if (status == null) {
+            binding.valueService.setText("-");
+            binding.colOrder.setVisibility(View.GONE);
+            binding.colExpire.setVisibility(View.GONE);
+            return;
+        }
 
-        binding.valueService.setText(status.getServiceType());
+        String serviceType = status.getServiceType();
+        binding.valueService.setText(serviceType != null && !serviceType.trim().isEmpty() ? serviceType : "-");
 
-        if (status.getModel().getId() > 0) {
+        if (status.getModel() != null && status.getModel().getId() > 0) {
             binding.colOrder.setVisibility(View.VISIBLE);
             binding.colExpire.setVisibility(View.VISIBLE);
 
             binding.valueOrder.setText(status.getOrderCode() != null ? status.getOrderCode() : "-");
-
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            Date date = sdf.parse(status.getModel().getDueDate());
-
-            PersianDate pDate = new PersianDate(date);
-            PersianDateFormat pdFormat = new PersianDateFormat("Y/m/d");
-
-            String shamsi = pdFormat.format(pDate);
-            binding.valueExpire.setText(shamsi != null ? shamsi : "-");
+            binding.valueExpire.setText(formatDueDate(status.getModel().getDueDate()));
 
         } else {
             binding.colOrder.setVisibility(View.GONE);
             binding.colExpire.setVisibility(View.GONE);
+        }
+    }
+
+    private String formatDueDate(String dueDate) {
+        if (dueDate == null || dueDate.trim().isEmpty()) return "-";
+
+        try {
+            String normalized = dueDate.trim();
+            int timeSeparator = normalized.indexOf('T');
+            if (timeSeparator > 0) normalized = normalized.substring(0, timeSeparator);
+            int spaceSeparator = normalized.indexOf(' ');
+            if (spaceSeparator > 0) normalized = normalized.substring(0, spaceSeparator);
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            sdf.setLenient(false);
+            Date date = sdf.parse(normalized);
+            if (date == null) return "-";
+
+            PersianDate pDate = new PersianDate(date);
+            return new PersianDateFormat("Y/m/d").format(pDate);
+        } catch (Exception ignored) {
+            return "-";
         }
     }
 

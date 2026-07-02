@@ -149,18 +149,30 @@ public class UpdateProfileActivity extends AppCompatActivity {
 
         showLoading(true);
 
+        String firstname = binding.edtPersianName.getText().toString();
+        String lastname = binding.edtPersianFamilyName.getText().toString();
+        String mail = binding.edtEmail.getText().toString();
+        String phoneNumber = binding.edtPhoneNumber.getText().toString();
+
         authApi.updateProfile(
                 token.getApiKey(),
-                binding.edtPersianName.getText().toString(),
-                binding.edtPersianFamilyName.getText().toString(),
+                firstname,
+                lastname,
                 null,
-                binding.edtEmail.getText().toString(),
-                binding.edtPhoneNumber.getText().toString(),
+                mail,
+                phoneNumber,
                 new ApiCallback<EmptyResponse>() {
                     @Override
                     public void onSuccess(EmptyResponse data, boolean fromCache) {
                         showLoading(false);
-                        updateUserInformation();
+                        token.setFirstname(firstname);
+                        token.setLastname(lastname);
+                        token.setMail(mail);
+                        token.setLogin(phoneNumber);
+                        storage.saveToken(token);
+                        storage.markProfileUpdated();
+                        setResult(RESULT_OK);
+                        finish();
                     }
 
                     @Override

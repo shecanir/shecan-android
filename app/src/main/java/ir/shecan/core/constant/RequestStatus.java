@@ -47,7 +47,10 @@ public enum RequestStatus {
     RETURNED(6),
 
     /** حل شده */
-    RESOLVED(23);
+    RESOLVED(23),
+
+    /** تعلیق به جهت تخلف */
+    SUSPENDED_FOR_VIOLATION(27);
 
     private final int value;
 
@@ -67,5 +70,8 @@ public enum RequestStatus {
         }
         return null;  // می‌توان Exception هم برگرداند
     }
-}
 
+    public static boolean isRenewalBlocked(int value) {
+        return value == SUSPENDED_FOR_VIOLATION.value;
+    }
+}

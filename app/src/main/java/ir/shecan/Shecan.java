@@ -176,14 +176,30 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
         getVpnState().postValue(1);
 
-        if (serviceItem != null && serviceItem.getUpdateLink() != null && !serviceItem.getUpdateLink().isEmpty()) {
+        boolean isPaidService = serviceItem != null
+                && serviceItem.getOrderCode() != null
+                && !serviceItem.getOrderCode().trim().isEmpty()
+                && !"0".equals(serviceItem.getOrderCode());
+        String updateLink = serviceItem != null && serviceItem.getUpdateLink() != null
+                ? serviceItem.getUpdateLink().trim()
+                : "";
+
+        if (isPaidService && updateLink.isEmpty()) {
+            Logger.error("Paid service " + serviceItem.getOrderCode()
+                    + " has no update link (custom field 95)");
+            getVpnStatus().postValue(context.getString(R.string.pro_service_config_missing));
+            getVpnState().postValue(0);
+            return;
+        }
+
+        if (isPaidService) {
 
             // UpdateLink Mode
             setProMode();
 
             String updaterUrl = String.format(
                     "https://ddns.shecan.ir/update?password=%s",
-                    serviceItem.getUpdateLink()
+                    updateLink
             );
             setUpdaterLink(updaterUrl);
 

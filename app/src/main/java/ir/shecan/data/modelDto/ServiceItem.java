@@ -42,6 +42,12 @@ public class ServiceItem {
     public String updatedOn;
     public Object closedOn;
 
+    public boolean isClosed() {
+        if (closedOn == null) return false;
+        String value = String.valueOf(closedOn).trim();
+        return !value.isEmpty() && !"null".equalsIgnoreCase(value);
+    }
+
     // Custom fields فلت شده
     public Integer cfDuration;          // 21
     public String cfNameFa;             // 5

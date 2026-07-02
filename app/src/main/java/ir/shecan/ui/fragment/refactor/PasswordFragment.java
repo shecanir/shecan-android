@@ -107,6 +107,7 @@ public class PasswordFragment extends Fragment {
                             showLoading(false);
                             if (res != null) {
                                 AppStorage storage = new AppStorage(getContext());
+                                storage.prepareServiceSelectionAfterLogin();
                                 storage.saveToken(res);
                                 TrackingUtils.setUserId(requireContext(), String.valueOf(res.getId()));
                                 TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_LOGIN_PASSWORD_SUCCESS);

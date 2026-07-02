@@ -17,7 +17,8 @@
             android:id="@+id/toolbar_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_vertical|start"
+            android:layout_marginStart="44dp"
             android:textColor="@color/black"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -26,15 +27,20 @@
             android:id="@+id/toolbar_logo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="center_vertical|start"
+            android:layout_marginStart="16dp"
             android:src="@drawable/toolbar_logo" />
 
         <ImageView
             android:id="@+id/vip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="136dp"
+            android:layout_height="48dp"
             android:layout_gravity="center_vertical|end"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="12dp"
+            android:background="?selectableItemBackgroundBorderless"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:scaleType="fitEnd"
             android:src="@drawable/ic_vip" />
 
         <ImageView

@@ -17,7 +17,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +52,7 @@ import ir.shecan.data.storage.AppStorage;
 import ir.shecan.databinding.FragmentHomeBinding;
 import ir.shecan.ui.activity.BillingPlansActivity;
 import ir.shecan.ui.activity.MainActivityNew;
+import ir.shecan.ui.activity.PanelWebActivity;
 import ir.shecan.ui.dialog.ContactSupportDialog;
 import ir.shecan.ui.dialog.DynamicAppDialog;
 import ir.shecan.ui.dialog.RenewalDialog;
@@ -192,11 +192,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         if (currentServiceItem == null) {
             currentServiceItem = new ServiceItem("", ContextCompat.getString(getContext(), R.string.free), "", "", "", 0, 0, IssuesViewModel.IssuesDTO.createDefault());
         }
-        try {
-            binding.servicePanel.setStatus(currentServiceItem);
-        } catch (ParseException ignored) {
-
-        }
+        binding.servicePanel.setStatus(currentServiceItem);
 
         binding.servicePanel.setOnClickListener(view -> {
             TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_SERVICE_DETAILS_CLICK,
@@ -209,7 +205,9 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     }
 
     private ServiceItem resolveCurrentServiceItem(AppStorage storage, ServiceItem savedItem) {
-        if (storage == null || !isFreeService(savedItem)) {
+        if (storage == null
+                || storage.isServiceSelectionExplicit()
+                || !isFreeService(savedItem)) {
             return savedItem;
         }
 
@@ -229,7 +227,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     }
 
     private boolean isActivePaidService(ServiceItem item) {
-        if (item == null || isFreeService(item)) return false;
+        if (item == null || item.isClosed() || isFreeService(item)) return false;
         RequestStatus status = RequestStatus.fromValue(item.statusId);
         return status == RequestStatus.ACTIVE
                 || status == RequestStatus.IN_USE
@@ -241,6 +239,10 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     }
 
     private boolean shouldOpenRenewalBeforeConnect() {
+        if (currentServiceItem != null
+                && RequestStatus.isRenewalBlocked(currentServiceItem.statusId)) {
+            return false;
+        }
         RequestStatus status = currentServiceItem != null
                 ? RequestStatus.fromValue(currentServiceItem.statusId)
                 : null;
@@ -269,6 +271,10 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
     private void openBillingPlansForCurrentService() {
         if (!isAdded()) return;
+        if (currentServiceItem != null
+                && RequestStatus.isRenewalBlocked(currentServiceItem.statusId)) {
+            return;
+        }
         Intent intent = new Intent(requireContext(), BillingPlansActivity.class);
 
         BillingSla sla = BillingSla.fromPlanId(currentServiceItem != null && currentServiceItem.cfServiceType != null
@@ -703,7 +709,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             if (banner != null && banner.getUrl() != null && !banner.getUrl().isEmpty()) {
                 TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BANNER_CLICK,
                         TrackingUtils.bundleOf(TrackingUtils.PARAM_BANNER_URL, banner.getUrl()));
-                AppUtils.openUrl(banner.getUrl(), getActivity());
+                PanelWebActivity.openBanner(requireContext(), banner.getUrl());
             }
         });
     }

@@ -49,6 +49,7 @@ import ir.shecan.core.provider.UdpProvider;
 import ir.shecan.core.receiver.StatusBarBroadcastReceiver;
 import ir.shecan.core.util.Logger;
 import ir.shecan.core.util.server.AbstractDNSServer;
+import ir.shecan.core.util.server.DNSServerHelper;
 
 /**
  * Fixed and hardened ShecanVpnService
@@ -364,8 +365,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } else if (address instanceof Inet4Address) {
             String alias = String.format(Locale.US, format, size + 1);
             dnsServers.put(alias, destination);
-            // Do NOT add route per-dns alias here — keep routing simple. The alias is used only as a local virtual address.
-            // builder.addRoute(alias, 32); // removed to avoid incorrect routing
+            builder.addRoute(alias, 32);
             return InetAddress.getByName(alias);
         } else if (address instanceof Inet6Address) {
             ipv6Template[ipv6Template.length - 1] = (byte) (size + 1);
@@ -379,6 +379,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
     @Override
     public void run() {
         try {
+            initializeDnsServersIfNeeded();
+
             List<Pair<String, Integer>> resolvedDNS = new ArrayList<>();
             if (primaryServer != null) resolvedDNS.addAll(getResolvedDNS(primaryServer));
             if (secondaryServer != null) resolvedDNS.addAll(getResolvedDNS(secondaryServer));
@@ -486,6 +488,18 @@ public class ShecanVpnService extends VpnService implements Runnable {
         } finally {
             Log.d(TAG, "quit");
             stopThread();
+        }
+    }
+
+    private void initializeDnsServersIfNeeded() {
+        if (primaryServer != null && secondaryServer != null) return;
+
+        if (isProMode()) {
+            primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProPrimary());
+            secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getProSecondary());
+        } else {
+            primaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getPrimary());
+            secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
         }
     }
 

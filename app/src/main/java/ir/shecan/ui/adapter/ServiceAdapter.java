@@ -57,14 +57,17 @@ public class ServiceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             String orderCode = item.getOrderCode() != null ? item.getOrderCode() : "";
             boolean isFreeMode = "0".equals(orderCode);
+            boolean isClosed = item.isClosed();
 
             binding.txtOrderCode.setText(isFreeMode ? "-" : orderCode);
             binding.txtServiceType.setText(item.getServiceType());
             binding.txtStatus.setText(isFreeMode ? context.getString(R.string.readyToConnect) : item.getStatusText());
             binding.txtStatus.setTextColor(item.getStatusColor());
             binding.statusBoxIcon.setImageResource(item.getStatusIcon());
+            binding.root.setAlpha(isClosed ? 0.45f : 1f);
+            binding.root.setEnabled(!isClosed);
 
-            if (isSelected) {
+            if (isSelected && !isClosed) {
                 binding.greenHalfOval.setVisibility(VISIBLE);
                 binding.root.setBackgroundColor(ContextCompat.getColor(context, R.color.lightBack));
             } else {
@@ -72,16 +75,9 @@ public class ServiceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 binding.root.setBackgroundColor(ContextCompat.getColor(context, R.color.transparent));
             }
 
-            binding.btnOptions.setVisibility(isFreeMode ? INVISIBLE : VISIBLE);
-
-            binding.btnOptions.setOnClickListener(v -> listener.onBackgroundClicked(item));
-
-            binding.root.setOnClickListener(v -> {
-                listener.onBackgroundClicked(item);
-            });
-            binding.btnOptions.setOnClickListener(v -> {
-                listener.onOptionClicked(item);
-            });
+            binding.btnOptions.setVisibility(isFreeMode || isClosed ? INVISIBLE : VISIBLE);
+            binding.root.setOnClickListener(isClosed ? null : v -> listener.onBackgroundClicked(item));
+            binding.btnOptions.setOnClickListener(isClosed ? null : v -> listener.onOptionClicked(item));
         }
     }
 
@@ -127,6 +123,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         ((ViewHolder) holder).bind(context, items.get(position), isSelected, new OnMoreClickListener() {
             @Override
             public void onBackgroundClicked(ServiceItem item) {
+                if (item == null || item.isClosed()) return;
                 selectedPosition = holder.getAdapterPosition();
                 notifyDataSetChanged();
                 listener.onBackgroundClicked(item);
@@ -134,6 +131,7 @@ public class ServiceAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             @Override
             public void onOptionClicked(ServiceItem item) {
+                if (item == null || item.isClosed()) return;
                 selectedPosition = holder.getAdapterPosition();
                 notifyDataSetChanged();
                 listener.onOptionClicked(item);

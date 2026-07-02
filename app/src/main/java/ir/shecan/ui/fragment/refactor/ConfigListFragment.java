@@ -18,10 +18,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import ir.shecan.R;
 import ir.shecan.core.billing.BillingPeriod;
 import ir.shecan.core.billing.BillingSla;
 import ir.shecan.core.constant.RequestStatus;
 import ir.shecan.core.util.AppUtils;
+import ir.shecan.core.util.DebugJsonLogger;
 import ir.shecan.core.util.DynamicBannerRequestFactory;
 import ir.shecan.core.util.ToastManager;
 import ir.shecan.core.util.TrackingUtils;
@@ -38,6 +40,7 @@ import ir.shecan.data.storage.AppStorage;
 import ir.shecan.databinding.FragmentConfigListBinding;
 import ir.shecan.ui.activity.BillingPlansActivity;
 import ir.shecan.ui.activity.MainActivityNew;
+import ir.shecan.ui.activity.PanelWebActivity;
 import ir.shecan.ui.adapter.ServiceAdapter;
 import ir.shecan.ui.fragment.ToolbarFragment;
 import ir.shecan.ui.fragment.bottomSheet.SubscriptionBottomSheet;
@@ -103,6 +106,7 @@ public class ConfigListFragment extends ToolbarFragment {
 
                     @Override
                     public void onSuccess(IssuesViewModel res, boolean fromCache) {
+                        DebugJsonLogger.log("ShecanIssuesJson", res);
                         storage.saveIssues(res);
                         reloadServices(storage);
                         updateBanner();
@@ -163,10 +167,17 @@ public class ConfigListFragment extends ToolbarFragment {
         }
         ServiceItem savedItem = appStorage.getServiceStatus(ServiceItem.class);
         ServiceItem preferredItem = findPreferredActivePaidService(items);
-        if ((savedItem == null || isFreeService(savedItem) || !containsOrder(items, savedItem.getOrderCode()))
-                && preferredItem != null) {
-            savedItem = preferredItem;
-            appStorage.saveServiceStatus(preferredItem);
+        boolean savedItemMissing = savedItem != null
+                && !containsOrder(items, savedItem.getOrderCode());
+        boolean shouldChooseDefault = savedItem == null
+                || savedItemMissing
+                || (!appStorage.isServiceSelectionExplicit() && isFreeService(savedItem));
+        if (shouldChooseDefault) {
+            savedItem = preferredItem != null ? preferredItem : items.get(0);
+            appStorage.saveServiceStatus(savedItem);
+            if (savedItemMissing) {
+                appStorage.clearServiceSelectionExplicit();
+            }
         }
 
         int defaultSelected = -1;
@@ -195,6 +206,7 @@ public class ConfigListFragment extends ToolbarFragment {
                 new ServiceAdapter.OnMoreClickListener() {
                     @Override
                     public void onBackgroundClicked(ServiceItem item) {
+                        if (item == null || item.isClosed()) return;
                         logServiceEvent(TrackingUtils.EVENT_SERVICE_SELECTED, item);
                         if (shouldOpenRenewal(item)) {
                             openBillingPlans(item);
@@ -202,6 +214,7 @@ public class ConfigListFragment extends ToolbarFragment {
                         }
 
                         appStorage.saveServiceStatus(item);
+                        appStorage.markServiceSelectionExplicit();
 
                         activity.configIsChange = true;
 
@@ -211,6 +224,7 @@ public class ConfigListFragment extends ToolbarFragment {
 
                     @Override
                     public void onOptionClicked(ServiceItem item) {
+                        if (item == null || item.isClosed()) return;
                         logServiceEvent(TrackingUtils.EVENT_SERVICE_DETAILS_CLICK, item);
                         SubscriptionBottomSheet bottomSheet = SubscriptionBottomSheet.newInstance(item);
                         bottomSheet.show(getParentFragmentManager(), "subscription_sheet");
@@ -232,7 +246,7 @@ public class ConfigListFragment extends ToolbarFragment {
     private boolean containsOrder(List<ServiceItem> items, String orderCode) {
         if (items == null || orderCode == null) return false;
         for (ServiceItem item : items) {
-            if (item != null && orderCode.equals(item.getOrderCode())) {
+            if (item != null && !item.isClosed() && orderCode.equals(item.getOrderCode())) {
                 return true;
             }
         }
@@ -250,7 +264,7 @@ public class ConfigListFragment extends ToolbarFragment {
     }
 
     private boolean isActivePaidService(ServiceItem item) {
-        if (item == null || isFreeService(item)) return false;
+        if (item == null || item.isClosed() || isFreeService(item)) return false;
         RequestStatus status = RequestStatus.fromValue(item.statusId);
         return status == RequestStatus.ACTIVE
                 || status == RequestStatus.IN_USE
@@ -263,6 +277,7 @@ public class ConfigListFragment extends ToolbarFragment {
 
     private boolean shouldOpenRenewal(ServiceItem item) {
         if (item == null) return false;
+        if (RequestStatus.isRenewalBlocked(item.statusId)) return false;
         RequestStatus status = RequestStatus.fromValue(item.statusId);
         if (status == RequestStatus.SUPPORT_FINISHED
                 || status == RequestStatus.WAITING_FOR_PAYMENT_OR_RENEW
@@ -289,6 +304,7 @@ public class ConfigListFragment extends ToolbarFragment {
 
     private void openBillingPlans(ServiceItem item) {
         if (!isAdded()) return;
+        if (item != null && RequestStatus.isRenewalBlocked(item.statusId)) return;
         Intent intent = new Intent(requireContext(), BillingPlansActivity.class);
 
         BillingSla sla = BillingSla.fromPlanId(item != null && item.cfServiceType != null
@@ -412,7 +428,7 @@ public class ConfigListFragment extends ToolbarFragment {
             if (banner != null && banner.getUrl() != null && !banner.getUrl().isEmpty()) {
                 TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BANNER_CLICK,
                         TrackingUtils.bundleOf(TrackingUtils.PARAM_BANNER_URL, banner.getUrl()));
-                AppUtils.openUrl(banner.getUrl(), getActivity());
+                PanelWebActivity.openBanner(requireContext(), banner.getUrl());
             }
         });
     }

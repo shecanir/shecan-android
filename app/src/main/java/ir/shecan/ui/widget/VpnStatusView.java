@@ -15,6 +15,7 @@ import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import ir.shecan.R;
+import ir.shecan.core.service.ShecanVpnService;
 import ir.shecan.databinding.ViewServiceStatusBinding;
 
 public class VpnStatusView extends FrameLayout {
@@ -22,6 +23,7 @@ public class VpnStatusView extends FrameLayout {
     private ViewServiceStatusBinding binding;
     private RequestQueue queue;
     private String checkUrl;
+    private static final String STATUS_REQUEST_TAG = "vpn_status_view";
 
     public VpnStatusView(Context context) {
         super(context);
@@ -63,6 +65,13 @@ public class VpnStatusView extends FrameLayout {
     public void checkStatus() {
         if (checkUrl == null) return;
 
+        queue.cancelAll(STATUS_REQUEST_TAG);
+        if (!ShecanVpnService.isActivated()) {
+            stopLoadingAnimation();
+            setDisconnected();
+            return;
+        }
+
         showLoadingState();
         startLoadingAnimation();
 
@@ -71,13 +80,18 @@ public class VpnStatusView extends FrameLayout {
                 checkUrl,
                 response -> {
                     stopLoadingAnimation();
-                    handleResponse(response.trim());
+                    if (ShecanVpnService.isActivated()) {
+                        handleResponse(response.trim());
+                    } else {
+                        setDisconnected();
+                    }
                 },
                 error -> {
                     stopLoadingAnimation();
                     setUnavailableStatus();
                 }
         );
+        request.setTag(STATUS_REQUEST_TAG);
 
 //        request.setRetryPolicy(new DefaultRetryPolicy(
 //                8000, // timeout ms (8 seconds)
@@ -86,6 +100,13 @@ public class VpnStatusView extends FrameLayout {
 //        ));
 
         queue.add(request);
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        queue.cancelAll(STATUS_REQUEST_TAG);
+        stopLoadingAnimation();
+        super.onDetachedFromWindow();
     }
 
 
