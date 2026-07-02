@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "co.bonyan.shecan",
+      "sha256_cert_fingerprints": [
+        "2C:42:E1:73:56:34:5E:A0:DB:3A:82:96:CF:5C:D1:13:48:CE:09:23:01:03:ED:62:A2:76:D5:BA:10:F7:D0:CC"
+      ]
+    }
+  }
+]
+ 2C:42:E1:73:56:34:5E:A0:DB:3A:82:96:CF:5C:D1:13:48:CE:09:23:01:03:ED:62:A2:76:D5:BA:10:F7:D0:CC
+ 2C:42:E1:73:56:34:5E:A0:DB:3A:82:96:CF:5C:D1:13:48:CE:09:23:01:03:ED:62:A2:76:D5:BA:10:F7:D0:CC
