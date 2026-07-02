@@ -7,6 +7,12 @@ public class PriceViewModel {
     private Long newCredit;
     private Long roundedDeference;
 
+    public static PriceViewModel fromPrice(long price) {
+        PriceViewModel model = new PriceViewModel();
+        model.price = Math.max(0L, price);
+        return model;
+    }
+
     public Long getPrice() {
         return price;
     }

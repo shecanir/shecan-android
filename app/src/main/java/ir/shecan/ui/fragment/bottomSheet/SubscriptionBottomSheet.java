@@ -167,6 +167,10 @@ public class SubscriptionBottomSheet extends BottomSheetDialogFragment {
         });
 
         RequestStatus status = RequestStatus.fromValue(item.statusId);
+        boolean renewalBlocked = RequestStatus.isRenewalBlocked(item.statusId);
+        binding.btnRenew.setEnabled(!renewalBlocked);
+        binding.btnRenew.setAlpha(renewalBlocked ? 0.45f : 1f);
+
         boolean isExpired = status == RequestStatus.SUPPORT_FINISHED
                 || status == RequestStatus.WAITING_FOR_PAYMENT_OR_RENEW
                 || status == RequestStatus.WAITING_FOR_PAYMENT_OR_ACTIVATION
@@ -200,6 +204,7 @@ public class SubscriptionBottomSheet extends BottomSheetDialogFragment {
 
     private void openBillingPlans() {
         if (!isAdded()) return;
+        if (item != null && RequestStatus.isRenewalBlocked(item.statusId)) return;
 
         Intent intent = new Intent(requireContext(), BillingPlansActivity.class);
         BillingSla sla = getBillingSla(item != null ? item.cfServiceType : null);

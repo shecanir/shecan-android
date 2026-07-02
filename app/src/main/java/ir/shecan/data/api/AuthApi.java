@@ -1,9 +1,7 @@
 package ir.shecan.data.api;
 
 import android.content.Context;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import android.net.Uri;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,7 +41,6 @@ import ir.shecan.data.modelDto.PaymentIssueViewModel;
 import ir.shecan.data.modelDto.PriceViewModel;
 import ir.shecan.data.modelDto.SendOtpApiViewModel;
 import ir.shecan.data.modelDto.ServicesViewModel;
-import ir.shecan.data.modelDto.SitePaymentViewModel;
 import ir.shecan.data.modelDto.UserRating;
 import ir.shecan.data.modelDto.VerifyApiViewModel;
 
@@ -252,7 +249,8 @@ public class AuthApi {
         repo.request(
                 "my_account",
                 null,
-                "https://my.shecan.ir/my/account.json?key=" + apiKey,
+                "https://my.shecan.ir/my/account.json?key=" + apiKey
+                        + "&_=" + System.currentTimeMillis(),
                 HttpMethod.GET,
                 false,
                 callback,
@@ -558,8 +556,9 @@ public class AuthApi {
         repo.apiManager.setApiKey(apiKey != null ? apiKey : "");
 
         repo.request(
-                "price_" + sla + "_" + period + "_" + discount,
+                "price_" + APIManager.getAppMarketHeaderValue() + "_" + sla + "_" + period + "_" + discount,
                 input,
+                storeHeader(),
                 "https://my.shecan.ir/api/price",
                 HttpMethod.POST,
                 false,
@@ -619,46 +618,28 @@ public class AuthApi {
         );
     }
 
-    public void sitePayment(
+    public String buildSitePaymentUrl(
             String apiKey,
             long amount,
             String sla,
             String period,
             long discount,
-            String discountCode,
-            VerifyApiViewModel user,
-            ApiCallback<SitePaymentViewModel> callback
+            String discountCode
     ) {
-        repo.apiManager.setApiKey("");
-        repo.apiManager.setCookie("");
+        Uri.Builder builder = Uri.parse("https://my.shecan.ir/order/shecan/payment")
+                .buildUpon()
+                .appendQueryParameter("api_key", apiKey)
+                .appendQueryParameter("amount", String.valueOf(amount))
+                .appendQueryParameter("sla", sla)
+                .appendQueryParameter("period", period)
+                .appendQueryParameter("discount", String.valueOf(discount))
+                .appendQueryParameter("callback_url", Constant.AppPaymentCallbackUrl);
 
-        Gson gson = new GsonBuilder()
-                .disableHtmlEscaping()
-                .create();
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("sla", sla);
-        payload.put("period", period);
-        payload.put("discount", discount);
-        payload.put("callback_url", Constant.AppPaymentCallbackUrl);
+        if (discountCode != null && !discountCode.trim().isEmpty()) {
+            builder.appendQueryParameter("discount_code", discountCode.trim());
+        }
 
-        String rawBody = "api_key=" + apiKey
-                + "&amount=" + amount
-                + "&sla=" + sla
-                + "&period=" + period
-                + "&discount=" + discount
-                + "&callback_url=" + Constant.AppPaymentCallbackUrl
-                + "&payload=" + gson.toJson(payload)
-                + "&user=" + gson.toJson(createWebPaymentUserPayload(apiKey, user));
-
-        repo.requestRawForm(
-                "site_payment_" + sla + "_" + period + "_" + amount + "_" + discount,
-                rawBody,
-                createWebPaymentHeaders(),
-                "https://my.shecan.ir/order/shecan/payment",
-                false,
-                callback,
-                SitePaymentViewModel.class
-        );
+        return builder.build().toString();
     }
 
     public void verifyIap(

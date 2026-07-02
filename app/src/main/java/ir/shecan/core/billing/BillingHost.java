@@ -5,6 +5,8 @@ public interface BillingHost {
 
     boolean isBillingReadyForStore(BillingStore store);
 
+    void refreshMarketplacePrices(BillingStore store);
+
     void launchMyketPurchase(String sku, Long renewalOrderId);
 
     void consumeMyketPurchase(Object purchase);

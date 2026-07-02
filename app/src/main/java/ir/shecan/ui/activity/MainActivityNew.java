@@ -17,6 +17,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -48,7 +50,10 @@ import ir.shecan.core.billing.BillingPurchaseObserver;
 import ir.shecan.core.billing.BillingStore;
 import ir.shecan.core.billing.MyketBillingManager;
 import ir.shecan.core.billing.MyketBillingProducts;
+import ir.shecan.core.billing.MarketplacePriceCatalog;
 import ir.shecan.core.constant.Constant;
+import ir.shecan.core.constant.RequestStatus;
+import ir.shecan.core.util.DebugJsonLogger;
 import ir.shecan.core.util.TrackingUtils;
 import ir.shecan.data.api.ApiCallback;
 import ir.shecan.data.api.AuthApi;
@@ -56,6 +61,8 @@ import ir.shecan.data.modelDto.AccountViewModel;
 import ir.shecan.data.modelDto.BannerViewModel;
 import ir.shecan.data.modelDto.IssuesViewModel;
 import ir.shecan.data.modelDto.PaymentIssueViewModel;
+import ir.shecan.data.modelDto.ServiceItem;
+import ir.shecan.data.modelDto.ServiceItemMapper;
 import ir.shecan.data.modelDto.VerifyApiViewModel;
 import ir.shecan.data.storage.AppStorage;
 import ir.shecan.databinding.ActivityMainNewBinding;
@@ -69,6 +76,9 @@ import ir.shecan.ui.widget.rateHelper.RatingDialog;
 import ir.shecan.ui.widget.rateHelper.RatingManager;
 
 public class MainActivityNew extends AppCompatActivity implements BillingHost {
+
+    private static final int PAYMENT_STATUS_MAX_ATTEMPTS = 6;
+    private static final long PAYMENT_STATUS_RETRY_DELAY_MS = 2_000L;
 
     // Launch Actions
     public static final int LAUNCH_ACTION_NONE = 0;
@@ -107,6 +117,8 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
     private MyketBillingManager myketBillingManager;
     private CafeBazaarBillingManager cafeBazaarBillingManager;
     private BillingPurchaseObserver billingPurchaseObserver;
+    private final Handler paymentStatusHandler = new Handler(Looper.getMainLooper());
+    private AlertDialog paymentProcessingDialog;
     public List<BannerViewModel> bannerUrl;
 
     public static MainActivityNew getInstance() {
@@ -133,6 +145,28 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
             case SITE:
             default:
                 return true;
+        }
+    }
+
+    @Override
+    public void refreshMarketplacePrices(BillingStore store) {
+        MarketplacePriceCatalog.clear(store);
+        if (store == BillingStore.CAFE_BAZAAR && cafeBazaarBillingManager != null) {
+            cafeBazaarBillingManager.querySkuDetails();
+        } else if (store == BillingStore.MYKET && myketBillingManager != null) {
+            myketBillingManager.querySkuDetails();
+        }
+    }
+
+    public void releaseMarketplaceBilling() {
+        billingPurchaseObserver = null;
+        if (myketBillingManager != null) {
+            myketBillingManager.dispose();
+            myketBillingManager = null;
+        }
+        if (cafeBazaarBillingManager != null) {
+            cafeBazaarBillingManager.dispose();
+            cafeBazaarBillingManager = null;
         }
     }
 
@@ -254,6 +288,17 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     @Override
                     public void onSkuDetailsLoaded(List<?> skuDetails) {
                         Log.d("MyketBilling", "Loaded Myket sku details: " + skuDetails.size());
+                        for (Object detail : skuDetails) {
+                            if (detail instanceof ir.myket.billingclient.util.SkuDetails) {
+                                ir.myket.billingclient.util.SkuDetails sku =
+                                        (ir.myket.billingclient.util.SkuDetails) detail;
+                                MarketplacePriceCatalog.putPrice(
+                                        BillingStore.MYKET,
+                                        sku.getSku(),
+                                        sku.getPrice()
+                                );
+                            }
+                        }
                     }
 
                     @Override
@@ -315,6 +360,17 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     @Override
                     public void onInAppSkuDetailsLoaded(@NonNull List<?> skuDetails) {
                         Log.d("CafeBazaarBilling", "Loaded Cafe Bazaar in-app sku details: " + skuDetails.size());
+                        for (Object detail : skuDetails) {
+                            if (detail instanceof ir.cafebazaar.poolakey.entity.SkuDetails) {
+                                ir.cafebazaar.poolakey.entity.SkuDetails sku =
+                                        (ir.cafebazaar.poolakey.entity.SkuDetails) detail;
+                                MarketplacePriceCatalog.putPrice(
+                                        BillingStore.CAFE_BAZAAR,
+                                        sku.getSku(),
+                                        sku.getPrice()
+                                );
+                            }
+                        }
                     }
 
                     @Override
@@ -553,6 +609,8 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
             recreate();
             return;
         }
+        if (myketBillingManager == null) setupMyketBilling();
+        if (cafeBazaarBillingManager == null) setupCafeBazaarBilling();
         checkUserIsLogin();
         updateLoginInformation();
 
@@ -568,15 +626,10 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
 
     @Override
     protected void onDestroy() {
+        paymentStatusHandler.removeCallbacksAndMessages(null);
+        dismissPaymentProcessingDialog();
         super.onDestroy();
-        if (myketBillingManager != null) {
-            myketBillingManager.dispose();
-            myketBillingManager = null;
-        }
-        if (cafeBazaarBillingManager != null) {
-            cafeBazaarBillingManager.dispose();
-            cafeBazaarBillingManager = null;
-        }
+        releaseMarketplaceBilling();
         instance = null;
         currentFragment = null;
         binding = null;
@@ -595,6 +648,8 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
 
     public void updateLoginInformation() {
         AppStorage storage = new AppStorage(getApplicationContext());
+        if (storage.shouldDeferProfileSync()) return;
+
         VerifyApiViewModel token = storage.getToken(VerifyApiViewModel.class);
         if (token != null && token.getApiKey() != null) {
             TrackingUtils.setUserId(getApplicationContext(), String.valueOf(token.getId()));
@@ -608,6 +663,7 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                                 token.setFirstname(res.getUser().getFirstname());
                                 token.setMail(res.getUser().getMail());
                                 token.setLastname(res.getUser().getLastname());
+                                token.setLogin(res.getUser().getLogin());
                                 storage.saveToken(token);
                             }
                         }
@@ -634,7 +690,12 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     new ApiCallback<IssuesViewModel>() {
                         @Override
                         public void onSuccess(IssuesViewModel res, boolean fromCache) {
+                            DebugJsonLogger.log("ShecanIssuesJson", res);
                             storage.saveIssues(res);
+                            boolean selectionChanged = reconcileSelectedService(storage, res);
+                            if (selectionChanged && currentTab == TabItem.HOME.getIndex()) {
+                                updateFragment(TabItem.HOME.getIndex());
+                            }
                         }
 
                         @Override
@@ -644,6 +705,51 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     }
             );
         }
+    }
+
+    private boolean reconcileSelectedService(AppStorage storage, IssuesViewModel issues) {
+        if (issues == null || issues.getIssues() == null) return false;
+        ServiceItem savedItem = storage.getServiceStatus(ServiceItem.class);
+        ServiceItem preferredItem = null;
+        boolean savedItemExists = savedItem != null && "0".equals(savedItem.getOrderCode());
+
+        for (IssuesViewModel.IssuesDTO issue : issues.getIssues()) {
+            ServiceItem item = ServiceItemMapper.map(getApplicationContext(), issue);
+            if (savedItem != null
+                    && !item.isClosed()
+                    && item.getOrderCode().equals(savedItem.getOrderCode())) {
+                savedItemExists = true;
+            }
+            RequestStatus status = RequestStatus.fromValue(item.statusId);
+            if (preferredItem == null
+                    && !item.isClosed()
+                    && !"0".equals(item.getOrderCode())
+                    && (status == RequestStatus.ACTIVE
+                    || status == RequestStatus.IN_USE
+                    || status == RequestStatus.EXPIRING)) {
+                preferredItem = item;
+            }
+        }
+
+        boolean savedItemMissing = savedItem != null && !savedItemExists;
+        boolean shouldChooseDefault = savedItem == null
+                || savedItemMissing
+                || (!storage.isServiceSelectionExplicit()
+                && "0".equals(savedItem.getOrderCode()));
+        if (!shouldChooseDefault) return false;
+
+        ServiceItem nextItem = preferredItem != null
+                ? preferredItem
+                : ServiceItemMapper.map(
+                        getApplicationContext(),
+                        IssuesViewModel.IssuesDTO.createDefault()
+                );
+        storage.saveServiceStatus(nextItem);
+        if (savedItemMissing) {
+            storage.clearServiceSelectionExplicit();
+        }
+        return savedItem == null
+                || !nextItem.getOrderCode().equals(savedItem.getOrderCode());
     }
 
     private void requestNotificationPermission() {
@@ -675,6 +781,7 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
 
     private void showResolvedPaymentResult(String result) {
         if (binding == null || isFinishing()) return;
+        dismissPaymentProcessingDialog();
         if (PAYMENT_RESULT_SUCCESS.equals(result)) {
             showPaymentResultDialog(
                     getString(R.string.billing_payment_success_title),
@@ -700,40 +807,89 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
 
         new BillingPaymentReturnState(this).clear();
         intent.setData(null);
+        showPaymentProcessingDialog();
+        checkPanelPaymentStatus(paymentId, 1);
+    }
+
+    private void checkPanelPaymentStatus(long paymentId, int attempt) {
+        if (binding == null || isFinishing()) return;
         new AuthApi(getApplicationContext()).paymentIssue(
                 paymentId,
                 new ApiCallback<PaymentIssueViewModel>() {
                     @Override
                     public void onSuccess(PaymentIssueViewModel data, boolean fromCache) {
                         if (binding == null || isFinishing()) return;
-                        updateConfigsIfSignedIn();
                         int statusId = data != null
                                 && data.getIssue() != null
                                 && data.getIssue().getStatus() != null
                                 ? data.getIssue().getStatus().getId()
                                 : 0;
-                        showResolvedPaymentResult(statusId == 20 ? PAYMENT_RESULT_SUCCESS : PAYMENT_RESULT_FAILED);
+                        Log.d("SitePayment", "Payment " + paymentId
+                                + " status=" + statusId + " attempt=" + attempt);
+                        if (statusId == 20) {
+                            updateConfigsIfSignedIn();
+                            showResolvedPaymentResult(PAYMENT_RESULT_SUCCESS);
+                        } else {
+                            retryOrFinishPanelPayment(paymentId, attempt);
+                        }
                     }
 
                     @Override
                     public void onError(int statusCode, String message) {
                         if (binding == null || isFinishing()) return;
-                        updateConfigsIfSignedIn();
-                        showResolvedPaymentResult(PAYMENT_RESULT_FAILED);
+                        Log.w("SitePayment", "Payment status request failed. id=" + paymentId
+                                + " attempt=" + attempt + " code=" + statusCode
+                                + " message=" + message);
+                        retryOrFinishPanelPayment(paymentId, attempt);
                     }
                 }
         );
     }
 
+    private void retryOrFinishPanelPayment(long paymentId, int attempt) {
+        if (attempt < PAYMENT_STATUS_MAX_ATTEMPTS) {
+            paymentStatusHandler.postDelayed(
+                    () -> checkPanelPaymentStatus(paymentId, attempt + 1),
+                    PAYMENT_STATUS_RETRY_DELAY_MS
+            );
+            return;
+        }
+        updateConfigsIfSignedIn();
+        showResolvedPaymentResult(PAYMENT_RESULT_FAILED);
+    }
+
     private long resolvePanelPaymentId(Intent intent) {
         if (intent == null || intent.getData() == null) return 0L;
         Uri data = intent.getData();
-        if (!"my.shecan.ir".equalsIgnoreCase(data.getHost())) return 0L;
+        boolean isWebPaymentCallback = "my.shecan.ir".equalsIgnoreCase(data.getHost());
+        boolean isAppPaymentCallback = "shecan".equalsIgnoreCase(data.getScheme())
+                && "payment-callback".equalsIgnoreCase(data.getHost());
+        if (!isWebPaymentCallback && !isAppPaymentCallback) return 0L;
+
         List<String> segments = data.getPathSegments();
-        if (segments == null || segments.size() < 3) return 0L;
-        if (!"panel".equals(segments.get(0)) || !"payment".equals(segments.get(1))) return 0L;
+        if (segments != null
+                && segments.size() >= 3
+                && "panel".equals(segments.get(0))
+                && "payment".equals(segments.get(1))) {
+            long pathPaymentId = parsePaymentId(segments.get(2));
+            if (pathPaymentId > 0) return pathPaymentId;
+        }
+
+        long queryPaymentId = parsePaymentId(data.getQueryParameter("payment_id"));
+        if (queryPaymentId > 0) return queryPaymentId;
+        queryPaymentId = parsePaymentId(data.getQueryParameter("paymentId"));
+        if (queryPaymentId > 0) return queryPaymentId;
+        queryPaymentId = parsePaymentId(data.getQueryParameter("payment"));
+        if (queryPaymentId > 0) return queryPaymentId;
+        queryPaymentId = parsePaymentId(data.getQueryParameter("id"));
+        if (queryPaymentId > 0) return queryPaymentId;
+        return parsePaymentId(data.getQueryParameter("issue_id"));
+    }
+
+    private long parsePaymentId(String value) {
+        if (value == null || value.trim().isEmpty()) return 0L;
         try {
-            return Long.parseLong(segments.get(2));
+            return Long.parseLong(value.trim());
         } catch (NumberFormatException ignored) {
             return 0L;
         }
@@ -766,19 +922,20 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
         if (value == null) return null;
         String normalized = value.trim().toLowerCase(java.util.Locale.US);
         if (normalized.isEmpty()) return null;
-        if (normalized.contains("success")
-                || normalized.contains("paid")
-                || normalized.contains("ok")
-                || "1".equals(normalized)
-                || "true".equals(normalized)) {
-            return PAYMENT_RESULT_SUCCESS;
-        }
         if (normalized.contains("fail")
                 || normalized.contains("cancel")
                 || normalized.contains("error")
+                || "nok".equals(normalized)
                 || "0".equals(normalized)
                 || "false".equals(normalized)) {
             return PAYMENT_RESULT_FAILED;
+        }
+        if (normalized.contains("success")
+                || normalized.contains("paid")
+                || "ok".equals(normalized)
+                || "1".equals(normalized)
+                || "true".equals(normalized)) {
+            return PAYMENT_RESULT_SUCCESS;
         }
         return null;
     }
@@ -810,6 +967,34 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     - (int) (48 * getResources().getDisplayMetrics().density);
             window.setLayout(Math.max(width, 0), ViewGroup.LayoutParams.WRAP_CONTENT);
         }
+    }
+
+    private void showPaymentProcessingDialog() {
+        if (binding == null || isFinishing()) return;
+        if (paymentProcessingDialog != null && paymentProcessingDialog.isShowing()) return;
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_payment_processing, null, false);
+        paymentProcessingDialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+        paymentProcessingDialog.show();
+
+        Window window = paymentProcessingDialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int width = getResources().getDisplayMetrics().widthPixels
+                    - (int) (48 * getResources().getDisplayMetrics().density);
+            window.setLayout(Math.max(width, 0), ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
+    private void dismissPaymentProcessingDialog() {
+        if (paymentProcessingDialog == null) return;
+        if (paymentProcessingDialog.isShowing()) {
+            paymentProcessingDialog.dismiss();
+        }
+        paymentProcessingDialog = null;
     }
 
     public void applyThemeForRecreate() {

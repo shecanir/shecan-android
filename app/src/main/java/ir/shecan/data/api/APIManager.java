@@ -10,7 +10,9 @@ import com.android.volley.NoConnectionError;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
 import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -656,16 +658,9 @@ public class APIManager {
                             String location = getHeaderIgnoreCase(nr.headers, "Location");
                             boolean isSameLocation = location == null || location.isEmpty() || location.equals(url);
 
-                            if (!isSameLocation) {
-                                try {
-                                    Gson redirectGson = new GsonBuilder()
-                                            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                                            .create();
-                                    T model = parseStringResponse(new JSONObject().put("url", location).toString(), redirectGson, clazz);
-                                    callback.onSuccess(model, false);
-                                    return;
-                                } catch (Exception ignored) {
-                                }
+                            String setCookie = getHeaderIgnoreCase(nr.headers, "Set-Cookie");
+                            if (setCookie != null && !setCookie.isEmpty()) {
+                                cookie = mergeCookies(cookie, setCookie);
                             }
 
                             if (retried) {
@@ -673,15 +668,10 @@ public class APIManager {
                                 return;
                             }
 
-                            String setCookie = getHeaderIgnoreCase(nr.headers, "Set-Cookie");
-                            if (setCookie != null && !setCookie.isEmpty()) {
-                                cookie = mergeCookies(cookie, setCookie);
-                            }
-
                             requestObjectInternal(
                                     cacheKey,
                                     payloadModel,
-                                    url,
+                                    isSameLocation ? url : resolveRedirectUrl(url, location),
                                     method,
                                     useCache,
                                     callback,
@@ -701,6 +691,17 @@ public class APIManager {
                 @Override
                 public Map<String, String> getHeaders() {
                     return headers;
+                }
+
+                @Override
+                protected Response<JSONObject> parseNetworkResponse(NetworkResponse response) {
+                    if (clazz.equals(EmptyResponse.class)) {
+                        return Response.success(
+                                new JSONObject(),
+                                HttpHeaderParser.parseCacheHeaders(response)
+                        );
+                    }
+                    return super.parseNetworkResponse(response);
                 }
             };
 
@@ -1011,6 +1012,15 @@ public class APIManager {
 
     private boolean isRedirect(int statusCode) {
         return statusCode == 301 || statusCode == 302 || statusCode == 303 || statusCode == 307 || statusCode == 308;
+    }
+
+    private String resolveRedirectUrl(String requestUrl, String location) {
+        if (location == null || location.trim().isEmpty()) return requestUrl;
+        try {
+            return new URL(new URL(requestUrl), location.trim()).toString();
+        } catch (Exception ignored) {
+            return location.trim();
+        }
     }
 
     private String getHeaderIgnoreCase(Map<String, String> headers, String key) {

@@ -24,6 +24,7 @@ import ir.shecan.core.billing.CafeBazaarBillingManager;
 import ir.shecan.core.billing.CafeBazaarBillingProducts;
 import ir.shecan.core.billing.MyketBillingManager;
 import ir.shecan.core.billing.MyketBillingProducts;
+import ir.shecan.core.billing.MarketplacePriceCatalog;
 import ir.shecan.core.constant.Constant;
 import ir.shecan.databinding.ActivityBillingPlansBinding;
 import ir.shecan.ui.fragment.refactor.BillingPlansFragment;
@@ -49,6 +50,10 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
         paymentReturnState = new BillingPaymentReturnState(this);
 
         adjustUi();
+        MainActivityNew mainActivity = MainActivityNew.getInstance();
+        if (mainActivity != null) {
+            mainActivity.releaseMarketplaceBilling();
+        }
         setupMyketBilling();
         setupCafeBazaarBilling();
 
@@ -131,6 +136,17 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
                     @Override
                     public void onSkuDetailsLoaded(List<?> skuDetails) {
                         Log.d("MyketBilling", "Loaded Myket sku details: " + skuDetails.size());
+                        for (Object detail : skuDetails) {
+                            if (detail instanceof ir.myket.billingclient.util.SkuDetails) {
+                                ir.myket.billingclient.util.SkuDetails sku =
+                                        (ir.myket.billingclient.util.SkuDetails) detail;
+                                MarketplacePriceCatalog.putPrice(
+                                        BillingStore.MYKET,
+                                        sku.getSku(),
+                                        sku.getPrice()
+                                );
+                            }
+                        }
                     }
 
                     @Override
@@ -191,6 +207,17 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
                     @Override
                     public void onInAppSkuDetailsLoaded(@NonNull List<?> skuDetails) {
                         Log.d("CafeBazaarBilling", "Loaded Cafe Bazaar in-app sku details: " + skuDetails.size());
+                        for (Object detail : skuDetails) {
+                            if (detail instanceof ir.cafebazaar.poolakey.entity.SkuDetails) {
+                                ir.cafebazaar.poolakey.entity.SkuDetails sku =
+                                        (ir.cafebazaar.poolakey.entity.SkuDetails) detail;
+                                MarketplacePriceCatalog.putPrice(
+                                        BillingStore.CAFE_BAZAAR,
+                                        sku.getSku(),
+                                        sku.getPrice()
+                                );
+                            }
+                        }
                     }
 
                     @Override
@@ -256,6 +283,16 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
             case SITE:
             default:
                 return true;
+        }
+    }
+
+    @Override
+    public void refreshMarketplacePrices(BillingStore store) {
+        MarketplacePriceCatalog.clear(store);
+        if (store == BillingStore.CAFE_BAZAAR && cafeBazaarBillingManager != null) {
+            cafeBazaarBillingManager.querySkuDetails();
+        } else if (store == BillingStore.MYKET && myketBillingManager != null) {
+            myketBillingManager.querySkuDetails();
         }
     }
 

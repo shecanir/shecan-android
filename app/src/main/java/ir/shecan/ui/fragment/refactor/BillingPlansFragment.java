@@ -50,8 +50,8 @@ import ir.shecan.core.billing.BillingPurchaseObserver;
 import ir.shecan.core.billing.BillingSla;
 import ir.shecan.core.billing.BillingStore;
 import ir.shecan.core.billing.MyketBillingProducts;
+import ir.shecan.core.billing.MarketplacePriceCatalog;
 import ir.shecan.core.constant.Constant;
-import ir.shecan.core.util.AppUtils;
 import ir.shecan.core.util.TrackingUtils;
 import ir.shecan.data.api.ApiCallback;
 import ir.shecan.data.api.AuthApi;
@@ -60,7 +60,6 @@ import ir.shecan.data.modelDto.EmptyResponse;
 import ir.shecan.data.modelDto.IapVerifyViewModel;
 import ir.shecan.data.modelDto.PriceViewModel;
 import ir.shecan.data.modelDto.ServicesViewModel;
-import ir.shecan.data.modelDto.SitePaymentViewModel;
 import ir.shecan.data.modelDto.VerifyApiViewModel;
 import ir.shecan.data.storage.AppStorage;
 import ir.shecan.databinding.FragmentBillingPlansBinding;
@@ -78,6 +77,8 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
     private static final String VERIFIED_PURCHASE_PREFIX = "verified_purchase_";
     private static final int MARKET_READY_MAX_RETRIES = 12;
     private static final long MARKET_READY_RETRY_DELAY_MS = 500L;
+    private static final int MARKET_PRICE_MAX_RETRIES = 20;
+    private static final long MARKET_PRICE_RETRY_DELAY_MS = 300L;
     public static final String ARG_PREFILL_SLA = "prefill_sla";
     public static final String ARG_PREFILL_PERIOD = "prefill_period";
     public static final String ARG_RENEWAL_ORDER_ID = "renewal_order_id";
@@ -122,6 +123,14 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
         BillingHost host = getBillingHost();
         if (host != null) {
             host.setBillingPurchaseObserver(this);
+            BillingStore store = BillingStore.current();
+            if (store != BillingStore.SITE) {
+                selectedItem = selectedItem != null
+                        ? new BillingPlanPrice(selectedItem.getPlan())
+                        : null;
+                host.refreshMarketplacePrices(store);
+                if (selectedItem != null) loadSelectedPrice();
+            }
         }
 
         if (getActivity() instanceof MainActivityNew) {
@@ -524,6 +533,11 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
         updatePayButtonState();
 
         BillingPlan plan = selectedItem.getPlan();
+        BillingStore store = BillingStore.current();
+        if (store != BillingStore.SITE) {
+            loadMarketplacePrice(store, plan, requestId, 0);
+            return;
+        }
         VerifyApiViewModel token = storage != null ? storage.getToken(VerifyApiViewModel.class) : null;
         authApi.price(
                 token != null ? token.getApiKey() : null,
@@ -552,6 +566,39 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
                     }
                 }
         );
+    }
+
+    private void loadMarketplacePrice(
+            BillingStore store,
+            BillingPlan plan,
+            int requestId,
+            int attempt
+    ) {
+        if (binding == null || selectedItem == null || requestId != priceRequestSeq) return;
+        String sku = getMarketplacePlanSku(store, plan);
+        Long price = MarketplacePriceCatalog.getTomanPrice(store, sku);
+        if (price != null && price > 0L) {
+            selectedItem.setLoading(false);
+            selectedItem.setMarketplaceTotalPrice(price);
+            showStatus(null, false);
+            renderPrice();
+            updatePayButtonState();
+            return;
+        }
+
+        if (attempt < MARKET_PRICE_MAX_RETRIES) {
+            billingRetryHandler.postDelayed(
+                    () -> loadMarketplacePrice(store, plan, requestId, attempt + 1),
+                    MARKET_PRICE_RETRY_DELAY_MS
+            );
+            return;
+        }
+
+        selectedItem.setLoading(false);
+        selectedItem.setErrorMessage(getString(R.string.billing_unknown_price));
+        showStatus(selectedItem.getErrorMessage(), true);
+        clearPriceUi();
+        updatePayButtonState();
     }
 
     private void renderPrice() {
@@ -712,40 +759,20 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
         long finalPrice = getPayablePrice();
         long discount = Math.max(0L, originalPrice - finalPrice);
 
-        showStatus(getString(R.string.billing_site_payment_creating), false);
-        authApi.sitePayment(
+        String paymentUrl = authApi.buildSitePaymentUrl(
                 token.getApiKey(),
                 finalPrice,
                 selectedItem.getPlan().getSla().getApiValue(),
                 selectedItem.getPlan().getPeriod().getApiValue(),
                 discount,
-                selectedItem.getDiscountCode(),
-                token,
-                new ApiCallback<SitePaymentViewModel>() {
-                    @Override
-                    public void onSuccess(SitePaymentViewModel data, boolean fromCache) {
-                        if (binding == null) return;
-                        pendingPlan = null;
-                        if (data == null || data.getUrl() == null || data.getUrl().trim().isEmpty()) {
-                            showError(getString(R.string.billing_site_payment_empty_url));
-                            setPaymentLoading(false);
-                            return;
-                        }
-                        showStatus(getString(R.string.billing_site_payment_redirecting), false);
-                        new BillingPaymentReturnState(requireContext()).markBrowserOpening();
-                        AppUtils.openUrl(data.getUrl(), requireActivity());
-                        setPaymentLoading(false);
-                    }
-
-                    @Override
-                    public void onError(int statusCode, String message) {
-                        if (binding == null) return;
-                        pendingPlan = null;
-                        showPaymentError(statusCode, message, R.string.billing_site_payment_failed);
-                        setPaymentLoading(false);
-                    }
-                }
+                selectedItem.getDiscountCode()
         );
+
+        pendingPlan = null;
+        showStatus(getString(R.string.billing_site_payment_redirecting), false);
+        new BillingPaymentReturnState(requireContext()).clear();
+        PanelWebActivity.openPayment(requireContext(), paymentUrl);
+        setPaymentLoading(false);
     }
 
     private void applyDiscountCode() {
@@ -861,6 +888,9 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
 
     private long getOriginalServicePrice(BillingStore store) {
         if (selectedItem == null || selectedItem.getPrice() == null) return 0L;
+        if (store != BillingStore.SITE && selectedItem.getMarketplaceTotalPrice() != null) {
+            return Math.round(selectedItem.getMarketplaceTotalPrice() / 1.1d);
+        }
         BillingPlanPrice originalItem = new BillingPlanPrice(selectedItem.getPlan());
         originalItem.setPrice(selectedItem.getPrice());
         return originalItem.getServicePrice(store);
@@ -973,13 +1003,16 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
     @Override
     public void onMarketplaceBillingError(BillingStore store, String message) {
         if (binding == null) return;
+        boolean purchaseWasInProgress = paymentInProgress || pendingPlan != null;
         showError(getString(R.string.billing_payment_error, store.getTitle(), message));
         android.os.Bundle params = selectedPlanParams();
         TrackingUtils.put(params, TrackingUtils.PARAM_STORE, store.name().toLowerCase(Locale.US));
         TrackingUtils.put(params, TrackingUtils.PARAM_ERROR, message);
         TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BILLING_PURCHASE_ERROR, params);
         setPaymentLoading(false);
-        openPaymentResult(MainActivityNew.PAYMENT_RESULT_FAILED);
+        if (purchaseWasInProgress) {
+            openPaymentResult(MainActivityNew.PAYMENT_RESULT_FAILED);
+        }
     }
 
     private String formatToman(long rial) {

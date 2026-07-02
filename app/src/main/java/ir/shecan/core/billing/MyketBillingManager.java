@@ -105,6 +105,28 @@ public class MyketBillingManager {
         }
     }
 
+    public void querySkuDetails() {
+        if (!isReady()) return;
+
+        List<String> allSkus = getAllSkus();
+        if (allSkus.isEmpty()) return;
+
+        try {
+            helper.queryInventoryAsync(true, allSkus, (result, inventory) -> {
+                if (helper == null) return;
+                if (result.isFailure() || inventory == null) {
+                    notifyError("Failed to refresh Myket product details: " + result);
+                    return;
+                }
+                if (listener != null) {
+                    listener.onSkuDetailsLoaded(inventory.getAllProducts());
+                }
+            });
+        } catch (RuntimeException e) {
+            notifyError("Error refreshing Myket product details: " + e.getMessage());
+        }
+    }
+
     public void launchPurchaseFlow(Activity activity, String sku, Long renewalOrderId) {
         if (!isReady()) {
             notifyError("Myket billing is not ready.");

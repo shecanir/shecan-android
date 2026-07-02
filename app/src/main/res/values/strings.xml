@@ -198,6 +198,8 @@
     <string name="billing_payment_success_title">پرداخت موفق بود</string>
     <string name="billing_payment_success_message">پرداخت شما موفق بود. تا دقایقی دیگر سرویس شما فعال خواهد شد.</string>
     <string name="billing_payment_start_using">شروع استفاده</string>
+    <string name="billing_payment_processing_title">در حال پردازش پرداخت</string>
+    <string name="billing_payment_processing_message">لطفا چند لحظه منتظر بمانید تا نتیجه پرداخت بررسی شود.</string>
     <string name="billing_payment_failed_title">پرداخت ناموفق بود</string>
     <string name="billing_payment_failed_refund_message">پرداخت شما ناموفق بود. در صورتی که وجه از حساب شما کسر شده است، تا ۷۲ ساعت دیگر به حساب شما برگشت داده خواهد شد.</string>
     <string name="billing_payment_confirm">تایید</string>
@@ -286,4 +288,5 @@
     <string name="theme_auto">خودکار</string>
     <string name="billing_period_monthly">ماهانه</string>
     <string name="service_status">وضعیت سرویس</string>
+    <string name="pro_service_config_missing">اطلاعات اتصال سرویس پرو کامل نیست. لطفاً دوباره تلاش کنید.</string>
 </resources>

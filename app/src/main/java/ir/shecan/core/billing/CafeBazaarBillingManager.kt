@@ -150,7 +150,8 @@ class CafeBazaarBillingManager(context: Context) {
         payment = null
     }
 
-    private fun querySkuDetails() {
+    fun querySkuDetails() {
+        if (!isReady()) return
         val currentPayment = payment ?: return
         val inAppSkus = (consumableSkus + nonConsumableSkus).toList()
 
@@ -173,7 +174,7 @@ class CafeBazaarBillingManager(context: Context) {
                 purchases.forEach { handleVerifiedPurchase(it, restoredFromInventory = true) }
             }
             queryFailed { throwable ->
-                notifyError("Failed to query Cafe Bazaar purchases: ${throwable.message}")
+                Log.w(TAG, "Failed to query Cafe Bazaar purchases", throwable)
             }
         }
     }

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_payment_result_dialog"
+    android:gravity="center"
+    android:layoutDirection="rtl"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="30dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="30dp">
+
+    <ProgressBar
+        android:id="@+id/progressPaymentProcessing"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/connectionIsActiveColor" />
+
+    <TextView
+        android:id="@+id/txtPaymentProcessingTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:fontFamily="@font/iran_yekan_bakh_vm"
+        android:gravity="center"
+        android:text="@string/billing_payment_processing_title"
+        android:textColor="@color/greenPrimaryTextColor"
+        android:textSize="21sp" />
+
+    <TextView
+        android:id="@+id/txtPaymentProcessingMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/iran_yekan_bakh_vm"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:text="@string/billing_payment_processing_message"
+        android:textColor="@color/greenSecondaryTextColor"
+        android:textSize="15sp" />
+
+</LinearLayout>

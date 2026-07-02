@@ -12,6 +12,7 @@ public class BillingPlanPrice {
     private String discountCode;
     private String discountMessage;
     private boolean discountLoading;
+    private Long marketplaceTotalPrice;
 
     public BillingPlanPrice(BillingPlan plan) {
         this.plan = plan;
@@ -32,6 +33,15 @@ public class BillingPlanPrice {
         this.discountAmount = null;
         this.discountCode = null;
         this.discountMessage = null;
+    }
+
+    public void setMarketplaceTotalPrice(long marketplaceTotalPrice) {
+        this.marketplaceTotalPrice = Math.max(0L, marketplaceTotalPrice);
+        setPrice(PriceViewModel.fromPrice(this.marketplaceTotalPrice));
+    }
+
+    public Long getMarketplaceTotalPrice() {
+        return marketplaceTotalPrice;
     }
 
     public boolean isLoading() {
@@ -98,6 +108,9 @@ public class BillingPlanPrice {
     }
 
     public long getServicePrice(BillingStore store) {
+        if (store != BillingStore.SITE && marketplaceTotalPrice != null) {
+            return Math.round(marketplaceTotalPrice / 1.1d);
+        }
         long basePrice = getEffectivePrice();
         double priceWithoutTax = basePrice / 1.1d;
         double adjustedPrice = store == BillingStore.SITE
@@ -107,10 +120,16 @@ public class BillingPlanPrice {
     }
 
     public long getTaxPrice(BillingStore store) {
+        if (store != BillingStore.SITE && marketplaceTotalPrice != null) {
+            return Math.round(getServicePrice(store) * 0.1d);
+        }
         return Math.round(getServicePrice(store) * 0.1d);
     }
 
     public long getTotalPrice(BillingStore store) {
+        if (store != BillingStore.SITE && marketplaceTotalPrice != null) {
+            return marketplaceTotalPrice;
+        }
         return getServicePrice(store) + getTaxPrice(store);
     }
 

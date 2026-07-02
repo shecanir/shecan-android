@@ -8,6 +8,9 @@ public class AppStorage {
     private static final String App_Config_KEY = "APP_CONFIG_MODEL";
     private static final String Issue_KEY = "Issue_MODEL";
     private static final String SERVICE_STATUS_KEY = "SERVICE_STATUS_MODEL1";
+    private static final String SERVICE_SELECTION_EXPLICIT_KEY = "SERVICE_SELECTION_EXPLICIT";
+    private static final String PROFILE_UPDATED_AT_KEY = "PROFILE_UPDATED_AT";
+    private static final long PROFILE_SYNC_GRACE_MS = 10_000L;
     private static final String SERVICE_CATALOG_KEY = "SERVICE_CATALOG_MODEL";
     private static final String RATING_STATE_KEY = "RATING_STATE_MODEL100";
 
@@ -95,6 +98,35 @@ public class AppStorage {
 
     public void removeServiceStatus() {
         pref.remove(SERVICE_STATUS_KEY);
+        pref.remove(SERVICE_SELECTION_EXPLICIT_KEY);
+    }
+
+    public void prepareServiceSelectionAfterLogin() {
+        removeServiceStatus();
+        removeIssue();
+    }
+
+    public void markServiceSelectionExplicit() {
+        pref.saveModel(SERVICE_SELECTION_EXPLICIT_KEY, true);
+    }
+
+    public void clearServiceSelectionExplicit() {
+        pref.remove(SERVICE_SELECTION_EXPLICIT_KEY);
+    }
+
+    public boolean isServiceSelectionExplicit() {
+        Boolean explicit = pref.getModel(SERVICE_SELECTION_EXPLICIT_KEY, Boolean.class);
+        return Boolean.TRUE.equals(explicit);
+    }
+
+    public void markProfileUpdated() {
+        pref.saveModel(PROFILE_UPDATED_AT_KEY, System.currentTimeMillis());
+    }
+
+    public boolean shouldDeferProfileSync() {
+        Long updatedAt = pref.getModel(PROFILE_UPDATED_AT_KEY, Long.class);
+        return updatedAt != null
+                && System.currentTimeMillis() - updatedAt < PROFILE_SYNC_GRACE_MS;
     }
     // -----------------------------------------------
 
