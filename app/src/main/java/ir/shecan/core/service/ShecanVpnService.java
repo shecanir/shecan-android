@@ -68,6 +68,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     private static final int NOTIFICATION_ACTIVATED = 0;
     private static final long CONNECTION_STATUS_RETRY_DELAY_MS = 10_000L;
+    private static final long CONNECTION_VERIFY_TIMEOUT_MS = 70_000L;
 
     private static final String TAG = "ShecanVpnService";
 
@@ -83,6 +84,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private ParcelFileDescriptor descriptor;
     private MonitoringManager monitoringManager;
     private final Handler connectionStatusHandler = new Handler(Looper.getMainLooper());
+    private long connectionVerificationDeadlineMs = 0L;
+    private volatile boolean failureReported = false;
 
     private Thread mThread = null;
 
@@ -124,6 +127,8 @@ public class ShecanVpnService extends VpnService implements Runnable {
             switch (Objects.requireNonNull(intent.getAction())) {
                 case ACTION_ACTIVATE:
                     activated = true;
+                    failureReported = false;
+                    connectionVerificationDeadlineMs = 0L;
 
                     Context applicationContext = getApplicationContext();
                     if (Shecan.getPrefs().getBoolean("settings_notification", true)) {
@@ -387,7 +392,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
             if (resolvedDNS.isEmpty()) {
                 Log.d(TAG, "No DNS server is reachable.");
-                ((Shecan) getApplicationContext()).getVpnStatus().postValue("اتصال ناموفق بود، مجددا تلاش کنید.");
+                reportVpnFailure(R.string.connection_error_dns_unreachable);
                 stopThread();
                 return;
             }
@@ -462,6 +467,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
             descriptor = builder.establish();
             if (descriptor == null) {
                 Log.e(TAG, "Failed to establish VPN interface (user likely denied permission)");
+                reportVpnFailure(R.string.connection_error_vpn_interface_failed);
                 stopThread();
                 return;
             }
@@ -485,6 +491,9 @@ public class ShecanVpnService extends VpnService implements Runnable {
             provider.process();
         } catch (Exception e) {
             Logger.logException(e);
+            if (running && !failureReported) {
+                reportVpnFailure(R.string.connection_error_generic);
+            }
         } finally {
             Log.d(TAG, "quit");
             stopThread();
@@ -510,6 +519,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     private void verifyConnectionStatusAfterStart() {
+        connectionVerificationDeadlineMs = System.currentTimeMillis() + CONNECTION_VERIFY_TIMEOUT_MS;
         connectionStatusHandler.postDelayed(this::checkConnectionStatusAfterStart, 1000L);
     }
 
@@ -520,12 +530,19 @@ public class ShecanVpnService extends VpnService implements Runnable {
             @Override
             public void onConnected() {
                 if (!activated || !running) return;
+                connectionVerificationDeadlineMs = 0L;
                 ((Shecan) getApplicationContext()).getVpnState().postValue(2);
             }
 
             @Override
             public void onRetry() {
                 if (!activated || !running) return;
+                if (connectionVerificationDeadlineMs > 0L
+                        && System.currentTimeMillis() >= connectionVerificationDeadlineMs) {
+                    reportVpnFailure(R.string.connection_error_verification_failed);
+                    stopThread();
+                    return;
+                }
                 ((Shecan) getApplicationContext()).getVpnState().postValue(1);
                 connectionStatusHandler.postDelayed(
                         ShecanVpnService.this::checkConnectionStatusAfterStart,
@@ -533,6 +550,11 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 );
             }
         }, null);
+    }
+
+    private void reportVpnFailure(int messageRes) {
+        failureReported = true;
+        ((Shecan) getApplicationContext()).reportVpnFailure(getString(messageRes));
     }
 
     private void updateUserInterface() {
@@ -605,17 +627,44 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 apiUrl,
                 response -> {
                     String result = (response != null) ? response.trim() : "";
+                    if (result.isEmpty()) {
+                        notifyCoreError(
+                                context,
+                                listener,
+                                context.getString(R.string.connection_error_invalid_response)
+                        );
+                        return;
+                    }
                     switch (result) {
                         case "invalid":
-                            if (listener != null) listener.onInvalid();
+                            if (listener != null) {
+                                listener.onInvalid();
+                            } else {
+                                ((Shecan) context.getApplicationContext()).reportVpnFailure(
+                                        context.getString(R.string.connection_error_config_invalid)
+                                );
+                            }
                             break;
 
                         case "in the range":
-                            if (listener != null) listener.onInTheRange();
+                            if (listener != null) {
+                                listener.onInTheRange();
+                            } else {
+                                Shecan.setStaticIPMode();
+                                ((Shecan) context.getApplicationContext())
+                                        .getProActivatedEvent()
+                                        .postValue(true);
+                            }
                             break;
 
                         case "out of the range":
-                            if (listener != null) listener.onOutOfRange();
+                            if (listener != null) {
+                                listener.onOutOfRange();
+                            } else {
+                                ((Shecan) context.getApplicationContext()).reportVpnFailure(
+                                        context.getString(R.string.out_of_range_ip_error)
+                                );
+                            }
                             break;
 
                         default:
@@ -628,15 +677,25 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     }
                 },
                 error -> {
-                    if (listener != null) {
-                        Log.d("Apizzz", error.toString());
-                        listener.onError(error.toString());
-                    }
+                    Log.d(TAG, "Updater request failed: " + error.getClass().getSimpleName());
+                    notifyCoreError(context, listener, ConnectionErrorResolver.resolve(context, error));
                 }
         );
 
         stringRequest.setTag(CoreApiRequest);
         requestQueue.add(stringRequest);
+    }
+
+    private static void notifyCoreError(
+            Context context,
+            CoreApiResponseListener listener,
+            String userMessage
+    ) {
+        if (listener != null) {
+            listener.onError(userMessage);
+        } else {
+            ((Shecan) context.getApplicationContext()).reportVpnFailure(userMessage);
+        }
     }
 
     public static void callConnectionStatusAPI(Context context, final ConnectionStatusApiListener listener, Integer timeoutMs) {

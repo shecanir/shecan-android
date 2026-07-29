@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import ir.shecan.R;
+import ir.shecan.core.billing.SitePaymentCallback;
 import ir.shecan.core.constant.Constant;
 import ir.shecan.core.util.AppUtils;
 import ir.shecan.databinding.ActivityPanelWebBinding;
@@ -297,7 +298,13 @@ public class PanelWebActivity extends AppCompatActivity {
     }
 
     private boolean handlePaymentCallback(Uri uri) {
-        if (paymentCallbackHandled || !paymentFlow || uri == null || !isPaymentCallback(uri)) {
+        if (paymentCallbackHandled || !paymentFlow || !SitePaymentCallback.isCallback(uri)) {
+            return false;
+        }
+
+        // The bare /panel/payment page contains the site-side result, but carries no data
+        // that the app can verify. Let it render instead of closing the WebView silently.
+        if (!SitePaymentCallback.hasResolvableOutcome(uri)) {
             return false;
         }
 
@@ -309,24 +316,6 @@ public class PanelWebActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
         return true;
-    }
-
-    private boolean isPaymentCallback(Uri uri) {
-        String scheme = uri.getScheme();
-        String host = uri.getHost();
-        if ("shecan".equalsIgnoreCase(scheme)
-                && "payment-callback".equalsIgnoreCase(host)) {
-            return true;
-        }
-
-        if (!"my.shecan.ir".equalsIgnoreCase(host)) {
-            return false;
-        }
-
-        String path = uri.getPath();
-        return path != null
-                && (path.startsWith("/app/payment-callback")
-                || path.startsWith("/panel/payment"));
     }
 
     private boolean isPanelHost(String url) {

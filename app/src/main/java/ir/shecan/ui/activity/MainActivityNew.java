@@ -38,11 +38,11 @@ import androidx.fragment.app.FragmentTransaction;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Stack;
 
 import ir.shecan.R;
 import ir.shecan.Shecan;
-import ir.shecan.core.billing.BillingPaymentReturnState;
 import ir.shecan.core.billing.CafeBazaarBillingManager;
 import ir.shecan.core.billing.CafeBazaarBillingProducts;
 import ir.shecan.core.billing.BillingHost;
@@ -51,6 +51,7 @@ import ir.shecan.core.billing.BillingStore;
 import ir.shecan.core.billing.MyketBillingManager;
 import ir.shecan.core.billing.MyketBillingProducts;
 import ir.shecan.core.billing.MarketplacePriceCatalog;
+import ir.shecan.core.billing.SitePaymentCallback;
 import ir.shecan.core.constant.Constant;
 import ir.shecan.core.constant.RequestStatus;
 import ir.shecan.core.util.DebugJsonLogger;
@@ -711,6 +712,7 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
         if (issues == null || issues.getIssues() == null) return false;
         ServiceItem savedItem = storage.getServiceStatus(ServiceItem.class);
         ServiceItem preferredItem = null;
+        ServiceItem refreshedSelectedItem = null;
         boolean savedItemExists = savedItem != null && "0".equals(savedItem.getOrderCode());
 
         for (IssuesViewModel.IssuesDTO issue : issues.getIssues()) {
@@ -719,6 +721,7 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     && !item.isClosed()
                     && item.getOrderCode().equals(savedItem.getOrderCode())) {
                 savedItemExists = true;
+                refreshedSelectedItem = item;
             }
             RequestStatus status = RequestStatus.fromValue(item.statusId);
             if (preferredItem == null
@@ -729,6 +732,12 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                     || status == RequestStatus.EXPIRING)) {
                 preferredItem = item;
             }
+        }
+
+        if (refreshedSelectedItem != null) {
+            boolean detailsChanged = selectedServiceDetailsChanged(savedItem, refreshedSelectedItem);
+            storage.saveServiceStatus(refreshedSelectedItem);
+            return detailsChanged;
         }
 
         boolean savedItemMissing = savedItem != null && !savedItemExists;
@@ -752,6 +761,17 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
                 || !nextItem.getOrderCode().equals(savedItem.getOrderCode());
     }
 
+    private boolean selectedServiceDetailsChanged(ServiceItem savedItem, ServiceItem refreshedItem) {
+        if (savedItem == null || refreshedItem == null) return savedItem != refreshedItem;
+        return !Objects.equals(savedItem.getOrderCode(), refreshedItem.getOrderCode())
+                || !Objects.equals(savedItem.getUpdateLink(), refreshedItem.getUpdateLink())
+                || !Objects.equals(savedItem.getServiceType(), refreshedItem.getServiceType())
+                || !Objects.equals(savedItem.getDurationTitle(), refreshedItem.getDurationTitle())
+                || !Objects.equals(savedItem.dueDate, refreshedItem.dueDate)
+                || !Objects.equals(savedItem.closedOn, refreshedItem.closedOn)
+                || savedItem.statusId != refreshedItem.statusId;
+    }
+
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -772,7 +792,6 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
         }
         if (binding == null || isFinishing()) return;
 
-        new BillingPaymentReturnState(this).clear();
         updateConfigsIfSignedIn();
         showResolvedPaymentResult(result);
         intent.removeExtra(LAUNCH_PAYMENT_RESULT);
@@ -805,7 +824,6 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
         long paymentId = resolvePanelPaymentId(intent);
         if (paymentId <= 0 || binding == null || isFinishing()) return;
 
-        new BillingPaymentReturnState(this).clear();
         intent.setData(null);
         showPaymentProcessingDialog();
         checkPanelPaymentStatus(paymentId, 1);
@@ -859,40 +877,7 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
     }
 
     private long resolvePanelPaymentId(Intent intent) {
-        if (intent == null || intent.getData() == null) return 0L;
-        Uri data = intent.getData();
-        boolean isWebPaymentCallback = "my.shecan.ir".equalsIgnoreCase(data.getHost());
-        boolean isAppPaymentCallback = "shecan".equalsIgnoreCase(data.getScheme())
-                && "payment-callback".equalsIgnoreCase(data.getHost());
-        if (!isWebPaymentCallback && !isAppPaymentCallback) return 0L;
-
-        List<String> segments = data.getPathSegments();
-        if (segments != null
-                && segments.size() >= 3
-                && "panel".equals(segments.get(0))
-                && "payment".equals(segments.get(1))) {
-            long pathPaymentId = parsePaymentId(segments.get(2));
-            if (pathPaymentId > 0) return pathPaymentId;
-        }
-
-        long queryPaymentId = parsePaymentId(data.getQueryParameter("payment_id"));
-        if (queryPaymentId > 0) return queryPaymentId;
-        queryPaymentId = parsePaymentId(data.getQueryParameter("paymentId"));
-        if (queryPaymentId > 0) return queryPaymentId;
-        queryPaymentId = parsePaymentId(data.getQueryParameter("payment"));
-        if (queryPaymentId > 0) return queryPaymentId;
-        queryPaymentId = parsePaymentId(data.getQueryParameter("id"));
-        if (queryPaymentId > 0) return queryPaymentId;
-        return parsePaymentId(data.getQueryParameter("issue_id"));
-    }
-
-    private long parsePaymentId(String value) {
-        if (value == null || value.trim().isEmpty()) return 0L;
-        try {
-            return Long.parseLong(value.trim());
-        } catch (NumberFormatException ignored) {
-            return 0L;
-        }
+        return intent != null ? SitePaymentCallback.resolvePaymentId(intent.getData()) : 0L;
     }
 
     private String resolvePaymentResult(Intent intent) {
@@ -905,39 +890,11 @@ public class MainActivityNew extends AppCompatActivity implements BillingHost {
         Uri data = intent.getData();
         if (data == null) return null;
 
-        result = normalizePaymentResult(data.getQueryParameter("status"));
-        if (result != null) return result;
-        result = normalizePaymentResult(data.getQueryParameter("result"));
-        if (result != null) return result;
-        result = normalizePaymentResult(data.getQueryParameter("success"));
-        if (result != null) return result;
-        result = normalizePaymentResult(data.getQueryParameter("payment_status"));
-        if (result != null) return result;
-
-        String path = data.getPath();
-        return normalizePaymentResult(path);
+        return SitePaymentCallback.resolveResult(data);
     }
 
     private String normalizePaymentResult(String value) {
-        if (value == null) return null;
-        String normalized = value.trim().toLowerCase(java.util.Locale.US);
-        if (normalized.isEmpty()) return null;
-        if (normalized.contains("fail")
-                || normalized.contains("cancel")
-                || normalized.contains("error")
-                || "nok".equals(normalized)
-                || "0".equals(normalized)
-                || "false".equals(normalized)) {
-            return PAYMENT_RESULT_FAILED;
-        }
-        if (normalized.contains("success")
-                || normalized.contains("paid")
-                || "ok".equals(normalized)
-                || "1".equals(normalized)
-                || "true".equals(normalized)) {
-            return PAYMENT_RESULT_SUCCESS;
-        }
-        return null;
+        return SitePaymentCallback.normalizeResult(value);
     }
 
     private void showPaymentResultDialog(String title, String message, String actionText, Runnable action, int buttonColorRes) {

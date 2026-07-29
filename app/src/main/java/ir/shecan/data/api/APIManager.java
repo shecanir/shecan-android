@@ -65,7 +65,7 @@ public class APIManager {
     private String apiKey = "";
     private String secretKey = "";
     private boolean loggingEnabled = BuildConfig.DEBUG;
-    private boolean curlLoggingEnabled = true;
+    private boolean curlLoggingEnabled = BuildConfig.DEBUG;
     private boolean redactSensitiveLogs = true;
 
     private APIManager(Context context) {
@@ -944,8 +944,12 @@ public class APIManager {
 
         String sanitized = body;
         sanitized = sanitized.replaceAll("(?i)(api_key=)[^&\\s]+", "$1" + REDACTED);
+        sanitized = sanitized.replaceAll("(?i)(password=)[^&\\s]+", "$1" + REDACTED);
         sanitized = sanitized.replaceAll("(?i)(purchase_token=)[^&\\s]+", "$1" + REDACTED);
         sanitized = sanitized.replaceAll("(?i)(\"api_key\"\\s*:\\s*\")[^\"]+\"", "$1" + REDACTED + "\"");
+        sanitized = sanitized.replaceAll("(?i)(\"password\"\\s*:\\s*\")[^\"]+\"", "$1" + REDACTED + "\"");
+        sanitized = sanitized.replaceAll("(?i)(\"identifier\"\\s*:\\s*\")[^\"]+\"", "$1" + REDACTED + "\"");
+        sanitized = sanitized.replaceAll("(?i)(\"code\"\\s*:\\s*\")[^\"]+\"", "$1" + REDACTED + "\"");
         sanitized = sanitized.replaceAll("(?i)(\"purchase_token\"\\s*:\\s*\")[^\"]+\"", "$1" + REDACTED + "\"");
         return sanitized;
     }

@@ -14,12 +14,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+
+import java.util.Locale;
 
 import ir.shecan.R;
 import ir.shecan.core.util.AppUtils;
@@ -126,8 +127,8 @@ public class PasswordFragment extends Fragment {
                         @Override
                         public void onError(int statusCode, String message) {
                             showLoading(false);
-                            if (isAdded() && message != null && !message.isEmpty()) {
-                                ToastManager.show(getContext(), message);
+                            if (isAdded()) {
+                                ToastManager.show(getContext(), resolveLoginError(statusCode, message));
                             }
                         }
                     }
@@ -250,5 +251,20 @@ public class PasswordFragment extends Fragment {
             binding.progressVerify.setVisibility(View.GONE);
             binding.btnContinue.setText(ContextCompat.getString(getContext(), R.string.login));
         }
+    }
+
+    private String resolveLoginError(int statusCode, String message) {
+        String normalized = message != null ? message.trim().toLowerCase(Locale.US) : "";
+        if (statusCode == 401
+                || statusCode == 403
+                || normalized.contains("authentication failed")
+                || normalized.contains("invalid credentials")
+                || normalized.contains("login failed")) {
+            return getString(R.string.login_error_invalid_credentials);
+        }
+        if (normalized.isEmpty() || normalized.startsWith("{") || normalized.startsWith("[")) {
+            return getString(R.string.login_error_generic);
+        }
+        return message.trim();
     }
 }

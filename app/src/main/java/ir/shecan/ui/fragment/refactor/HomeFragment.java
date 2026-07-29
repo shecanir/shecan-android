@@ -509,8 +509,10 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_VPN_ERROR,
                     TrackingUtils.bundleOf(TrackingUtils.PARAM_ERROR, errorMessage != null ? errorMessage : "unknown"));
         }
-        Shecan app = (Shecan) requireContext().getApplicationContext();
-        app.getVpnState().setValue(0);
+        Shecan app = Shecan.getInstance();
+        if (app != null) {
+            app.reportVpnFailure(errorMessage);
+        }
     }
 
     @Override
@@ -570,6 +572,8 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         } else {
             new Handler(Looper.getMainLooper()).post(() -> {
                 if (!isAdded() || isRemoving()) return;
+                Shecan app = (Shecan) requireContext().getApplicationContext();
+                app.reportVpnFailure(getString(R.string.connection_error_verification_failed));
                 Shecan.deactivateService(requireContext());
             });
         }
@@ -587,8 +591,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private void failDynamicIpStatusCheck() {
         cancelDynamicIpStatusCheck();
         Shecan app = (Shecan) requireContext().getApplicationContext();
-        app.getVpnStatus().setValue(getString(R.string.dynamic_ip_connection_not_ready));
-        app.getVpnState().setValue(0);
+        app.reportVpnFailure(getString(R.string.dynamic_ip_connection_not_ready));
     }
 
     private void startVpnAfterConnectionStatusVerified(String method) {

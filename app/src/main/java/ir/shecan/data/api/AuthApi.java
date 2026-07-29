@@ -46,6 +46,8 @@ import ir.shecan.data.modelDto.VerifyApiViewModel;
 
 public class AuthApi {
 
+    private static final int USER_ORDERS_QUERY_ID = 106;
+
     private static final Object BANNER_MATCH_LOCK = new Object();
     private static final List<ApiCallback<BannerViewModel>> BANNER_MATCH_CALLBACKS = new ArrayList<>();
     private static boolean bannerMatchLoaded = false;
@@ -265,10 +267,7 @@ public class AuthApi {
 
         repo.apiManager.setApiKey(apiKey);
 
-        String url =
-                "https://my.shecan.ir/issues.json?offset=" + offset +
-                        "&limit=" + limit +
-                        "&key=" + apiKey;
+        String url = buildIssuesUrl(apiKey, offset, limit);
 
         repo.request(
                 "issues",
@@ -279,6 +278,17 @@ public class AuthApi {
                 callback,
                 IssuesViewModel.class
         );
+    }
+
+    static String buildIssuesUrl(String apiKey, int offset, int limit) {
+        return Uri.parse("https://my.shecan.ir/issues.json")
+                .buildUpon()
+                .appendQueryParameter("query_id", String.valueOf(USER_ORDERS_QUERY_ID))
+                .appendQueryParameter("offset", String.valueOf(offset))
+                .appendQueryParameter("limit", String.valueOf(limit))
+                .appendQueryParameter("key", apiKey)
+                .build()
+                .toString();
     }
 
     public void paymentIssue(long paymentId, ApiCallback<PaymentIssueViewModel> callback) {
@@ -624,7 +634,28 @@ public class AuthApi {
             String sla,
             String period,
             long discount,
-            String discountCode
+            String discountCode,
+            Long renewalOrderId
+    ) {
+        return createSitePaymentUrl(
+                apiKey,
+                amount,
+                sla,
+                period,
+                discount,
+                discountCode,
+                renewalOrderId
+        );
+    }
+
+    static String createSitePaymentUrl(
+            String apiKey,
+            long amount,
+            String sla,
+            String period,
+            long discount,
+            String discountCode,
+            Long renewalOrderId
     ) {
         Uri.Builder builder = Uri.parse("https://my.shecan.ir/order/shecan/payment")
                 .buildUpon()
@@ -634,6 +665,10 @@ public class AuthApi {
                 .appendQueryParameter("period", period)
                 .appendQueryParameter("discount", String.valueOf(discount))
                 .appendQueryParameter("callback_url", Constant.AppPaymentCallbackUrl);
+
+        if (renewalOrderId != null && renewalOrderId > 0L) {
+            builder.appendQueryParameter("order_id", String.valueOf(renewalOrderId));
+        }
 
         if (discountCode != null && !discountCode.trim().isEmpty()) {
             builder.appendQueryParameter("discount_code", discountCode.trim());

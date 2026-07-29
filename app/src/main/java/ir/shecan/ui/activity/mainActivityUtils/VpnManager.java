@@ -3,12 +3,12 @@ package ir.shecan.ui.activity.mainActivityUtils;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.VpnService;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 
+import ir.shecan.R;
 import ir.shecan.Shecan;
 import ir.shecan.core.service.ShecanVpnService;
 import ir.shecan.core.util.ToastManager;
@@ -36,6 +36,8 @@ public class VpnManager {
                         result -> {
                             if (result.getResultCode() == Activity.RESULT_OK) {
                                 onVpnPermissionGranted();
+                            } else {
+                                failActivation(R.string.connection_error_vpn_permission_denied);
                             }
                         }
                 );
@@ -47,10 +49,11 @@ public class VpnManager {
     public void startVpnActivation() {
         Intent intent = VpnService.prepare(activity);
         if (intent != null) {
-            if (intent.resolveActivity(activity.getPackageManager()) != null) {
+            if (vpnPermissionLauncher != null
+                    && intent.resolveActivity(activity.getPackageManager()) != null) {
                 vpnPermissionLauncher.launch(intent);
             } else {
-                ToastManager.show(activity, "دستگاه شما از VPN داخلی پشتیبانی نمی‌کند.");
+                failActivation(R.string.connection_error_vpn_not_supported);
             }
         } else {
             onVpnPermissionGranted();
@@ -67,12 +70,16 @@ public class VpnManager {
     }
 
     private void onVpnPermissionGranted() {
-        setupDnsServers();
-        Shecan.getInstance().startService(
-                Shecan.getServiceIntent(activity.getApplicationContext())
-                        .setAction(ShecanVpnService.ACTION_ACTIVATE)
-        );
-        Shecan.updateShortcut(activity.getApplicationContext());
+        try {
+            setupDnsServers();
+            Shecan.getInstance().startService(
+                    Shecan.getServiceIntent(activity.getApplicationContext())
+                            .setAction(ShecanVpnService.ACTION_ACTIVATE)
+            );
+            Shecan.updateShortcut(activity.getApplicationContext());
+        } catch (RuntimeException error) {
+            failActivation(R.string.connection_error_vpn_start_failed);
+        }
     }
 
     private void setupDnsServers() {
@@ -90,12 +97,19 @@ public class VpnManager {
      */
     public void handleActivityResult(int resultCode) {
         if (resultCode == Activity.RESULT_OK) {
-            setupDnsServers();
-            Shecan.getInstance().startService(
-                    Shecan.getServiceIntent(activity.getApplicationContext())
-                            .setAction(ShecanVpnService.ACTION_ACTIVATE)
-            );
-            Shecan.updateShortcut(activity.getApplicationContext());
+            onVpnPermissionGranted();
+        } else {
+            failActivation(R.string.connection_error_vpn_permission_denied);
+        }
+    }
+
+    private void failActivation(int messageRes) {
+        Shecan app = Shecan.getInstance();
+        String message = activity.getString(messageRes);
+        if (app != null) {
+            app.reportVpnFailure(message);
+        } else {
+            ToastManager.show(activity, message);
         }
     }
 }

@@ -55,6 +55,7 @@ import ir.shecan.core.util.Configurations;
 import ir.shecan.core.util.LanguageHelper;
 import ir.shecan.core.util.Logger;
 import ir.shecan.core.util.Rule;
+import ir.shecan.core.util.ToastManager;
 import ir.shecan.data.modelDto.HomePage;
 import ir.shecan.core.util.server.DNSServer;
 import ir.shecan.core.util.server.DNSServerHelper;
@@ -122,6 +123,17 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         return vpnStatus;
     }
 
+    public void reportVpnFailure(String message) {
+        String userMessage = message == null || message.trim().isEmpty()
+                ? getString(R.string.connection_error_generic)
+                : message.trim();
+        vpnHandler.post(() -> {
+            vpnStatus.setValue("");
+            vpnState.setValue(0);
+            ToastManager.show(this, userMessage);
+        });
+    }
+
     public static long getAppStartedElapsedMs() {
         return instance != null ? instance.appStartedElapsedMs : 0L;
     }
@@ -187,8 +199,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         if (isPaidService && updateLink.isEmpty()) {
             Logger.error("Paid service " + serviceItem.getOrderCode()
                     + " has no update link (custom field 95)");
-            getVpnStatus().postValue(context.getString(R.string.pro_service_config_missing));
-            getVpnState().postValue(0);
+            reportVpnFailure(context.getString(R.string.pro_service_config_missing));
             return;
         }
 
@@ -197,10 +208,11 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
             // UpdateLink Mode
             setProMode();
 
-            String updaterUrl = String.format(
-                    "https://ddns.shecan.ir/update?password=%s",
-                    updateLink
-            );
+            String updaterUrl = Uri.parse("https://ddns.shecan.ir/update")
+                    .buildUpon()
+                    .appendQueryParameter("password", updateLink)
+                    .build()
+                    .toString();
             setUpdaterLink(updaterUrl);
 
             new Handler(Looper.getMainLooper()).postDelayed(() -> {

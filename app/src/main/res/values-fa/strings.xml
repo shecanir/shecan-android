@@ -85,6 +85,25 @@
     <string name="shecan_status_deactive">شکن فعال نیست</string>
     <string name="shecan_status_connecting">شما در حال اتصال هستید.\n این فرآیند ممکن است زمان بر باشد</string>
     <string name="dynamic_ip_connection_not_ready">اتصال هنوز آماده نشده است. لطفا چند لحظه دیگر دوباره تلاش کنید.</string>
+    <string name="connection_error_no_internet">اتصال اینترنت برقرار نیست. اینترنت را بررسی کنید و دوباره تلاش کنید.</string>
+    <string name="connection_error_timeout">زمان درخواست اتصال تمام شد. دوباره تلاش کنید یا اینترنت را تغییر دهید.</string>
+    <string name="connection_error_dns_lookup">سرور اتصال پیدا نشد. اینترنت را بررسی کنید یا با یک اینترنت دیگر امتحان کنید.</string>
+    <string name="connection_error_secure_connection">ارتباط امن با سرور برقرار نشد.</string>
+    <string name="connection_error_server">سرور اتصال با خطا مواجه شد. کمی بعد دوباره تلاش کنید.</string>
+    <string name="connection_error_too_many_requests">تعداد تلاش‌ها برای اتصال زیاد بوده است. کمی صبر کنید و دوباره تلاش کنید.</string>
+    <string name="connection_error_config_invalid">اطلاعات ذخیره‌شده این سرویس معتبر نیست. سرویس را دوباره انتخاب و مجدد امتحان کنید.</string>
+    <string name="connection_error_activation_denied">سرور اجازه فعال‌سازی این سرویس را نداد. سرویس را دوباره انتخاب و مجدد امتحان کنید.</string>
+    <string name="connection_error_request_rejected">درخواست اتصال رد شد (کد پاسخ: %1$d).</string>
+    <string name="connection_error_invalid_response">پاسخ سرور اتصال معتبر نبود.</string>
+    <string name="connection_error_dns_unreachable">سرورهای DNS شکن روی این اینترنت در دسترس نیستند. با یک اینترنت دیگر امتحان کنید.</string>
+    <string name="connection_error_vpn_permission_denied">مجوز ساخت اتصال VPN داده نشد.</string>
+    <string name="connection_error_vpn_not_supported">این دستگاه از سرویس VPN داخلی پشتیبانی نمی‌کند.</string>
+    <string name="connection_error_vpn_start_failed">سرویس VPN اجرا نشد.</string>
+    <string name="connection_error_vpn_interface_failed">اتصال VPN روی دستگاه ساخته نشد.</string>
+    <string name="connection_error_verification_failed">اتصال ساخته شد، اما تأیید نشد. با یک اینترنت دیگر امتحان کنید.</string>
+    <string name="connection_error_generic">خطایی رخ داد. دوباره تلاش کنید.</string>
+    <string name="login_error_invalid_credentials">شماره همراه، ایمیل یا رمز عبور درست نیست.</string>
+    <string name="login_error_generic">ورود انجام نشد. دوباره تلاش کنید.</string>
     <string name="donate">شکن</string>
     <string name="check_and_report">بررسی و گزارش</string>
     <string name="free_shecan">شکن رایگان</string>
@@ -226,6 +245,6 @@
     <string name="theme_auto">خودکار</string>
     <string name="billing_period_monthly">ماهانه</string>
     <string name="service_status">وضعیت سرویس</string>
-    <string name="pro_service_config_missing">اطلاعات اتصال سرویس پرو کامل نیست. لطفاً دوباره تلاش کنید.</string>
+    <string name="pro_service_config_missing">اطلاعات اتصال سرویس حرفه‌ای کامل نیست. سرویس را دوباره انتخاب و مجدد امتحان کنید.</string>
 
 </resources>

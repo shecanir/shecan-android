@@ -41,7 +41,6 @@ import ir.myket.billingclient.util.Purchase;
 import ir.shecan.BuildConfig;
 import ir.shecan.R;
 import ir.shecan.core.billing.BillingHost;
-import ir.shecan.core.billing.BillingPaymentReturnState;
 import ir.shecan.core.billing.BillingPeriod;
 import ir.shecan.core.billing.BillingPlan;
 import ir.shecan.core.billing.BillingPlanCatalog;
@@ -765,12 +764,12 @@ public class BillingPlansFragment extends ToolbarFragment implements BillingPurc
                 selectedItem.getPlan().getSla().getApiValue(),
                 selectedItem.getPlan().getPeriod().getApiValue(),
                 discount,
-                selectedItem.getDiscountCode()
+                selectedItem.getDiscountCode(),
+                getRenewalOrderIdOrNull()
         );
 
         pendingPlan = null;
         showStatus(getString(R.string.billing_site_payment_redirecting), false);
-        new BillingPaymentReturnState(requireContext()).clear();
         PanelWebActivity.openPayment(requireContext(), paymentUrl);
         setPaymentLoading(false);
     }

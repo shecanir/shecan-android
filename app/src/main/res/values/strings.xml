@@ -92,6 +92,25 @@
     <string name="shecan_status_deactive">shecan is not active</string>
     <string name="shecan_status_connecting">You are connecting.\n This process may take some time</string>
     <string name="dynamic_ip_connection_not_ready">Connection is not ready yet. Please try again in a moment.</string>
+    <string name="connection_error_no_internet">No internet connection. Check your network and try again.</string>
+    <string name="connection_error_timeout">The connection request timed out. Try again or switch networks.</string>
+    <string name="connection_error_dns_lookup">The connection server could not be found. Check your network or switch networks.</string>
+    <string name="connection_error_secure_connection">A secure connection to the server could not be established.</string>
+    <string name="connection_error_server">The connection server encountered an error. Please try again shortly.</string>
+    <string name="connection_error_too_many_requests">Too many connection attempts were made. Please wait a moment and try again.</string>
+    <string name="connection_error_config_invalid">The saved service configuration is not valid. Select the service again and retry.</string>
+    <string name="connection_error_activation_denied">The server did not allow this service to be activated. Select the service again and retry.</string>
+    <string name="connection_error_request_rejected">The connection request was rejected (response code: %1$d).</string>
+    <string name="connection_error_invalid_response">The connection server returned an invalid response.</string>
+    <string name="connection_error_dns_unreachable">The Shecan DNS servers are not reachable on this network. Try another network.</string>
+    <string name="connection_error_vpn_permission_denied">VPN permission was not granted.</string>
+    <string name="connection_error_vpn_not_supported">This device does not support the built-in VPN service.</string>
+    <string name="connection_error_vpn_start_failed">The VPN service could not be started.</string>
+    <string name="connection_error_vpn_interface_failed">The VPN connection could not be created on this device.</string>
+    <string name="connection_error_verification_failed">The connection was created, but could not be verified. Try another network.</string>
+    <string name="connection_error_generic">An error occurred. Please try again.</string>
+    <string name="login_error_invalid_credentials">The phone number, email, or password is incorrect.</string>
+    <string name="login_error_generic">Login failed. Please try again.</string>
     <string name="donate">Shecan</string>
     <string name="donate_icon">Donate Icon</string>
     <string name="logo_image">Logo Image</string>
@@ -288,5 +307,5 @@
     <string name="theme_auto">خودکار</string>
     <string name="billing_period_monthly">ماهانه</string>
     <string name="service_status">وضعیت سرویس</string>
-    <string name="pro_service_config_missing">اطلاعات اتصال سرویس پرو کامل نیست. لطفاً دوباره تلاش کنید.</string>
+    <string name="pro_service_config_missing">The Pro service connection details are incomplete. Select the service again and retry.</string>
 </resources>
