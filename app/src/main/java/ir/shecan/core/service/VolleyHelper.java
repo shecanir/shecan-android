@@ -10,8 +10,25 @@ import javax.net.ssl.SSLSocketFactory;
 
 public class VolleyHelper {
 
+    private static volatile RequestQueue secureRequestQueue;
+
     public static RequestQueue getSecureRequestQueue(Context context) {
-        SSLSocketFactory sslSocketFactory = CustomSSLSocketFactory.getSSLSocketFactory(context);
-        return Volley.newRequestQueue(context, new HurlStack(null, sslSocketFactory));
+        RequestQueue queue = secureRequestQueue;
+        if (queue == null) {
+            synchronized (VolleyHelper.class) {
+                queue = secureRequestQueue;
+                if (queue == null) {
+                    Context applicationContext = context.getApplicationContext();
+                    SSLSocketFactory sslSocketFactory =
+                            CustomSSLSocketFactory.getSSLSocketFactory(applicationContext);
+                    queue = Volley.newRequestQueue(
+                            applicationContext,
+                            new HurlStack(null, sslSocketFactory)
+                    );
+                    secureRequestQueue = queue;
+                }
+            }
+        }
+        return queue;
     }
 }

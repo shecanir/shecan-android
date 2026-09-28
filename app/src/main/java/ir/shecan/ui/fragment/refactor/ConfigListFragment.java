@@ -22,6 +22,7 @@ import ir.shecan.R;
 import ir.shecan.core.billing.BillingPeriod;
 import ir.shecan.core.billing.BillingSla;
 import ir.shecan.core.constant.RequestStatus;
+import ir.shecan.core.service.MonitoringService;
 import ir.shecan.core.util.AppUtils;
 import ir.shecan.core.util.DebugJsonLogger;
 import ir.shecan.core.util.DynamicBannerRequestFactory;
@@ -215,6 +216,7 @@ public class ConfigListFragment extends ToolbarFragment {
 
                         appStorage.saveServiceStatus(item);
                         appStorage.markServiceSelectionExplicit();
+                        MonitoringService.refresh(requireContext());
 
                         activity.configIsChange = true;
 

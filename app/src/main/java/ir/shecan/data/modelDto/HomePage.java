@@ -24,6 +24,8 @@ public class HomePage {
     private List<String> freeDnsUdp;
     private DynamicDataDTO dynamicData;
     private MonitoringDTO monitoring;
+    private SentryDTO sentry;
+    private Integer sentrySampleRate;
 
     public String getCurrentVersion() {
         return currentVersion;
@@ -183,6 +185,26 @@ public class HomePage {
 
     public void setMonitoring(MonitoringDTO monitoring) {
         this.monitoring = monitoring;
+    }
+
+    public Integer getSentrySampleRate() {
+        if (sentry != null && sentry.getAndroid() != null
+                && sentry.getAndroid().getSampleRate() != null) {
+            return sentry.getAndroid().getSampleRate();
+        }
+        return sentrySampleRate;
+    }
+
+    public void setSentrySampleRate(Integer sentrySampleRate) {
+        this.sentrySampleRate = sentrySampleRate;
+    }
+
+    public SentryDTO getSentry() {
+        return sentry;
+    }
+
+    public void setSentry(SentryDTO sentry) {
+        this.sentry = sentry;
     }
 
     public static class VersionDTO {
@@ -466,6 +488,48 @@ public class HomePage {
 
         public void setLogs(String logs) {
             this.logs = logs;
+        }
+    }
+
+    public static class SentryDTO {
+        private SentryPlatformDTO desktop;
+        private SentryPlatformDTO android;
+
+        public SentryPlatformDTO getDesktop() {
+            return desktop;
+        }
+
+        public void setDesktop(SentryPlatformDTO desktop) {
+            this.desktop = desktop;
+        }
+
+        public SentryPlatformDTO getAndroid() {
+            return android;
+        }
+
+        public void setAndroid(SentryPlatformDTO android) {
+            this.android = android;
+        }
+    }
+
+    public static class SentryPlatformDTO {
+        private Integer sampleRate;
+        private String url;
+
+        public Integer getSampleRate() {
+            return sampleRate;
+        }
+
+        public void setSampleRate(Integer sampleRate) {
+            this.sampleRate = sampleRate;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
         }
     }
 }

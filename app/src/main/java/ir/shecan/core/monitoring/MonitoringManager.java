@@ -19,7 +19,6 @@ import ir.shecan.data.modelDto.monitoring.MonitoringLogsRequest;
 import ir.shecan.data.modelDto.monitoring.MonitoringLogsResponse;
 import ir.shecan.data.modelDto.monitoring.MonitoringTarget;
 import ir.shecan.data.modelDto.monitoring.MonitoringTargetsResponse;
-import ir.shecan.core.service.ShecanVpnService;
 
 public class MonitoringManager {
     private static final String TAG = "MonitoringManager";
@@ -58,7 +57,6 @@ public class MonitoringManager {
 
     public synchronized void start() {
         if (active) return;
-        if (!ShecanVpnService.isActivated()) return;
 
         active = true;
         if (hasFreshCachedTargets()) {
@@ -86,10 +84,7 @@ public class MonitoringManager {
     }
 
     private void fetchTargets() {
-        if (!active || !ShecanVpnService.isActivated()) {
-            active = false;
-            return;
-        }
+        if (!active) return;
         if (!connectivity.isOnline()) {
             scheduleTargetFetchRetry();
             return;
@@ -144,14 +139,15 @@ public class MonitoringManager {
         scheduler = Executors.newSingleThreadScheduledExecutor();
         scheduler.scheduleWithFixedDelay(
                 this::runOnceSafely,
-                intervalSeconds,
+                // Targets are ready, so run the first monitoring batch immediately.
+                0,
                 intervalSeconds,
                 TimeUnit.SECONDS
         );
     }
 
     private synchronized void scheduleTargetFetchRetry() {
-        if (!active || !ShecanVpnService.isActivated()) return;
+        if (!active) return;
 
         if (scheduler != null) {
             scheduler.shutdownNow();
@@ -162,8 +158,7 @@ public class MonitoringManager {
     }
 
     private void runOnceSafely() {
-        if (!active || !MonitoringAppState.isAppActive()
-                || !connectivity.isOnline() || !ShecanVpnService.isActivated()) return;
+        if (!active || !connectivity.isOnline()) return;
         if (!runningChecks.compareAndSet(false, true)) return;
 
         try {

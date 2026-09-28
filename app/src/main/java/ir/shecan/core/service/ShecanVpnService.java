@@ -1,8 +1,5 @@
 package ir.shecan.core.service;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +12,6 @@ import android.system.OsConstants;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 import androidx.core.util.Pair;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -40,13 +36,11 @@ import de.measite.minidns.Question;
 import de.measite.minidns.Record;
 import ir.shecan.R;
 import ir.shecan.Shecan;
-import ir.shecan.core.monitoring.MonitoringManager;
 import ir.shecan.ui.activity.MainActivityNew;
 import ir.shecan.ui.fragment.DNSQuery;
 import ir.shecan.core.provider.Provider;
 import ir.shecan.core.provider.TcpProvider;
 import ir.shecan.core.provider.UdpProvider;
-import ir.shecan.core.receiver.StatusBarBroadcastReceiver;
 import ir.shecan.core.util.Logger;
 import ir.shecan.core.util.server.AbstractDNSServer;
 import ir.shecan.core.util.server.DNSServerHelper;
@@ -66,7 +60,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private static final String ConnectionStatusRequest = "connection_status_request";
     private static final String CoreApiRequest = "core_api_request";
 
-    private static final int NOTIFICATION_ACTIVATED = 0;
     private static final long CONNECTION_STATUS_RETRY_DELAY_MS = 10_000L;
     private static final long CONNECTION_VERIFY_TIMEOUT_MS = 70_000L;
 
@@ -75,14 +68,9 @@ public class ShecanVpnService extends VpnService implements Runnable {
     public static AbstractDNSServer primaryServer;
     public static AbstractDNSServer secondaryServer;
 
-    private NotificationCompat.Builder notification = null;
-
     private volatile boolean running = false;
-    private long lastUpdate = 0;
-    private boolean statisticQuery;
     private Provider provider;
     private ParcelFileDescriptor descriptor;
-    private MonitoringManager monitoringManager;
     private final Handler connectionStatusHandler = new Handler(Looper.getMainLooper());
     private long connectionVerificationDeadlineMs = 0L;
     private volatile boolean failureReported = false;
@@ -93,7 +81,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     private long sessionStartTime = 0L;
 
-    private static boolean activated = false;
+    private static volatile boolean activated = false;
 
     public static boolean isActivated() {
         return activated;
@@ -116,70 +104,22 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        monitoringManager = new MonitoringManager(getApplicationContext());
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null) {
             switch (Objects.requireNonNull(intent.getAction())) {
                 case ACTION_ACTIVATE:
                     activated = true;
+                    ((Shecan) getApplicationContext())
+                            .setVpnState(Shecan.VPN_STATE_CONNECTING);
+                    startForeground(
+                            MonitoringService.NOTIFICATION_ID,
+                            MonitoringService.createNotification(this)
+                    );
                     failureReported = false;
                     connectionVerificationDeadlineMs = 0L;
 
                     Context applicationContext = getApplicationContext();
-                    if (Shecan.getPrefs().getBoolean("settings_notification", true)) {
-
-                        NotificationManager manager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-
-                        String channelId = createNotificationChannel(false);
-
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId);
-
-                        Intent mainIntent = new Intent(this, MainActivityNew.class);
-                        mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                        int pendingIntentFlag = PendingIntent.FLAG_UPDATE_CURRENT;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            pendingIntentFlag |= PendingIntent.FLAG_IMMUTABLE;
-                        }
-
-                        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, pendingIntentFlag);
-
-                        Intent deactivateIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION);
-                        Intent settingIntent = new Intent(StatusBarBroadcastReceiver.STATUS_BAR_BTN_SETTINGS_CLICK_ACTION);
-
-
-                        deactivateIntent.setClass(applicationContext, StatusBarBroadcastReceiver.class);
-                        settingIntent.setClass(applicationContext, StatusBarBroadcastReceiver.class);
-
-                        int broadcastFlag = 0;
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            broadcastFlag = PendingIntent.FLAG_MUTABLE;
-                        }
-
-                        builder.setWhen(0)
-                                .setContentTitle(getResources().getString(R.string.notice_activated))
-                                .setSmallIcon(R.drawable.ic_notification)
-                                .setColor(getResources().getColor(R.color.colorPrimary)) // backward compatibility
-                                .setAutoCancel(false)
-                                .setOngoing(true)
-                                .setTicker(getResources().getString(R.string.notice_activated))
-                                .setContentIntent(pendingIntent)
-                                .addAction(R.drawable.ic_clear, getResources().getString(R.string.button_text_deactivate),
-                                        PendingIntent.getBroadcast(this, 0, deactivateIntent, broadcastFlag))
-                                .addAction(R.drawable.ic_settings, getResources().getString(R.string.action_settings),
-                                        PendingIntent.getBroadcast(this, 0, settingIntent, broadcastFlag));
-
-                        Notification notificationBuilt = builder.build();
-
-                        manager.notify(NOTIFICATION_ACTIVATED, notificationBuilt);
-
-                        this.notification = builder;
-                    }
+                    MonitoringService.refresh(applicationContext);
 
                     if (this.mThread == null) {
                         this.mThread = new Thread(this, "ShecanVpn");
@@ -255,9 +195,9 @@ public class ShecanVpnService extends VpnService implements Runnable {
     private void stopThread() {
         Log.d(TAG, "stopThread");
         activated = false;
-        if (monitoringManager != null) {
-            monitoringManager.stop();
-        }
+        ((Shecan) getApplicationContext())
+                .setVpnState(Shecan.VPN_STATE_DISCONNECTED);
+        MonitoringService.refresh(getApplicationContext());
 
         // ===== SAVE SESSION DURATION =====
         if (sessionStartTime > 0) {
@@ -333,11 +273,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 this.descriptor = null;
             }
 
-            if (notification != null) {
-                NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                if (notificationManager != null) notificationManager.cancel(NOTIFICATION_ACTIVATED);
-                notification = null;
-            }
             dnsServers = null;
         } catch (Exception e) {
             Logger.logException(e);
@@ -350,7 +285,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
         connectionStatusHandler.removeCallbacksAndMessages(null);
         if (shouldRefresh) {
-            ((Shecan) getApplicationContext()).getVpnState().postValue(0);
             Shecan.updateShortcut(getApplicationContext());
             Logger.info("shecan service has stopped");
         }
@@ -422,7 +356,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
             boolean advanced = true; // feature flag - kept true for advanced behavior
 
-            statisticQuery = Shecan.getPrefs().getBoolean("settings_count_query_times", false);
             byte[] ipv6Template = new byte[]{32, 1, 13, (byte) (184 & 0xFF), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
             boolean hasIPv6 = false;
@@ -473,9 +406,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
             }
 
             Logger.info("shecan service is started");
-            if (monitoringManager != null) {
-                monitoringManager.start();
-            }
 
             // ===== START SESSION TRACKING =====
             sessionStartTime = System.currentTimeMillis();
@@ -513,9 +443,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
     }
 
     public void providerLoopCallback() {
-        if (statisticQuery) {
-            updateUserInterface();
-        }
+        // Kept for provider compatibility. The VPN no longer owns a separate notification.
     }
 
     private void verifyConnectionStatusAfterStart() {
@@ -531,7 +459,10 @@ public class ShecanVpnService extends VpnService implements Runnable {
             public void onConnected() {
                 if (!activated || !running) return;
                 connectionVerificationDeadlineMs = 0L;
-                ((Shecan) getApplicationContext()).getVpnState().postValue(2);
+                // Keep the application state and the notification state in sync.  Posting
+                // directly to LiveData updates the screen, but leaves the state consumed by
+                // MonitoringService stuck at CONNECTING.
+                ((Shecan) getApplicationContext()).setVpnState(Shecan.VPN_STATE_CONNECTED);
             }
 
             @Override
@@ -543,7 +474,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
                     stopThread();
                     return;
                 }
-                ((Shecan) getApplicationContext()).getVpnState().postValue(1);
+                ((Shecan) getApplicationContext()).setVpnState(Shecan.VPN_STATE_CONNECTING);
                 connectionStatusHandler.postDelayed(
                         ShecanVpnService.this::checkConnectionStatusAfterStart,
                         CONNECTION_STATUS_RETRY_DELAY_MS
@@ -557,25 +488,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
         ((Shecan) getApplicationContext()).reportVpnFailure(getString(messageRes));
     }
 
-    private void updateUserInterface() {
-        long time = System.currentTimeMillis();
-        if (time - lastUpdate >= 1000) {
-            lastUpdate = time;
-            if (notification != null && provider != null) {
-                try {
-                    long queries = provider.getDnsQueryTimes();
-                    notification.setContentTitle(getResources().getString(R.string.notice_queries) + " " + queries);
-                    NotificationManager manager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
-                    if (manager != null)
-                        manager.notify(NOTIFICATION_ACTIVATED, notification.build());
-                } catch (Exception e) {
-                    Logger.logException(e);
-                }
-            }
-        }
-    }
-
-
     public static class VpnNetworkException extends Exception {
         public VpnNetworkException(String s) {
             super(s);
@@ -585,37 +497,6 @@ public class ShecanVpnService extends VpnService implements Runnable {
             super(s, t);
         }
 
-    }
-
-    public String createNotificationChannel(boolean allowHiding) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager == null) return "defaultchannel";
-
-            if (allowHiding && Shecan.getPrefs().getBoolean("hide_notification_icon", false)) {
-                String id = "noIconChannel";
-                if (notificationManager.getNotificationChannel(id) == null) {
-                    NotificationChannel channel = new NotificationChannel(id, getString(R.string.notification_channel_hiddenicon), NotificationManager.IMPORTANCE_MIN);
-                    channel.enableLights(false);
-                    channel.enableVibration(false);
-                    channel.setDescription(getString(R.string.notification_channel_hiddenicon_description));
-                    notificationManager.createNotificationChannel(channel);
-                }
-                return id;
-            } else {
-                String id = "defaultchannel";
-                if (notificationManager.getNotificationChannel(id) == null) {
-                    NotificationChannel channel = new NotificationChannel(id, getString(R.string.notification_channel_default), NotificationManager.IMPORTANCE_LOW);
-                    channel.enableLights(false);
-                    channel.enableVibration(false);
-                    channel.setDescription(getString(R.string.notification_channel_default_description));
-                    notificationManager.createNotificationChannel(channel);
-                }
-                return id;
-            }
-        } else {
-            return "defaultchannel";
-        }
     }
 
     public static void callCoreAPI(final Context context, final CoreApiResponseListener listener) {
@@ -647,10 +528,13 @@ public class ShecanVpnService extends VpnService implements Runnable {
                             break;
 
                         case "in the range":
+                            // The updater response is the source of truth for the mode.  Do
+                            // this before dispatching the callback so background IP checks do
+                            // not keep using a stale mode from an earlier connection.
+                            Shecan.setStaticIPMode();
                             if (listener != null) {
                                 listener.onInTheRange();
                             } else {
-                                Shecan.setStaticIPMode();
                                 ((Shecan) context.getApplicationContext())
                                         .getProActivatedEvent()
                                         .postValue(true);
@@ -668,10 +552,15 @@ public class ShecanVpnService extends VpnService implements Runnable {
                             break;
 
                         default:
+                            Shecan.setDynamicIPMode();
                             Shecan.setDynamicIP(result.trim());
-                            ((Shecan) context.getApplicationContext())
-                                    .getProActivatedEvent()
-                                    .postValue(true);
+                            if (listener != null) {
+                                listener.onSuccess(result.trim());
+                            } else {
+                                ((Shecan) context.getApplicationContext())
+                                        .getProActivatedEvent()
+                                        .postValue(true);
+                            }
 
                             break;
                     }
@@ -683,6 +572,7 @@ public class ShecanVpnService extends VpnService implements Runnable {
         );
 
         stringRequest.setTag(CoreApiRequest);
+        stringRequest.setShouldCache(false);
         requestQueue.add(stringRequest);
     }
 
@@ -711,13 +601,14 @@ public class ShecanVpnService extends VpnService implements Runnable {
         ));
 
         stringRequest.setTag(ConnectionStatusRequest);
+        stringRequest.setShouldCache(false);
         requestQueue.add(stringRequest);
     }
 
     @NonNull
     private static StringRequest getStringRequest(ConnectionStatusApiListener listener) {
         String apiUrl = "https://check.shecan.ir";
-        // show the cached connected IP connected before the api call, when gets error
+        // This endpoint must always reflect the current public IP and VPN state.
         return new StringRequest(
                 Request.Method.GET,
                 apiUrl,

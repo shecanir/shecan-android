@@ -31,6 +31,7 @@ import com.google.android.gms.tasks.Task;
 import ir.shecan.R;
 import ir.shecan.core.receiver.OtpReceiver;
 import ir.shecan.core.util.AppUtils;
+import ir.shecan.core.util.PersianTools;
 import ir.shecan.core.util.ToastManager;
 import ir.shecan.core.util.TrackingUtils;
 import ir.shecan.data.api.ApiCallback;
@@ -160,7 +161,7 @@ public class OtpFragment extends Fragment {
                 public void afterTextChanged(Editable s) {
                     if (suppressOtpChanges) return;
 
-                    String digits = s.toString().replaceAll("\\D+", "");
+                    String digits = PersianTools.extractEnglishDigits(s.toString());
                     if (digits.length() > 1) {
                         fillOtpFrom(index, digits);
                         return;
@@ -168,7 +169,6 @@ public class OtpFragment extends Fragment {
 
                     if (!digits.equals(s.toString())) {
                         setOtpField(index, digits);
-                        return;
                     }
 
                     // وقتی یک رقم زده شد → برو فیلد بعد
@@ -214,7 +214,7 @@ public class OtpFragment extends Fragment {
     }
 
     private void fillOtpFrom(int startIndex, String rawDigits) {
-        String digits = rawDigits == null ? "" : rawDigits.replaceAll("\\D+", "");
+        String digits = PersianTools.extractEnglishDigits(rawDigits);
         if (digits.isEmpty()) return;
 
         suppressOtpChanges = true;
@@ -311,7 +311,7 @@ public class OtpFragment extends Fragment {
                 shakeError(getString(R.string.codeIsUnCompleted));
                 return;
             }
-            codeBuilder.append(otpField.getText());
+            codeBuilder.append(PersianTools.extractEnglishDigits(otpField.getText().toString()));
         }
 
         isVerifyingOtp = true;

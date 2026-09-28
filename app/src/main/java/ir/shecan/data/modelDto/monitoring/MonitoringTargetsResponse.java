@@ -1,11 +1,15 @@
 package ir.shecan.data.modelDto.monitoring;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MonitoringTargetsResponse {
     private int version;
+    @SerializedName(value = "intervalSeconds", alternate = {"interval_seconds"})
     private Integer intervalSeconds;
+    @SerializedName(value = "samplingPercent", alternate = {"sampling_percent"})
     private Integer samplingPercent;
     private List<MonitoringTarget> targets;
 

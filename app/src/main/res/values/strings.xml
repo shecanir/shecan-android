@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Shecan</string>
+    <string name="app_name">شکن</string>
     <string name="quick_toggle">Toggle</string>
 
     <string name="notice_main_disconnected">You cannot access sanctioned websites and services. Press the button below to activate.</string>
@@ -72,10 +72,28 @@
 
     <string name="nav_version">Version:</string>
     <string name="settings_language">Language</string>
-    <string name="notification_channel_default">Default Channel</string>
-    <string name="notification_channel_default_description">Default channel for posting notifications.</string>
-    <string name="notification_channel_hiddenicon">Channel with no icon</string>
-    <string name="notification_channel_hiddenicon_description">This channel shows no icon in the notification bar</string>
+    <string name="notification_channel_default">اعلان‌های شکن</string>
+    <string name="notification_channel_default_description">اعلان‌های وضعیت و کنترل شکن.</string>
+    <string name="notification_channel_hiddenicon">اعلان کم‌صدا</string>
+    <string name="notification_channel_hiddenicon_description">اعلان‌های کم‌صدای شکن.</string>
+    <string name="monitoring_notification_channel">کنترل شکن</string>
+    <string name="monitoring_notification_channel_description">دسترسی سریع برای روشن و خاموش کردن شکن.</string>
+    <string name="monitoring_notification_active_text">شکن روشن است و آماده استفاده است.</string>
+    <string name="monitoring_notification_inactive_text">برای شروع، شکن را روشن کنید.</string>
+    <string name="notification_active_title">شکن روشن است</string>
+    <string name="notification_inactive_title">شکن خاموش است</string>
+    <string name="notification_connecting_title">شکن در حال اتصال است</string>
+    <string name="notification_active_subtitle">دسترسی امن و سریع برقرار است</string>
+    <string name="notification_inactive_subtitle">برای شروع، شکن را روشن کنید</string>
+    <string name="notification_connecting_subtitle">در حال ثبت IP و بررسی اتصال…</string>
+    <string name="notification_status_connected">متصل</string>
+    <string name="notification_status_ready">آماده اتصال</string>
+    <string name="notification_turn_on">روشن کردن شکن</string>
+    <string name="notification_turn_off">خاموش کردن شکن</string>
+    <string name="notification_turn_on_short">روشن کن</string>
+    <string name="notification_turn_off_short">خاموش کن</string>
+    <string name="notification_selected_service">سرویس انتخابی</string>
+    <string name="notification_logo_description">نشان شکن</string>
     <string name="about_us_text">سامانه «شکن» یک تحریم‌شکن ایرانی و قانونی است که امکان دسترسی به سایت‌های تحریم‌شده را بدون نیاز به ابزارهای ناقض حریم خصوصی و امنیت مانند فیلترشکن، وی‌پی‌ان و پراکسی به آسانی و برای استفاده شخصی به رایگان فراهم می‌کند.</string>
     <string name="website_link"><a href="https://shecan.ir/">shecan.ir</a></string>
     <string name="telegram_link"><a href="https://t.me/shecan_ir">@shecan_ir</a></string>
@@ -90,7 +108,6 @@
     <string name="shecan_status_pro_static_active">shecan is active with static IP</string>
     <string name="shecan_status_pro_dynamic_active">shecan is active with dynamic IP</string>
     <string name="shecan_status_deactive">shecan is not active</string>
-    <string name="shecan_status_connecting">You are connecting.\n This process may take some time</string>
     <string name="dynamic_ip_connection_not_ready">Connection is not ready yet. Please try again in a moment.</string>
     <string name="connection_error_no_internet">No internet connection. Check your network and try again.</string>
     <string name="connection_error_timeout">The connection request timed out. Try again or switch networks.</string>

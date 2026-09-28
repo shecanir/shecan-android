@@ -17,6 +17,7 @@ import ir.shecan.Shecan;
 import ir.shecan.core.billing.BillingPlan;
 import ir.shecan.core.billing.BillingPlanCatalog;
 import ir.shecan.core.constant.Constant;
+import ir.shecan.core.util.PersianTools;
 import ir.shecan.data.modelDio.ExistApiInput;
 import ir.shecan.data.modelDio.BannerMatchApiInput;
 import ir.shecan.data.modelDio.DialogActionApiInput;
@@ -65,15 +66,21 @@ public class AuthApi {
         repo = new ApiRepository(context);
     }
 
+    private static String normalizeAuthIdentifier(String identifier) {
+        String normalized = PersianTools.convertToEnglishDigits(identifier);
+        return normalized != null ? normalized.trim() : null;
+    }
+
     // ---------------------------------------------------
     // 1) exists
     // ---------------------------------------------------
     public void exists(String identifier, ApiCallback<ExistApiViewModel> callback) {
+        String normalizedIdentifier = normalizeAuthIdentifier(identifier);
 
-        ExistApiInput input = new ExistApiInput(identifier);
+        ExistApiInput input = new ExistApiInput(normalizedIdentifier);
 
         repo.request(
-                "otp_exists_" + identifier,
+                "otp_exists_" + normalizedIdentifier,
                 input,
                 storeHeader(),
                 "https://my.shecan.ir/api/auth/exists",
@@ -88,11 +95,12 @@ public class AuthApi {
     // 2) login
     // ---------------------------------------------------
     public void login(String identifier, String password, ApiCallback<VerifyApiViewModel> callback) {
+        String normalizedIdentifier = normalizeAuthIdentifier(identifier);
 
-        LoginApiInput input = new LoginApiInput(identifier, password);
+        LoginApiInput input = new LoginApiInput(normalizedIdentifier, password);
 
         repo.request(
-                "login_" + identifier,
+                "login_" + normalizedIdentifier,
                 input,
                 storeHeader(),
                 "https://my.shecan.ir/api/auth/login",
@@ -107,11 +115,12 @@ public class AuthApi {
     // 3) send OTP
     // ---------------------------------------------------
     public void sendOtp(String identifier, ApiCallback<SendOtpApiViewModel> callback) {
+        String normalizedIdentifier = normalizeAuthIdentifier(identifier);
 
-        SendOtpApiInput input = new SendOtpApiInput(identifier);
+        SendOtpApiInput input = new SendOtpApiInput(normalizedIdentifier);
 
         repo.request(
-                "otp_send_" + identifier,
+                "otp_send_" + normalizedIdentifier,
                 input,
                 storeHeader(),
                 "https://my.shecan.ir/api/auth/send-otp",
@@ -127,11 +136,13 @@ public class AuthApi {
     // ---------------------------------------------------
 
     public void verifyOtpObject(String identifier, String code, ApiCallback<VerifyApiViewModel> callback) {
+        String normalizedIdentifier = normalizeAuthIdentifier(identifier);
+        String normalizedCode = PersianTools.extractEnglishDigits(code);
 
-        VerifyApiInput input = new VerifyApiInput(code, identifier);
+        VerifyApiInput input = new VerifyApiInput(normalizedCode, normalizedIdentifier);
 
         repo.request(
-                "otp_verify_Object_" + identifier,
+                "otp_verify_Object_" + normalizedIdentifier,
                 input,
                 storeHeader(),
                 "https://my.shecan.ir/api/auth/verify",
@@ -143,11 +154,13 @@ public class AuthApi {
     }
 
     public void verifyOtp(String identifier, String code, ApiCallback<VerifyApiViewModel> callback) {
+        String normalizedIdentifier = normalizeAuthIdentifier(identifier);
+        String normalizedCode = PersianTools.extractEnglishDigits(code);
 
-        VerifyApiInput input = new VerifyApiInput(code, identifier);
+        VerifyApiInput input = new VerifyApiInput(normalizedCode, normalizedIdentifier);
 
         repo.requestList(
-                "otp_verify_" + identifier,
+                "otp_verify_" + normalizedIdentifier,
                 input,
                 storeHeader(),
                 "https://my.shecan.ir/api/auth/verify",
@@ -946,18 +959,7 @@ public class AuthApi {
     }
 
     private String toEnglishDigits(String value) {
-        StringBuilder builder = new StringBuilder(value.length());
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-            if (c >= '۰' && c <= '۹') {
-                builder.append((char) ('0' + (c - '۰')));
-            } else if (c >= '٠' && c <= '٩') {
-                builder.append((char) ('0' + (c - '٠')));
-            } else {
-                builder.append(c);
-            }
-        }
-        return builder.toString();
+        return PersianTools.convertToEnglishDigits(value);
     }
 
     // ---------------------------------------------------

@@ -19,6 +19,7 @@ import androidx.fragment.app.Fragment;
 
 import ir.shecan.R;
 import ir.shecan.core.util.AppUtils;
+import ir.shecan.core.util.PersianTools;
 import ir.shecan.core.util.ToastManager;
 import ir.shecan.core.util.TrackingUtils;
 import ir.shecan.data.api.ApiCallback;
@@ -178,9 +179,12 @@ public class LoginFragment extends Fragment {
     }
 
     public String formatPhoneNumber(String phoneNumber) {
-        if (phoneNumber != null && phoneNumber.matches("\\d{10}")) {
-            return "0" + phoneNumber;
+        String normalized = PersianTools.convertToEnglishDigits(phoneNumber);
+        if (normalized != null) normalized = normalized.trim();
+
+        if (normalized != null && normalized.matches("[0-9]{10}")) {
+            return "0" + normalized;
         }
-        return phoneNumber;
+        return normalized;
     }
 }

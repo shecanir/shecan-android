@@ -32,17 +32,19 @@ https://my.shecan.ir/monitoring/logs
 
 ## فلو اجرا
 
-Monitoring داخل `ShecanVpnService` ساخته می‌شود و فقط بعد از فعال شدن VPN شروع می‌شود. یعنی اپ monitoring را به شکل مستقل و دائمی در background اجرا نمی‌کند.
+Monitoring داخل یک foreground service مستقل ساخته می‌شود و با شروع process اپ آغاز می‌شود. اجرای آن به فعال بودن VPN یا foreground بودن Activity وابسته نیست و حذف اپ از Recent Apps نیز آن را متوقف نمی‌کند.
 
 شرایط اجرای تست‌ها:
 
-- VPN شکن باید فعال باشد.
-- اپ باید active/foreground باشد.
 - دستگاه باید online تشخیص داده شود.
 - target list باید از endpoint مربوطه دریافت شده باشد.
 - دستگاه باید بر اساس `samplingPercent` داخل sample قرار بگیرد.
 
-وقتی VPN متوقف شود، monitoring هم stop می‌شود و queue داخلی logها پاک می‌شود.
+خاموش شدن VPN، monitoring را متوقف یا queue داخلی logها را پاک نمی‌کند. سرویس با `START_STICKY` اجرا می‌شود تا اگر process توسط سیستم kill شد، در اولین فرصت بازسازی شود. Android برای این اجرای دائمی یک notification مربوط به monitoring نمایش می‌دهد. Force stop صریح کاربر همچنان طبق محدودیت سیستم همه سرویس‌های اپ را متوقف می‌کند.
+
+نوع foreground service در manifest برابر `specialUse` و subtype آن `Continuous network quality monitoring and telemetry collection` است. در صورت انتشار از Google Play، این کاربرد باید در بخش Foreground Service Types کنسول نیز اظهار و تأیید شود.
+
+notification دائمی monitoring وضعیت روشن/خاموش بودن شکن را در title نمایش می‌دهد. یک action برای روشن یا خاموش کردن مستقیم شکن و یک action برای ورود به تنظیمات دارد؛ لمس بدنه notification نیز صفحه اصلی اپ را باز می‌کند. اگر مجوز VPN هنوز صادر نشده باشد، action روشن‌کردن مستقیماً flow استاندارد دریافت مجوز داخل اپ را باز می‌کند.
 
 ## دریافت targetها
 
@@ -86,6 +88,8 @@ Monitoring داخل `ShecanVpnService` ساخته می‌شود و فقط بعد
 - `intervalSeconds`: فاصله اجرای تست‌هاست. حداقل داخل اپ ۶۰ ثانیه اعمال می‌شود. اگر مقدار نیاید، پیش‌فرض ۳۰۰ ثانیه است.
 - `samplingPercent`: درصد دستگاه‌هایی که monitoring برایشان فعال می‌شود. مقدار بین ۰ تا ۱۰۰ clamp می‌شود. اگر نیاید، پیش‌فرض ۱۰۰ است.
 - `targets`: لیست تست‌هایی که اپ باید اجرا کند.
+
+بعد از دریافت targetها، اولین مجموعه تست‌ها بلافاصله اجرا می‌شود. اجراهای بعدی با فاصله `intervalSeconds` از پایان اجرای قبلی انجام می‌شوند.
 
 Targetها به مدت ۱۵ دقیقه cache می‌شوند. اگر cache معتبر باشد، اپ همان targetها را دوباره fetch نمی‌کند. اگر دریافت target fail شود یا اینترنت online نباشد، هر ۶۰ ثانیه retry می‌شود.
 
@@ -237,7 +241,8 @@ Targetها به مدت ۱۵ دقیقه cache می‌شوند. اگر cache مع�
 سمت اندروید الان یک native monitoring collector داریم که:
 
 - از config remote آدرس target/log را می‌گیرد.
-- بعد از فعال شدن VPN و در زمان active بودن اپ اجرا می‌شود.
+- داخل foreground service مستقل و با `START_STICKY` اجرا می‌شود.
+- به وضعیت VPN، foreground بودن Activity یا حضور اپ در Recent Apps وابسته نیست.
 - targetها را از backend می‌گیرد.
 - روی گوشی کاربر تست‌های `dns`، `proxy` و `http` را اجرا می‌کند.
 - خروجی را با اطلاعات app/network/user/session به endpoint logs ارسال می‌کند.
@@ -251,4 +256,3 @@ Targetها به مدت ۱۵ دقیقه cache می‌شوند. اگر cache مع�
 - پردازش و aggregation
 - دسترسی dashboard
 - تعریف targetهای مجاز و policy مربوط به sampling/interval/timeout
-

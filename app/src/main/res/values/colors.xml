@@ -9,6 +9,22 @@
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
 
+    <!-- Persistent Shecan control notification -->
+    <color name="notification_border">#DCEAE5</color>
+    <color name="notification_text_primary">#0D2C22</color>
+    <color name="notification_text_secondary">#60746D</color>
+    <color name="notification_primary">#008F5B</color>
+    <color name="notification_primary_end">#18B878</color>
+    <color name="notification_secondary_surface">#EBF5F1</color>
+    <color name="notification_secondary_border">#CFE3DB</color>
+    <color name="notification_stop_surface">#FFF1EA</color>
+    <color name="notification_stop_border">#F2C6B3</color>
+    <color name="notification_stop_text">#B4471A</color>
+    <color name="notification_status_active_surface">#DDF5EA</color>
+    <color name="notification_status_active_text">#08764C</color>
+    <color name="notification_status_inactive_surface">#EDF1EF</color>
+    <color name="notification_status_inactive_text">#5E6D67</color>
+
     <!--   New Design   -->
     <color name="homeBackground">#F3F8F7</color>
     <color name="profileBackground">#FFFFFF</color>

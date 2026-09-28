@@ -33,6 +33,7 @@ import ir.shecan.core.constant.RequestStatus;
 import ir.shecan.core.service.BaseApiResponseListener;
 import ir.shecan.core.service.ConnectionStatusApiListener;
 import ir.shecan.core.service.CoreApiResponseListener;
+import ir.shecan.core.service.MonitoringService;
 import ir.shecan.core.service.ShecanVpnService;
 import ir.shecan.core.util.AppUtils;
 import ir.shecan.core.util.DynamicBannerRequestFactory;
@@ -69,6 +70,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private ScheduledExecutorService scheduler;
     private long dynamicIpCheckDeadlineMs = 0L;
     private ServiceItem currentServiceItem;
+    private boolean resumeConnectionCheckInFlight = false;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private Runnable pendingDynamicDialogRunnable;
     MainActivityNew activity;
@@ -76,6 +78,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     private static final String TAG = "HomeFragment";
     private static final long DYNAMIC_IP_CHECK_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(70);
     private static final long DYNAMIC_IP_CHECK_RETRY_DELAY_SECONDS = 10;
+    private static final int RESUME_CONNECTION_STATUS_TIMEOUT_MS = 8_000;
     private static boolean testSiteDirectUpdateDialogShown = false;
     private static final Object DYNAMIC_DIALOG_SESSION_LOCK = new Object();
     private static boolean dynamicDialogRequested = false;
@@ -112,6 +115,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         AppStorage appStorage = new AppStorage(getContext());
         currentServiceItem = appStorage.getServiceStatus(ServiceItem.class);
         currentServiceItem = resolveCurrentServiceItem(appStorage, currentServiceItem);
+        MonitoringService.refresh(requireContext());
 
 //        ServiceItem finalServiceItem = serviceItem;
 
@@ -122,18 +126,12 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                 TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_VPN_DISCONNECT_CLICK,
                         TrackingUtils.bundleOf(TrackingUtils.PARAM_SOURCE, "home_button"));
                 cancelDynamicIpStatusCheck();
-                app.getVpnState().setValue(0);
-                ShecanVpnService.cancelConnectionStatusAPI(requireContext());
-                ShecanVpnService.cancelCoreAPI(requireContext());
-                Shecan.deactivateService(requireContext());
+                app.cancelVpnConnection(requireContext());
             } else if (binding.vpnButton.isLoading()) {
                 TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_VPN_DISCONNECT_CLICK,
                         TrackingUtils.bundleOf(TrackingUtils.PARAM_SOURCE, "home_button_loading"));
                 cancelDynamicIpStatusCheck();
-                app.getVpnState().setValue(0);
-                ShecanVpnService.cancelConnectionStatusAPI(requireContext());
-                ShecanVpnService.cancelCoreAPI(requireContext());
-                Shecan.deactivateService(requireContext());
+                app.cancelVpnConnection(requireContext());
             } else if (shouldOpenRenewalBeforeConnect()) {
                 TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_BILLING_PURCHASE_CLICK,
                         TrackingUtils.bundleOf(TrackingUtils.PARAM_SOURCE, "home_expired_service"));
@@ -150,7 +148,9 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             if (state == null || binding == null) return;
 
             switch (state) {
-                case 0:
+                case Shecan.VPN_STATE_DISCONNECTED:
+                    resumeConnectionCheckInFlight = false;
+                    cancelDynamicIpStatusCheck();
                     binding.vpnButton.showLoading(false);
                     binding.statusTv.setVisibility(GONE);
                     if (app.getVpnStatus().getValue() != null && !app.getVpnStatus().getValue().isEmpty()) {
@@ -158,12 +158,17 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
                         app.getVpnStatus().setValue("");
                     }
                     break;
-                case 1:
+                case Shecan.VPN_STATE_CONNECTING:
                     binding.vpnButton.showLoading(true);
                     binding.statusTv.setVisibility(GONE);
                     break;
-                case 2:
+                case Shecan.VPN_STATE_CONNECTED:
                     binding.vpnButton.setConnected(true);
+                    binding.statusTv.setText(R.string.connected);
+                    binding.statusTv.setTextColor(ContextCompat.getColor(
+                            requireContext(),
+                            R.color.connectionIsActiveColor
+                    ));
                     binding.statusTv.setVisibility(VISIBLE);
                     break;
             }
@@ -336,8 +341,126 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             } else {
                 app.connectVpn(requireContext(), HomeFragment.this);
             }
+            return;
         }
 
+        verifyActiveConnectionOnResume();
+    }
+
+    private void verifyActiveConnectionOnResume() {
+        if (!isAdded() || resumeConnectionCheckInFlight) return;
+
+        Shecan app = (Shecan) requireContext().getApplicationContext();
+        if (app.isVpnConnecting()) {
+            return;
+        }
+        if (!ShecanVpnService.isActivated()) {
+            app.setVpnState(Shecan.VPN_STATE_DISCONNECTED);
+            return;
+        }
+
+        resumeConnectionCheckInFlight = true;
+        if (!app.isVpnConnected()) {
+            app.setVpnState(Shecan.VPN_STATE_CONNECTING);
+        }
+        checkActiveConnectionStatus(false);
+    }
+
+    private void checkActiveConnectionStatus(boolean afterRecovery) {
+        if (!isAdded()) {
+            resumeConnectionCheckInFlight = false;
+            return;
+        }
+
+        ShecanVpnService.callConnectionStatusAPI(requireContext(), new ConnectionStatusApiListener() {
+            @Override
+            public void onConnected() {
+                if (!isAdded()) {
+                    resumeConnectionCheckInFlight = false;
+                    return;
+                }
+                Shecan app = (Shecan) requireContext().getApplicationContext();
+                if (!ShecanVpnService.isActivated()
+                        || app.getCurrentVpnState() == Shecan.VPN_STATE_DISCONNECTED) {
+                    resumeConnectionCheckInFlight = false;
+                    return;
+                }
+                resumeConnectionCheckInFlight = false;
+                app.setVpnState(Shecan.VPN_STATE_CONNECTED);
+            }
+
+            @Override
+            public void onRetry() {
+                if (!isAdded()) {
+                    resumeConnectionCheckInFlight = false;
+                    return;
+                }
+                handleResumeConnectionRetry(afterRecovery);
+            }
+        }, RESUME_CONNECTION_STATUS_TIMEOUT_MS);
+    }
+
+    private void handleResumeConnectionRetry(boolean afterRecovery) {
+        if (!ShecanVpnService.isActivated()) {
+            finishResumeConnectionCheck(false);
+            return;
+        }
+
+        if (!afterRecovery
+                && ShecanVpnService.isProMode()
+                && ShecanVpnService.isDynamicIPMode()) {
+            refreshDynamicIpThenRecheck();
+            return;
+        }
+
+        finishResumeConnectionCheck(false);
+    }
+
+    private void refreshDynamicIpThenRecheck() {
+        ShecanVpnService.callCoreAPI(requireContext(), new CoreApiResponseListener() {
+            @Override
+            public void onSuccess(String response) {
+                checkActiveConnectionStatus(true);
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                finishResumeConnectionCheck(false);
+            }
+
+            @Override
+            public void onInvalid() {
+                finishResumeConnectionCheck(false);
+            }
+
+            @Override
+            public void onOutOfRange() {
+                finishResumeConnectionCheck(false);
+            }
+
+            @Override
+            public void onInTheRange() {
+                Shecan.setStaticIPMode();
+                checkActiveConnectionStatus(true);
+            }
+        });
+    }
+
+    private void finishResumeConnectionCheck(boolean connected) {
+        if (!isAdded()) {
+            resumeConnectionCheckInFlight = false;
+            return;
+        }
+
+        resumeConnectionCheckInFlight = false;
+        Shecan app = (Shecan) requireContext().getApplicationContext();
+        app.setVpnState(connected
+                ? Shecan.VPN_STATE_CONNECTED
+                : Shecan.VPN_STATE_DISCONNECTED);
+
+        if (!connected && ShecanVpnService.isActivated()) {
+            Shecan.deactivateService(requireContext());
+        }
     }
 
     @Override
@@ -496,44 +619,49 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
     @Override
     public void onSuccess(String response) {
         if (!isAdded()) return;
-        if (ShecanVpnService.isDynamicIPMode()) {
-            waitForDynamicIpActivation();
-        } else {
-            startVpnAfterConnectionStatusVerified("static");
-        }
+        // The VPN must be established before checking the connection endpoint.
+        // The service performs that verification after establish(), matching the
+        // 2.3.8 activation flow and the notification activation path.
+        startVpnAfterConnectionStatusVerified(
+                ShecanVpnService.isDynamicIPMode() ? "dynamic" : "static"
+        );
     }
 
     @Override
     public void onError(String errorMessage) {
+        Shecan app = Shecan.getInstance();
+        if (app == null || !app.isVpnConnecting()) return;
         if (isAdded()) {
             TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_VPN_ERROR,
                     TrackingUtils.bundleOf(TrackingUtils.PARAM_ERROR, errorMessage != null ? errorMessage : "unknown"));
         }
-        Shecan app = Shecan.getInstance();
-        if (app != null) {
-            app.reportVpnFailure(errorMessage);
-        }
+        app.reportVpnFailure(errorMessage);
     }
 
     @Override
     public void onInvalid() {
+        if (!isAdded()) return;
         Shecan app = (Shecan) requireContext().getApplicationContext();
-        app.getVpnState().setValue(0);
-        if (isAdded()) new RenewalDialog(requireActivity()).show();
+        if (!app.isVpnConnecting()) return;
+        app.setVpnState(Shecan.VPN_STATE_DISCONNECTED);
+        new RenewalDialog(requireActivity()).show();
     }
 
     @Override
     public void onOutOfRange() {
         if (isAdded()) {
-            new ContactSupportDialog(requireActivity()).show();
             Shecan app = (Shecan) requireContext().getApplicationContext();
-            app.getVpnState().setValue(0);
+            if (!app.isVpnConnecting()) return;
+            app.setVpnState(Shecan.VPN_STATE_DISCONNECTED);
+            new ContactSupportDialog(requireActivity()).show();
         }
     }
 
     @Override
     public void onInTheRange() {
         if (isAdded()) {
+            Shecan app = (Shecan) requireContext().getApplicationContext();
+            if (!app.isVpnConnecting()) return;
             TrackingUtils.logEvent(requireContext(), TrackingUtils.EVENT_VPN_CONNECTED,
                     TrackingUtils.bundleOf(TrackingUtils.PARAM_METHOD, "static"));
             Shecan.setStaticIPMode();

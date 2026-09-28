@@ -9,6 +9,8 @@ import com.google.android.gms.auth.api.phone.SmsRetriever;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.Status;
 
+import ir.shecan.core.util.PersianTools;
+
 public class OtpReceiver extends BroadcastReceiver {
 
     public interface OtpReceiveListener {
@@ -38,7 +40,7 @@ public class OtpReceiver extends BroadcastReceiver {
                     }
 
                     // استخراج 6 رقم
-                    String digits = message.replaceAll("\\D+", "");
+                    String digits = PersianTools.extractEnglishDigits(message);
                     if (digits.length() < 6) {
                         break;
                     }

@@ -2,11 +2,16 @@ package ir.shecan.core.service;
 
 import android.annotation.TargetApi;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.service.quicksettings.Tile;
 import android.service.quicksettings.TileService;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import ir.shecan.R;
 import ir.shecan.Shecan;
+import ir.shecan.core.util.Logger;
 
 /**
  * Shecan Project
@@ -22,13 +27,39 @@ import ir.shecan.Shecan;
 @TargetApi(Build.VERSION_CODES.N)
 public class ShecanTileService extends TileService {
 
+    private static final long TILE_REFRESH_DELAY_MS = 500L;
+    private static final AtomicBoolean SWITCH_IN_PROGRESS = new AtomicBoolean(false);
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     @Override
     public void onClick() {
-        Tile tile = getQsTile();
-        tile.setLabel(getString(R.string.quick_toggle));
-        tile.setContentDescription(getString(R.string.app_name));
-        tile.setState(Shecan.switchService() ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);
-        tile.updateTile();
+        super.onClick();
+
+        if (!SWITCH_IN_PROGRESS.compareAndSet(false, true)) {
+            return;
+        }
+
+        boolean activate = !ShecanVpnService.isActivated();
+        updateTile(activate);
+
+        Thread switchThread = new Thread(() -> {
+            try {
+                if (activate) {
+                    Shecan.activateService(getApplicationContext());
+                } else {
+                    Shecan.deactivateService(getApplicationContext());
+                }
+            } catch (RuntimeException e) {
+                Logger.logException(e);
+            } finally {
+                mainHandler.postDelayed(() -> {
+                    updateTile();
+                    SWITCH_IN_PROGRESS.set(false);
+                }, TILE_REFRESH_DELAY_MS);
+            }
+        }, "ShecanTileSwitch");
+        switchThread.start();
     }
 
     @Override
@@ -37,8 +68,15 @@ public class ShecanTileService extends TileService {
     }
 
     private void updateTile() {
-        boolean activate = ShecanVpnService.isActivated();
+        updateTile(ShecanVpnService.isActivated());
+    }
+
+    private void updateTile(boolean activate) {
         Tile tile = getQsTile();
+        if (tile == null) {
+            return;
+        }
+
         tile.setLabel(getString(R.string.quick_toggle));
         tile.setContentDescription(getString(R.string.app_name));
         tile.setState(activate ? Tile.STATE_ACTIVE : Tile.STATE_INACTIVE);

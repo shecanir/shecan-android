@@ -14,6 +14,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!-- Fix: mark touchscreen as optional -->
     <uses-feature
@@ -83,6 +85,10 @@
         </receiver>
 
         <receiver
+            android:name=".core.receiver.MonitoringControlReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".core.receiver.BootBroadcastReceiver"
             android:enabled="true"
             android:exported="true"
@@ -109,10 +115,24 @@
         <service
             android:name=".core.service.ShecanVpnService"
             android:exported="true"
+            android:foregroundServiceType="specialUse"
             android:permission="android.permission.BIND_VPN_SERVICE">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-controlled local VPN tunnel for Shecan DNS resolution" />
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
+        </service>
+
+        <service
+            android:name=".core.service.MonitoringService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Continuous network quality monitoring and telemetry collection" />
         </service>
 
         <service

@@ -45,11 +45,12 @@ import java.util.concurrent.TimeUnit;
 import io.sentry.Sentry;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.protocol.User;
+import ir.shecan.core.sentry.SentrySamplingConfig;
 import ir.shecan.core.service.BaseApiResponseListener;
 import ir.shecan.core.service.ConnectionStatusApiListener;
 import ir.shecan.core.service.CoreApiResponseListener;
+import ir.shecan.core.service.MonitoringService;
 import ir.shecan.core.service.ShecanVpnService;
-import ir.shecan.core.monitoring.MonitoringAppState;
 import ir.shecan.core.service.VolleyHelper;
 import ir.shecan.core.util.Configurations;
 import ir.shecan.core.util.LanguageHelper;
@@ -85,6 +86,10 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
     private static final String SHORTCUT_ID_ACTIVATE = "shortcut_activate";
 
+    public static final int VPN_STATE_DISCONNECTED = 0;
+    public static final int VPN_STATE_CONNECTING = 1;
+    public static final int VPN_STATE_CONNECTED = 2;
+
     public static final List<DNSServer> DNS_SERVERS = new ArrayList<DNSServer>() {{
         add(new DNSServer("free.shecan.ir", R.string.server_shecan_primary, 5353));
         add(new DNSServer("free.shecan.ir", R.string.server_shecan_secondary, 53));
@@ -109,16 +114,65 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
     private SharedPreferences prefs;
     private long appStartedElapsedMs;
 
-    private final Handler handler = new Handler();
+    private static final long DYNAMIC_IP_REFRESH_INTERVAL_MS = 20_000L;
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private final Runnable dynamicIpRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                if (shouldRefreshDynamicIp()) {
+                    callCheckCurrentIP(Shecan.this);
+                }
+            } finally {
+                handler.postDelayed(this, DYNAMIC_IP_REFRESH_INTERVAL_MS);
+            }
+        }
+    };
 
     private ScheduledExecutorService scheduler;
 
-    private final MutableLiveData<Integer> vpnState = new MutableLiveData<>();
+    private final MutableLiveData<Integer> vpnState =
+            new MutableLiveData<>(VPN_STATE_DISCONNECTED);
     private final MutableLiveData<String> vpnStatus = new MutableLiveData<>();
+    private volatile int currentVpnState = VPN_STATE_DISCONNECTED;
+    private Runnable pendingVpnConnectRunnable;
 
     public MutableLiveData<Integer> getVpnState() {
         return vpnState;
     }
+
+    public int getCurrentVpnState() {
+        return currentVpnState;
+    }
+
+    public boolean isVpnConnecting() {
+        return currentVpnState == VPN_STATE_CONNECTING;
+    }
+
+    public boolean isVpnConnected() {
+        return currentVpnState == VPN_STATE_CONNECTED;
+    }
+
+    public void setVpnState(int state) {
+        if (state < VPN_STATE_DISCONNECTED || state > VPN_STATE_CONNECTED) return;
+
+        if (state == VPN_STATE_DISCONNECTED) {
+            cancelConnectionStatusRetries();
+        }
+
+        boolean changed = currentVpnState != state;
+        currentVpnState = state;
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            vpnState.setValue(state);
+        } else {
+            vpnState.postValue(state);
+        }
+        if (changed) {
+            MonitoringService.refresh(this);
+        }
+    }
+
     public MutableLiveData<String> getVpnStatus() {
         return vpnStatus;
     }
@@ -129,7 +183,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                 : message.trim();
         vpnHandler.post(() -> {
             vpnStatus.setValue("");
-            vpnState.setValue(0);
+            setVpnState(VPN_STATE_DISCONNECTED);
             ToastManager.show(this, userMessage);
         });
     }
@@ -152,17 +206,22 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
         instance = this;
         appStartedElapsedMs = SystemClock.elapsedRealtime();
-        MonitoringAppState.initialize(this);
         Fresco.initialize(this);
 
         Logger.init();
 
         addSentry();
         initData();
+        startMonitoring();
 //        initPushPole();
         initCheckIP();
 
         updateLocale();
+    }
+
+    private void startMonitoring() {
+        if ("robolectric".equals(Build.FINGERPRINT)) return;
+        MonitoringService.start(this);
     }
 
     public void waitForDeactivateThenReconnect(Context context) {
@@ -183,10 +242,12 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
     public void connectVpn(Context context, CoreApiResponseListener listener) {
 
+        if (isVpnConnecting()) return;
+
         AppStorage storage = new AppStorage(context);
         ServiceItem serviceItem = storage.getServiceStatus(ServiceItem.class);
 
-        getVpnState().postValue(1);
+        setVpnState(VPN_STATE_CONNECTING);
 
         boolean isPaidService = serviceItem != null
                 && serviceItem.getOrderCode() != null
@@ -215,9 +276,13 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                     .toString();
             setUpdaterLink(updaterUrl);
 
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                ShecanVpnService.callCoreAPI(context, listener);
-            }, 1000);
+            pendingVpnConnectRunnable = () -> {
+                pendingVpnConnectRunnable = null;
+                if (isVpnConnecting()) {
+                    ShecanVpnService.callCoreAPI(context, listener);
+                }
+            };
+            vpnHandler.postDelayed(pendingVpnConnectRunnable, 1000);
 
         } else {
             // Free mode
@@ -230,24 +295,39 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
             );
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-            new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                context.startActivity(intent);
-            }, 1000);
+            pendingVpnConnectRunnable = () -> {
+                pendingVpnConnectRunnable = null;
+                if (isVpnConnecting()) {
+                    context.startActivity(intent);
+                }
+            };
+            vpnHandler.postDelayed(pendingVpnConnectRunnable, 1000);
+        }
+    }
+
+    public void cancelVpnConnection(Context context) {
+        if (pendingVpnConnectRunnable != null) {
+            vpnHandler.removeCallbacks(pendingVpnConnectRunnable);
+            pendingVpnConnectRunnable = null;
+        }
+        cancelConnectionStatusRetries();
+        ShecanVpnService.cancelConnectionStatusAPI(context);
+        ShecanVpnService.cancelCoreAPI(context);
+        setVpnState(VPN_STATE_DISCONNECTED);
+        if (ShecanVpnService.isActivated()) {
+            deactivateService(context);
         }
     }
 
 
     private void initCheckIP() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (ShecanVpnService.isActivated() && ShecanVpnService.isProMode() && ShecanVpnService.isDynamicIPMode()) {
-                    callCheckCurrentIP(Shecan.this);
+        handler.removeCallbacks(dynamicIpRefreshRunnable);
+        handler.postDelayed(dynamicIpRefreshRunnable, DYNAMIC_IP_REFRESH_INTERVAL_MS);
+    }
 
-                    handler.postDelayed(this, 20000); // 20 seconds
-                }
-            }
-        }, 20000);
+    private boolean shouldRefreshDynamicIp() {
+        return ShecanVpnService.isActivated()
+                && ShecanVpnService.isProMode();
     }
 
 //    private void initPushPole() {
@@ -375,12 +455,21 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                 ShecanVpnService.secondaryServer = DNSServerHelper.getDNSById(DNSServerHelper.getSecondary());
             }
 
-            Intent serviceIntent = Shecan.getServiceIntent(context).setAction(ShecanVpnService.ACTION_ACTIVATE);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent);
-            } else {
-                context.startService(serviceIntent);
-            }
+            startVpnService(context);
+        }
+    }
+
+    /**
+     * Starts the VPN service using the same foreground-service path for every entry point.
+     */
+    public static void startVpnService(Context context) {
+        Context applicationContext = context.getApplicationContext();
+        Intent serviceIntent = Shecan.getServiceIntent(applicationContext)
+                .setAction(ShecanVpnService.ACTION_ACTIVATE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            applicationContext.startForegroundService(serviceIntent);
+        } else {
+            applicationContext.startService(serviceIntent);
         }
     }
 
@@ -391,7 +480,10 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                 Request.Method.GET,
                 apiUrl,
                 response -> {
-                    if (!response.trim().equals(ShecanVpnService.getDynamicIp().trim())) {
+                    String currentIp = response == null ? "" : response.trim();
+                    if (currentIp.isEmpty()) return;
+
+                    if (!currentIp.equals(ShecanVpnService.getDynamicIp().trim())) {
                         ShecanVpnService.callCoreAPI(context, new CoreApiResponseListener() {
                             @Override
                             public void onSuccess(String response) {
@@ -415,7 +507,12 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
                             @Override
                             public void onInTheRange() {
-
+                                // Keep the observed IP as the comparison baseline. Without
+                                // this, a static-mode connection would submit the same IP on
+                                // every poll after a network change.
+                                Shecan.setStaticIPMode();
+                                Shecan.setDynamicIP(currentIp);
+                                ShecanVpnService.callConnectionStatusAPI(context, Shecan.this, null);
                             }
                         });
                     }
@@ -425,6 +522,9 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                 }
         );
 
+        // This endpoint is the signal for a network/IP change. A cached response
+        // would prevent the dynamic updater from ever seeing the new address.
+        stringRequest.setShouldCache(false);
         requestQueue.add(stringRequest);
     }
 
@@ -508,7 +608,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
         SentryAndroid.init(this, options -> {
             options.setDsn("https://38ff2bbf9f30b0896c9b311ab4e647b8@sentry.hamravesh.com/9149");
             options.setEnvironment("production");
-            options.setTracesSampleRate(0.0);
+            SentrySamplingConfig.applyCached(this, options);
             options.setEnableExternalConfiguration(true);
             options.setDebug(false);
         });
@@ -563,11 +663,25 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
 
     @Override
     public void onConnected() {
-
+        // This callback is used by the automatic dynamic-IP refresh path. The
+        // endpoint confirmed that the existing VPN is usable, so the status
+        // notification must leave its temporary CONNECTING state.
+        cancelConnectionStatusRetries();
+        setVpnState(VPN_STATE_CONNECTED);
     }
 
     @Override
     public void onRetry() {
+        if (!ShecanVpnService.isActivated()) {
+            cancelConnectionStatusRetries();
+            setVpnState(VPN_STATE_DISCONNECTED);
+            return;
+        }
+
+        // A dynamic-IP update is not confirmed until check.shecan.ir responds.
+        // Reflect that verification in the same state used by the notification.
+        cancelConnectionStatusRetries();
+        setVpnState(VPN_STATE_CONNECTING);
         scheduler = Executors.newScheduledThreadPool(1);
 
         scheduler.schedule(new Runnable() {
@@ -577,6 +691,13 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                     ShecanVpnService.callConnectionStatusAPI(Shecan.this, Shecan.this, null);
             }
         }, 20, TimeUnit.SECONDS);
+    }
+
+    private void cancelConnectionStatusRetries() {
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+        }
+        scheduler = null;
     }
 
     public boolean pendingReconnect;
@@ -631,6 +752,7 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
                                 setPurchaseLink(jsonObject.getString("purchase_link"));
                                 saveDynamicData(jsonObject.optJSONObject("dynamic_data"));
                                 saveMonitoring(jsonObject.optJSONObject("monitoring"));
+                                saveSentrySampleRate(jsonObject);
 
                                 listener.onSuccess();
                             } catch (JSONException e) {
@@ -748,8 +870,20 @@ public class Shecan extends Application implements ConnectionStatusApiListener {
             setMonitoringLogsUrl(monitoring.optString("logs", null));
         }
 
+        private static void saveSentrySampleRate(JSONObject homePage) {
+            SentrySamplingConfig.updateFromRemote(
+                    Shecan.getInstance(),
+                    SentrySamplingConfig.readAndroidSampleRate(homePage)
+            );
+        }
+
         public static void saveHomePageConfig(HomePage homePage) {
             if (homePage == null) return;
+
+            SentrySamplingConfig.updateFromRemote(
+                    Shecan.getInstance(),
+                    homePage.getSentrySampleRate()
+            );
 
             HomePage.DynamicDataDTO dynamicData = homePage.getDynamicData();
             if (dynamicData != null) {

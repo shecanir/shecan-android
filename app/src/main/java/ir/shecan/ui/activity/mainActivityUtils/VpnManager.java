@@ -72,10 +72,7 @@ public class VpnManager {
     private void onVpnPermissionGranted() {
         try {
             setupDnsServers();
-            Shecan.getInstance().startService(
-                    Shecan.getServiceIntent(activity.getApplicationContext())
-                            .setAction(ShecanVpnService.ACTION_ACTIVATE)
-            );
+            Shecan.startVpnService(activity.getApplicationContext());
             Shecan.updateShortcut(activity.getApplicationContext());
         } catch (RuntimeException error) {
             failActivation(R.string.connection_error_vpn_start_failed);
