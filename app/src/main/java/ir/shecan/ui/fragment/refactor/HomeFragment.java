@@ -359,6 +359,11 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
             return;
         }
 
+        if (ShecanVpnService.isProMode() && app.isVpnConnected()) {
+            app.verifyActiveProConnection();
+            return;
+        }
+
         resumeConnectionCheckInFlight = true;
         if (!app.isVpnConnected()) {
             app.setVpnState(Shecan.VPN_STATE_CONNECTING);
