@@ -24,7 +24,7 @@
             android:id="@+id/spinner_type"
             android:verticalScrollbarPosition="defaultPosition"
             android:layout_alignParentTop="true"/>
-        <ir.shecan.widget.ClearAutoCompleteTextView
+        <ir.shecan.ui.widget.ClearAutoCompleteTextView
             android:completionThreshold="1"
             android:singleLine="true"
             android:textDirection="ltr"

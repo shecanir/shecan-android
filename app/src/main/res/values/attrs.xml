@@ -6,4 +6,65 @@
         <attr name="bounded_width" format="dimension"/>
         <attr name="bounded_height" format="dimension"/>
     </declare-styleable>
+
+    <declare-styleable name="CustomEditText">
+        <attr name="android:text" />
+        <attr name="android:textColor" />
+        <attr name="android:textSize" />
+        <attr name="android:textColorHint" />
+        <attr name="android:hint" />
+        <attr name="android:enabled" />
+        <attr name="android:background" />
+        <attr name="android:imeOptions" />
+        <attr name="android:gravity" />
+        <attr name="android:inputType" />
+        <attr name="android:maxLength" />
+        <attr name="android:maxLines" />
+        <attr name="android:lines" />
+        <attr name="android:textCursorDrawable" />
+        <attr name="imageLeft" format="reference|integer" />
+        <attr name="imageRight" format="reference|integer" />
+        <attr name="label" format="string" />
+        <attr name="labelBackground" format="integer" />
+        <attr name="numberSpeller" format="boolean" />
+        <attr name="themeEditTex" format="integer">
+            <enum name="dark" value="1" />
+            <enum name="light" value="2" />
+        </attr>
+        <attr name="hasError" format="boolean" />
+    </declare-styleable>
+
+    <declare-styleable name="CustomButton">
+        <attr name="type" format="enum">
+            <enum name="primary" value="0"/>
+            <enum name="secondary" value="1"/>
+        </attr>
+
+        <attr name="cb_primaryBackground" format="color"/>
+        <attr name="cb_primaryTextColor" format="color"/>
+
+        <attr name="cb_secondaryBackground" format="color"/>
+        <attr name="cb_secondaryBorderColor" format="color"/>
+        <attr name="cb_secondaryTextColor" format="color"/>
+
+        <attr name="cb_cornerRadius" format="dimension"/>
+        <attr name="cb_defaultPadding" format="dimension"/>
+
+        <!-- پدینگ -->
+        <attr name="cb_padding" format="dimension"/>
+        <attr name="cb_paddingVertical" format="dimension"/>
+        <attr name="cb_paddingHorizontal" format="dimension"/>
+
+        <!-- رنگ متن ورودی از XML -->
+        <attr name="cb_textColor" format="color"/>
+
+    </declare-styleable>
+
+    <declare-styleable name="ShadowLayout">
+        <attr name="shadowColor" format="color" />
+        <attr name="shadowSize" format="dimension" />
+        <attr name="shadowSpread" format="dimension" />
+        <attr name="shadowRadius" format="dimension" />
+    </declare-styleable>
+
 </resources>

@@ -4,59 +4,112 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/transparent"
-    android:gravity="center">
+    android:gravity="center"
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="32dp"
-        android:background="@drawable/rounded_white_background"
+        android:layout_marginHorizontal="8dp"
+        android:background="@drawable/bg_update_dialog_card"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="24dp"
+        android:paddingTop="26dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="22dp">
 
-        <!-- Message TextView -->
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="18dp"
+            android:background="@drawable/bg_update_icon">
+
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/update"
+                android:src="@drawable/ic_update_download" />
+
+        </FrameLayout>
+
         <TextView
             android:id="@+id/dialogMessage"
             style="@style/TextViewBoldStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="8dp"
             android:text="@string/new_version_available"
             android:textAlignment="center"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/greenDark"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/dialogDescription"
+            style="@style/TextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/site_update_dialog_description"
+            android:textColor="@color/greenSecondaryTextColor"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/updateStatusTv"
+            style="@style/TextViewStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:textColor="@color/greenPrimaryTextColor"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/updateProgress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:layout_marginBottom="20dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/bg_update_progress"
+            android:visibility="gone" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/cancelBtn"
                 style="@style/ButtonStyle"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="10dp"
                 android:layout_weight="1"
-                android:background="@drawable/default_no_background_button"
+                android:background="@drawable/bg_update_secondary_button"
                 android:paddingHorizontal="8dp"
                 android:stateListAnimator="@null"
                 android:text="@string/cancel2"
-                android:textColor="#000000" />
+                android:textColor="@color/white" />
 
             <Button
                 android:id="@+id/updateBtn"
                 style="@style/ButtonStyle"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="48dp"
                 android:layout_weight="1"
-                android:background="@drawable/rounded_button"
+                android:background="@drawable/primary_button"
                 android:paddingHorizontal="8dp"
                 android:stateListAnimator="@null"
                 android:text="@string/update"
                 android:textColor="@android:color/white" />
 
         </LinearLayout>
-
 
     </LinearLayout>
 

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/root"
+    android:paddingVertical="16dp">
+
+    <!-- Green half-oval -->
+    <View
+        android:id="@+id/greenHalfOval"
+        android:layout_width="7dp"
+        android:layout_height="35dp"
+        android:background="@drawable/bg_half_oval_green"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- More Button fixed size -->
+    <ImageButton
+        android:id="@+id/btnOptions"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@drawable/bg_config_detail"
+        android:src="@drawable/ic_more"
+        app:tint="@color/menuBackground"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Column 1 -->
+    <LinearLayout
+        android:id="@+id/colOrder"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical"
+        android:layout_marginStart="10dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/colServiceType"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/order_code"
+            android:textColor="@color/serviceRowTitleColor"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/txtOrderCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:gravity="center"
+            tools:text="۲۹۳۲۸۶۴"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Column 2 -->
+    <LinearLayout
+        android:id="@+id/colServiceType"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@id/colOrder"
+        app:layout_constraintEnd_toStartOf="@id/colStatus"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_weight="1"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/serviceType"
+            android:layout_gravity="center"
+            android:textColor="@color/serviceRowTitleColor"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/txtServiceType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:gravity="center"
+            android:text="@string/bronze"
+            android:textStyle="bold"
+            android:textColor="@color/primaryTextColor"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- Column 3 -->
+    <LinearLayout
+        android:id="@+id/colStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@id/colServiceType"
+        app:layout_constraintEnd_toStartOf="@id/btnOptions"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_weight="1"
+        android:layout_marginEnd="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/service_status"
+            android:layout_gravity="center"
+            android:textColor="@color/serviceRowTitleColor"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:id="@+id/statusBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_vertical"
+            android:padding="4dp"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_status_box">
+
+            <ImageView
+                android:id="@+id/statusBoxIcon"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_alert" />
+
+            <TextView
+                android:id="@+id/txtStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/expiring"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="#EE5F1D"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="284dp"
+    android:height="284dp"
+    android:viewportWidth="284"
+    android:viewportHeight="284">
+
+  <path
+      android:pathData="M43.71,239.29C17.64,213.22 3,177.87 3,141C3,104.14 17.64,68.78 43.71,42.71C69.78,16.64 105.14,2 142,2C178.87,2 214.22,16.64 240.29,42.71C266.36,68.78 281,104.14 281,141C281,177.87 266.36,213.22 240.29,239.29C214.22,265.36 178.87,280 142,280C105.14,280 69.78,265.36 43.71,239.29Z"
+      android:fillColor="@color/buttonRingBackgroundColor"
+      android:strokeWidth="0" />
+
+  <path
+      android:pathData="M43.71,239.29C17.64,213.22 3,177.87 3,141C3,104.14 17.64,68.78 43.71,42.71C69.78,16.64 105.14,2 142,2C178.87,2 214.22,16.64 240.29,42.71C266.36,68.78 281,104.14 281,141C281,177.87 266.36,213.22 240.29,239.29C214.22,265.36 178.87,280 142,280C105.14,280 69.78,265.36 43.71,239.29Z"
+      android:fillColor="#00000000"
+      android:strokeWidth="4"
+      android:strokeColor="@color/buttonRingCircleColor" />
+
+</vector>

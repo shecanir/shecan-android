@@ -2,30 +2,71 @@ plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
     id 'org.jetbrains.kotlin.android'
+    id "io.sentry.android.gradle" version "5.12.1"
+//    id 'com.google.firebase.crashlytics'
 }
 
 def gitCommit = 'git rev-parse --short HEAD'.execute([], project.rootDir).text.trim()
+def buildConfigString = { value ->
+    def escaped = (value ?: "").toString()
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+    return "\"${escaped}\""
+}
 
 android {
+    namespace "ir.shecan"
     compileSdkVersion 34
+    def releaseStoreFile = System.getenv("SHECAN_RELEASE_KEYSTORE")
+    def releaseStorePassword = System.getenv("SHECAN_RELEASE_STORE_PASSWORD")
+    def releaseKeyAlias = System.getenv("SHECAN_RELEASE_KEY_ALIAS")
+    def releaseKeyPassword = System.getenv("SHECAN_RELEASE_KEY_PASSWORD")
+    def hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            release {
+                storeFile file(releaseStoreFile)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "co.bonyan.shecan"
         minSdkVersion 21
         targetSdkVersion 34
-        versionCode 10101
-        versionName "1.1.01"
+        versionCode 10297
+        versionName "2.4.7"
 
         buildConfigField "String", "BUILD_TIME", "\"${System.currentTimeMillis()}\""
         buildConfigField "String", "GIT_COMMIT", "\"${gitCommit}\""
+        buildConfigField "String", "SITE_APK_UPDATE_URL", buildConfigString(project.findProperty("SITE_APK_UPDATE_URL") ?: "https://shecan.ir/shecan.apk")
+        buildConfigField "boolean", "TEST_SITE_DIRECT_UPDATE", "false"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
+        setProperty("archivesBaseName", applicationId + "-v" + versionCode + "(" + versionName + ")")
     }
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+    splits {
+        abi {
+            enable project.hasProperty("MYKET_ABI_SPLITS")
+            reset()
+            include "armeabi-v7a", "arm64-v8a"
+            universalApk false
         }
     }
     lintOptions {
@@ -39,11 +80,65 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    buildFeatures {
+        buildConfig = true
+        viewBinding true
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+
+    flavorDimensions "store"
+
+    productFlavors {
+
+        cafeBazaar {
+            dimension "store"
+            buildConfigField "String", "STORE", "\"CafeBazaar\""
+            def marketApplicationId = "com.farsitel.bazaar"
+            def marketBindAddress = "ir.cafebazaar.pardakht.InAppBillingService.BIND"
+            manifestPlaceholders = [marketApplicationId: "${marketApplicationId}",
+                                    marketBindAddress  : "${marketBindAddress}",
+                                    marketPermission   : "${marketApplicationId}.permission.PAY_THROUGH_BAZAAR"]
+            buildConfigField "String", "IAB_PUBLIC_KEY", buildConfigString(project.findProperty("BAZAAR_IAB_PUBLIC_KEY"))
+        }
+
+        myket {
+            dimension "store"
+            buildConfigField "String", "STORE", "\"Myket\""
+            def marketApplicationId = "ir.mservices.market"
+            def marketBindAddress = "ir.mservices.market.InAppBillingService.BIND"
+            manifestPlaceholders = [marketApplicationId: "${marketApplicationId}",
+                                    marketBindAddress  : "${marketBindAddress}",
+                                    marketPermission   : "${marketApplicationId}.BILLING"]
+            buildConfigField "String", "IAB_PUBLIC_KEY", buildConfigString(project.findProperty("MYKET_IAB_PUBLIC_KEY"))
+        }
+
+        site {
+            dimension "store"
+            buildConfigField "String", "STORE", "\"Site\""
+            buildConfigField "boolean", "TEST_SITE_DIRECT_UPDATE", "false"
+            def marketApplicationId = "co.bonyan.shecan"
+            def marketBindAddress = "co.bonyan.shecan.billing.BIND"
+            manifestPlaceholders = [marketApplicationId: "${marketApplicationId}",
+                                    marketBindAddress  : "${marketBindAddress}",
+                                    marketPermission   : "${marketApplicationId}.BILLING"]
+            buildConfigField "String", "IAB_PUBLIC_KEY", "\"\""
+        }
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'com.google.android.gms:play-services-auth-api-phone:16.0.0'
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.percentlayout:percentlayout:1.0.0'
@@ -51,17 +146,20 @@ dependencies {
     implementation 'org.pcap4j:pcap4j-core:1.7.3'
     implementation 'org.pcap4j:pcap4j-packetfactory-static:1.7.3'
     implementation 'de.measite.minidns:minidns-core:0.2.4'
-    implementation 'com.google.code.gson:gson:2.8.5'
-    implementation 'com.google.firebase:firebase-crash:16.2.1'
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    'com.android.support.constraint:constraint-layout:1.0.2'
-
+    implementation 'com.google.code.gson:gson:2.11.0'
+//    implementation 'com.google.firebase:firebase-crashlytics:18.6.2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
     implementation 'androidx.core:core-ktx:1.12.0'
 
     implementation("io.coil-kt:coil:2.6.0") // Coil Core
     implementation("io.coil-kt:coil-gif:2.6.0") // GIF Support
 
     implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation 'com.google.firebase:firebase-messaging:23.4.1'
+    implementation("com.google.firebase:firebase-analytics")
+    implementation 'com.google.android.gms:play-services-auth-api-phone:18.3.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
 
     implementation 'com.facebook.fresco:fresco:3.6.0' // or the latest Fresco version
@@ -73,8 +171,31 @@ dependencies {
     implementation "com.google.firebase:firebase-iid:21.1.0"
 
     implementation 'com.android.volley:volley:1.2.1'
+    compileOnly 'com.github.myketstore:myket-billing-client:1.6'
+    compileOnly 'com.github.cafebazaar.Poolakey:poolakey:2.2.0'
+    myketImplementation 'com.github.myketstore:myket-billing-client:1.6'
+    cafeBazaarImplementation 'com.github.cafebazaar.Poolakey:poolakey:2.2.0'
 
-    implementation 'com.push-pole.android:pushpolesdk:2.0.0-beta05'
+//    implementation 'com.push-pole.android:pushpolesdk:2.0.1'
+
+    implementation "androidx.preference:preference:1.2.1"
+    implementation 'com.github.samanzamani:PersianDate:1.7.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.13'
+    testImplementation 'androidx.test:core:1.6.1'
+
+
 
 }
 
+sentry {
+    telemetry.set(false)
+    autoUploadProguardMapping.set(System.getenv("SHECAN_RELEASE_UPLOAD_SENTRY") == "true")
+    includeProguardMapping.set(true)
+    url.set("https://sentry.hamravesh.com/")
+    org.set("shecan-dns")
+    projectName.set("9149")
+    authToken.set(System.getenv("SENTRY_AUTH_TOKEN")) //setx SENTRY_AUTH_TOKEN "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"
+    // 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
+}

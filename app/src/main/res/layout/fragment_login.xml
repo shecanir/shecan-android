@@ -1,0 +1,174 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutDirection="rtl"
+    android:background="@color/authorizeBackgroundColor">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:id="@+id/bottomFrameLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="115dp"
+                        android:background="@drawable/login_top_box_bg">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical"
+                            android:padding="24dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/iran_yekan_bold"
+                                android:textColor="@color/black"
+                                android:layout_gravity="center"
+                                android:textStyle="bold"
+                                android:textSize="18dp"
+                                android:padding="8dp"
+                                android:text="@string/login_title"
+                                />
+
+<!--                            <ir.shecan.ui.widget.CustomEditText-->
+<!--                                android:layout_width="match_parent"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_gravity="center"-->
+<!--                                android:textColor="@color/greenPrimaryTextColor"-->
+<!--                                android:textColorHint="@color/greenSecondaryTextColor"-->
+<!--                                app:label="@string/phoneOrEmail"-->
+<!--                                app:labelBackground="@color/authorizeBackgroundColor"-->
+<!--                                app:themeEditTex="dark" />-->
+
+
+                            <EditText
+                                android:id="@+id/edtPhoneNumber"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="16dp"
+                                android:background="@drawable/edittext_rounded_box"
+                                android:gravity="start"
+                                android:padding="14dp"
+                                android:maxLines="1"
+                                android:hint="@string/phoneOrEmail"
+                                android:fontFamily="@font/iran_yekan_light"
+                                android:textColor="@color/greenPrimaryTextColor"
+                                android:textColorHint="@color/greenPrimaryTextColor"
+                                android:textSize="14sp"
+                                android:imeOptions="actionDone"
+                                android:inputType="text" />
+
+
+                            <!-- Divider -->
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginHorizontal="50dp"
+                                android:layout_marginTop="10dp"
+                                android:layout_marginBottom="24dp"
+                                android:background="@color/authorizeDividerColor" />
+
+                            <!-- Button -->
+
+                            <ir.shecan.ui.widget.CustomButton
+                                android:id="@+id/btnContinue"
+                                style="@style/CustomButtonStyle"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="8dp"
+                                android:text="@string/continuee" />
+
+
+                        </LinearLayout>
+
+
+                    </FrameLayout>
+
+                    <!-- آدمک -->
+                    <ImageView
+                        android:id="@+id/mascot"
+                        android:layout_width="170dp"
+                        android:layout_height="170dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_shecan_normal" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+        <ImageView
+            android:id="@+id/iconToolbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:transitionName="toolbar_logo"
+            android:src="@drawable/toolbar_logo_vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iconBackImg"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:background="@drawable/back_button_background"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            android:rotation="180"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- include the custom view -->
+    <ir.shecan.ui.widget.AgreeView
+        android:id="@+id/agreementView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="16dp"/>
+
+    <ProgressBar
+        android:id="@+id/progress"
+        android:indeterminateTint="@color/greenMain"
+        android:indeterminateTintMode="src_in"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_width="36dp"
+        android:layout_height="36dp" />
+
+</FrameLayout>

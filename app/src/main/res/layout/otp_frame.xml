@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/otpBackground"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/tvOtpTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/loginWithOtp"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="@font/iran_yekan_bold"
+        android:textColor="@color/black"/>
+
+    <TextView
+        android:id="@+id/tvOtpSubTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/inputOtpCode"
+        android:textSize="12sp"
+        android:fontFamily="@font/iran_yekan_bold"
+        android:textColor="@color/black"
+        android:paddingBottom="24dp"/>
+
+    <LinearLayout
+        android:id="@+id/otpContainer"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layoutDirection="ltr"
+        android:weightSum="6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText android:id="@+id/otp1" style="@style/OtpBoxStyle"/>
+        <EditText android:id="@+id/otp2" style="@style/OtpBoxStyle"/>
+        <EditText android:id="@+id/otp3" style="@style/OtpBoxStyle"/>
+        <EditText android:id="@+id/otp4" style="@style/OtpBoxStyle"/>
+        <EditText android:id="@+id/otp5" style="@style/OtpBoxStyle"/>
+        <EditText android:id="@+id/otp6" style="@style/OtpBoxStyle"/>
+
+    </LinearLayout>
+
+
+    <!-- Error message -->
+    <TextView
+        android:id="@+id/tvErrorOtp"
+        android:layout_marginTop="12dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#FF4444"
+        android:textStyle="bold"
+        android:text=""
+        android:visibility="gone"/>
+
+    <!-- Countdown -->
+    <TextView
+        android:id="@+id/tvTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="22dp"
+        tools:text="ارسال مجدد کد در 60 ثانیه"
+        android:textColor="@color/black"
+        android:fontFamily="@font/iran_yekan_light"/>
+
+    <!-- Resend Button -->
+    <TextView
+        android:id="@+id/tvResend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sendAgain"
+        android:textColor="@color/greenMain"
+        android:paddingTop="6dp"
+        android:textSize="16sp"
+        android:fontFamily="@font/iran_yekan_bold"
+        android:visibility="gone"/>
+
+    <!-- Verify button -->
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"/>
+
+    <ir.shecan.ui.widget.CustomButton
+        android:id="@+id/btnVerify"
+        style="@style/CustomButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:text="@string/confirm" />
+
+
+
+</LinearLayout>

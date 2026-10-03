@@ -1,0 +1,36 @@
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Toolbar باید دقیقا اولین child باشه -->
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize" />
+
+    <!-- محتوای صفحه -->
+    <FrameLayout
+        android:id="@+id/id_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_below="@id/toolbar" />
+
+    <!-- Bottom bar -->
+    <FrameLayout
+        android:id="@+id/customBarBackground"
+        android:layout_width="match_parent"
+        android:layout_height="157dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bottom_bar_gradient" />
+
+    <ir.shecan.ui.widget.CustomBottomBar
+        android:id="@+id/customBar"
+        android:layout_width="match_parent"
+        android:layout_height="157dp"
+        android:layout_gravity="bottom" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

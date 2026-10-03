@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- رنگ سبز نیمه شفاف مثل عکس -->
+    <solid android:color="#1B9F6F" />
+
+    <!-- اندازه واقعی کوچک و کنترل‌شده -->
+    <size
+        android:width="10dp"
+        android:height="32dp" />
+
+    <!-- نیم‌بیضی فقط از سمت راست -->
+    <corners
+        android:topLeftRadius="40dp"
+        android:bottomLeftRadius="40dp" />
+</shape>

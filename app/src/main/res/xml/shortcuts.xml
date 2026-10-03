@@ -9,10 +9,10 @@
             android:shortcutShortLabel="@string/action_settings">
         <intent
                 android:action="android.intent.action.VIEW"
-                android:targetClass="ir.shecan.activity.MainActivity"
+                android:targetClass="ir.shecan.ui.activity.MainActivity"
                 android:targetPackage="ir.shecan">
             <extra
-                    android:name="ir.shecan.activity.MainActivity.LAUNCH_FRAGMENT"
+                    android:name="ir.shecan.ui.activity.MainActivity.LAUNCH_FRAGMENT"
                     android:value="2"/>
         </intent>
     </shortcut>

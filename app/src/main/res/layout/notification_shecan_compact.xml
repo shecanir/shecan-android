@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/notification_compact_root"
+    android:layout_width="match_parent"
+    android:layout_height="58dp"
+    android:layoutDirection="rtl"
+    android:background="@android:color/transparent"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="10dp"
+    android:paddingTop="3dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="3dp">
+
+    <ImageView
+        android:id="@+id/notification_compact_mascot"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:contentDescription="@string/notification_logo_description"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_shecan_normal" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical|start"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/notification_compact_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/iran_yekan_bold"
+            android:gravity="start"
+            android:maxLines="1"
+            android:textColor="@color/notification_text_primary"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/notification_compact_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/iran_yekan_regular"
+            android:gravity="start"
+            android:maxLines="1"
+            android:textColor="@color/notification_text_secondary"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/notification_compact_turn_on"
+        android:layout_width="70dp"
+        android:layout_height="36dp"
+        android:background="@drawable/notification_button_primary"
+        android:fontFamily="@font/iran_yekan_bold"
+        android:gravity="center"
+        android:text="@string/notification_turn_on_short"
+        android:textColor="@color/white"
+        android:textSize="12sp" />
+
+    <TextView
+        android:id="@+id/notification_compact_turn_off"
+        android:layout_width="70dp"
+        android:layout_height="36dp"
+        android:background="@drawable/notification_button_stop"
+        android:fontFamily="@font/iran_yekan_bold"
+        android:gravity="center"
+        android:text="@string/notification_turn_off_short"
+        android:textColor="@color/notification_stop_text"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+</LinearLayout>

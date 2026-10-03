@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notification_border">#34433E</color>
+    <color name="notification_text_primary">#F3F8F6</color>
+    <color name="notification_text_secondary">#AEBBB6</color>
+    <color name="notification_primary">#079A65</color>
+    <color name="notification_primary_end">#21BE83</color>
+    <color name="notification_secondary_surface">#26332F</color>
+    <color name="notification_secondary_border">#40514B</color>
+    <color name="notification_stop_surface">#3A2821</color>
+    <color name="notification_stop_border">#76503E</color>
+    <color name="notification_stop_text">#FFB291</color>
+    <color name="notification_status_active_surface">#183D2F</color>
+    <color name="notification_status_active_text">#78E0B1</color>
+    <color name="notification_status_inactive_surface">#2B3531</color>
+    <color name="notification_status_inactive_text">#B7C2BE</color>
+</resources>

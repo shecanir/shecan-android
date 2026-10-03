@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/profileBackground"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|top"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/dividerColor" />
+
+        <include
+            android:id="@+id/profileView"
+            layout="@layout/layout_profile_header"
+            android:layout_width="170dp"
+            android:layout_height="170dp"
+            android:layout_marginTop="16dp"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:id="@+id/tvFullName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/greenDark"
+            android:textSize="20dp"
+            android:textStyle="bold"
+            tools:text="کیمیا رضایی" />
+
+        <TextView
+            android:id="@+id/tvEmail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/greenSecondaryTextColor"
+            android:textSize="15dp"
+            android:textStyle="bold"
+            tools:text="kimiarezaei@live.com" />
+
+        <TextView
+            android:id="@+id/tvPhoneNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/greenSecondaryTextColor"
+            android:textSize="15dp"
+            android:textStyle="bold"
+            tools:text="۰۹۱۲۰۷۴۶۴۰۷" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="16dp"
+            android:background="@color/dividerColor" />
+
+        <ir.shecan.ui.widget.VpnStatusView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/vpnStatusView">
+
+
+
+        </ir.shecan.ui.widget.VpnStatusView>
+
+        <LinearLayout
+            android:id="@+id/myketInfoView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_info_box">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_info"
+                app:tint="@color/white"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/tvMyketInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:text="@string/seeFromShecanPanelMyket"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cafeBazaarInfoView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:padding="12dp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_info_box">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_info"
+                app:tint="@color/white"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/tvCafeBazaarInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:text="@string/seeFromShecanPanelCafeBazaar"/>
+
+        </LinearLayout>
+
+
+        <!-- RecyclerView باید wrap_content باشد تا ScrollView اسکرول کند -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+
+        <ir.shecan.ui.widget.CustomButton
+            android:id="@+id/btnExit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/iran_yekan_light"
+            android:text="@string/exit"
+            android:textAllCaps="false"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:cb_cornerRadius="8dp"
+            app:cb_primaryBackground="@color/exitButtonBackgroundColor"
+            app:cb_textColor="@color/black" />
+
+        <TextView
+            android:id="@+id/versionTv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/greenSecondaryTextColor"
+            android:textSize="12sp"
+            android:padding="8dp"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="130dp" />
+
+    </LinearLayout>
+
+</ScrollView>

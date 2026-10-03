@@ -6,33 +6,61 @@
         <item name="background">@null</item>
     </style>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="colorIcons">@android:color/black</item>
+
+        <!-- Default Font for TextView -->
         <item name="android:textViewStyle">@style/TextViewStyle</item>
 
-        <item name="android:statusBarColor">@android:color/transparent</item>
+        <!-- Default Button Style -->
+        <item name="materialButtonStyle">@style/MaterialButtonStyle</item>
 
-        <!-- Support library compatibility -->
-        <item name="actionBarStyle">@style/ThemeActionBar</item>
-<!--        <item name="windowActionBarOverlay">true</item>-->
+        <!-- Default EditText Style -->
+        <item name="android:editTextStyle">@style/EditTextStyle</item>
 
-        <item name="android:windowTranslucentStatus">false</item>
-        <item name="android:windowTranslucentNavigation">true</item>
-
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:fitsSystemWindows">false</item>
-
-        <!-- Support library compatibility -->
-
-        <item name="android:windowAnimationStyle">@style/WindowAnimationTransition</item>
+        <!-- Default TextInputLayout -->
+        <item name="textInputStyle">@style/TextInputLayoutStyle</item>
 
         <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="MaterialButtonStyle" parent="Widget.MaterialComponents.Button">
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="EditTextStyle" parent="Widget.MaterialComponents.TextInputEditText.OutlinedBox">
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:textColorHint">@android:color/darker_gray</item>
+        <item name="android:padding">12dp</item>
+    </style>
+
+    <style name="TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+
+        <!-- Corners -->
+        <item name="boxCornerRadiusBottomEnd">24dp</item>
+        <item name="boxCornerRadiusBottomStart">24dp</item>
+        <item name="boxCornerRadiusTopEnd">24dp</item>
+        <item name="boxCornerRadiusTopStart">24dp</item>
+
+        <!-- Border Color -->
+        <item name="boxStrokeColor">@color/colorPrimary</item>
+        <item name="boxStrokeWidth">2dp</item>
+
+
+
+        <!-- Font of hint -->
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="AppTheme.Dark" parent="Theme.AppCompat.NoActionBar">
@@ -62,33 +90,33 @@
     </style>
 
     <style name="TextViewStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeuil</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewRegularStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewBoldStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeuib</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewLightStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewSubBarStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeuil</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewLogoStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
         <item name="android:textSize">60sp</item>
         <item name="android:letterSpacing">-0.065</item>
     </style>
 
     <style name="ButtonStyle">
-        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:elevation">0dp</item>
         <item name="android:outlineProvider">none</item>
@@ -102,7 +130,7 @@
     </style>
 
     <style name="TextViewNoticeStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/segoeui</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
         <item name="android:letterSpacing">0.2</item>
     </style>
 
@@ -115,7 +143,7 @@
 
     <style name="Widget.NavigationView"
         parent="Widget.Design.NavigationView">
-        <item name="fontFamily">@font/iran_yekan_light</item>
+        <item name="fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewStatus" parent="TextViewRegularStyle">
@@ -144,6 +172,77 @@
         <item name="android:textColor">@android:color/black</item> <!-- Text color -->
         <item name="android:textColorHint">@android:color/darker_gray</item> <!-- Hint color -->
         <item name="android:textSize">16sp</item> <!-- Text size -->
+    </style>
+
+    <style name="OtpBoxStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/otp_box_bg</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:inputType">number</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:layout_margin">4dp</item>
+        <item name="android:textColor">@color/greenPrimaryTextColor</item>
+    </style>
+
+    <style name="ButtonBase" parent="Widget.MaterialComponents.Button">
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:elevation">0dp</item>
+        <item name="cornerRadius">12dp</item>
+<!--        <item name="insetTop">0dp</item>-->
+<!--        <item name="insetBottom">0dp</item>-->
+    </style>
+
+    <style name="ButtonPrimary" parent="ButtonBase">
+        <item name="backgroundTint">@color/greenMain</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="ButtonSecondary" parent="ButtonBase">
+        <item name="backgroundTint">@color/homeBackground</item>
+        <item name="strokeColor">@color/greenSecondaryTextColor</item>
+        <item name="strokeWidth">2dp</item>
+        <item name="android:textColor">@color/greenSecondaryTextColor</item>
+    </style>
+
+    <style name="CustomButtonStyle">
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cb_primaryBackground">@color/greenMain</item>
+        <item name="cb_primaryTextColor">@android:color/white</item>
+
+        <item name="cb_secondaryBackground">@android:color/transparent</item>
+        <item name="cb_secondaryBorderColor">@color/black10</item>
+        <item name="cb_secondaryTextColor">@color/greenSecondaryTextColor</item>
+
+        <item name="cb_cornerRadius">12dp</item>
+        <item name="cb_defaultPadding">12dp</item>
+    </style>
+
+    <style name="BottomSheetTheme" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textViewStyle">@style/TextViewStyle</item>
+        <item name="materialButtonStyle">@style/MaterialButtonStyle</item>
+        <item name="android:editTextStyle">@style/EditTextStyle</item>
+        <item name="textInputStyle">@style/TextInputLayoutStyle</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="BottomDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
     </style>
 
 </resources>

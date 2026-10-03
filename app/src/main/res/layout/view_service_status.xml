@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    card_view:cardBackgroundColor="@color/transparent"
+    card_view:cardCornerRadius="18dp"
+    card_view:cardElevation="6dp">
+
+    <RelativeLayout
+        android:id="@+id/rootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <!-- Refresh Button -->
+        <ImageView
+            android:id="@+id/btnRefresh"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_refresh_circle"
+            android:padding="8dp"
+            android:src="@drawable/ic_refresh"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            card_view:tint="@android:color/white" />
+
+        <!-- Status Title -->
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connection_status"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:layout_toEndOf="@id/btnRefresh"
+            android:layout_marginStart="12dp"/>
+
+        <!-- Status Text -->
+        <TextView
+            android:id="@+id/txtStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/checking_status"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:layout_below="@id/txtTitle"
+            android:layout_toEndOf="@id/btnRefresh"
+            android:layout_marginStart="12dp"/>
+
+        <!-- Right Icon -->
+        <ImageView
+            android:id="@+id/imgStatus"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            card_view:tint="@android:color/white" />
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

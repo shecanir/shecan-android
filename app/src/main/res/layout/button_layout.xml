@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="250dp"
+    android:layout_height="wrap_content"
+    >
+
+    <!-- ring = 86% سایز circle -->
+    <ImageView
+        android:id="@+id/ring"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.86"
+        app:layout_constraintDimensionRatio="1:1"
+        android:src="@drawable/button_ring"
+        app:layout_constraintBottom_toBottomOf="@id/circle"
+        app:layout_constraintTop_toTopOf="@id/circle"
+        app:layout_constraintStart_toStartOf="@id/circle"
+        app:layout_constraintEnd_toEndOf="@id/circle" />
+
+    <!-- ring = 86% سایز circle -->
+    <ImageView
+        android:id="@+id/lightBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.86"
+        app:layout_constraintDimensionRatio="1:1"
+        android:src="@drawable/ic_button_light_background"
+        app:layout_constraintBottom_toBottomOf="@id/circle"
+        app:layout_constraintTop_toTopOf="@id/circle"
+        app:layout_constraintStart_toStartOf="@id/circle"
+        app:layout_constraintEnd_toEndOf="@id/circle" />
+
+    <!-- background = 66% سایز circle -->
+    <ImageView
+        android:id="@+id/background"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.66"
+        app:layout_constraintDimensionRatio="1:1"
+        android:src="@drawable/button_background"
+        app:layout_constraintBottom_toBottomOf="@id/circle"
+        app:layout_constraintTop_toTopOf="@id/circle"
+        app:layout_constraintStart_toStartOf="@id/circle"
+        app:layout_constraintEnd_toEndOf="@id/circle" />
+
+    <ImageView
+        android:id="@+id/background2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.66"
+        app:layout_constraintDimensionRatio="1:1"
+        android:src="@drawable/ic_back_button"
+        app:layout_constraintBottom_toBottomOf="@id/circle"
+        app:layout_constraintTop_toTopOf="@id/circle"
+        app:layout_constraintStart_toStartOf="@id/circle"
+        app:layout_constraintEnd_toEndOf="@id/circle" />
+
+
+    <!-- بزرگترین لایه (circle = 330px) -->
+    <ImageView
+        android:id="@+id/circle"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="1.4"
+        app:layout_constraintDimensionRatio="1:1"
+        android:src="@drawable/button_circle3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- power = 19% سایز circle -->
+    <ImageView
+        android:id="@+id/power"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="0.19"
+        app:layout_constraintDimensionRatio="1:1"
+        android:src="@drawable/button_power"
+        app:layout_constraintBottom_toBottomOf="@id/circle"
+        app:layout_constraintTop_toTopOf="@id/circle"
+        app:layout_constraintStart_toStartOf="@id/circle"
+        app:layout_constraintEnd_toEndOf="@id/circle" />
+
+    <!-- Loading Circle دور دکمه -->
+    <ir.shecan.ui.widget.LoadingCircleView
+        android:id="@+id/loadingCircle"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintWidth_percent="1.0"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toStartOf="@id/circle"
+        app:layout_constraintEnd_toEndOf="@id/circle"
+        app:layout_constraintTop_toTopOf="@id/circle"
+        app:layout_constraintBottom_toBottomOf="@id/circle"
+        android:visibility="gone"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

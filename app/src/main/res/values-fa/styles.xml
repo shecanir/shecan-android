@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="TextViewStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/iran_yekan_light</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewRegularStyle" parent="android:Widget.TextView">
@@ -9,7 +9,7 @@
     </style>
 
     <style name="TextViewLightStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/iran_yekan_light</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
     </style>
 
     <style name="TextViewBoldStyle" parent="android:Widget.TextView">
@@ -30,7 +30,7 @@
     </style>
 
     <style name="TextViewNoticeStyle" parent="android:Widget.TextView">
-        <item name="android:fontFamily">@font/iran_yekan_light</item>
+        <item name="android:fontFamily">@font/iran_yekan_bakh_vm</item>
         <item name="android:letterSpacing">0</item>
     </style>
 

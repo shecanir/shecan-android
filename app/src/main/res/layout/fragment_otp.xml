@@ -1,0 +1,120 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/authorizeBackgroundColor">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="100dp" />
+
+                <RelativeLayout
+                    android:id="@+id/optLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:id="@+id/bottomFrameLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="115dp"
+                        android:background="@drawable/login_top_box_bg">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical"
+                            android:padding="24dp">
+
+                            <include
+                                android:id="@+id/otp_layout"
+                                layout="@layout/otp_frame"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content" />
+
+
+                        </LinearLayout>
+
+
+                    </FrameLayout>
+
+                    <!-- آدمک -->
+                    <ImageView
+                        android:id="@+id/mascot"
+                        android:layout_width="170dp"
+                        android:layout_height="170dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_gravity="center_horizontal"
+                        android:src="@drawable/ic_shecan_hide_eye" />
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- include the custom view -->
+    <ir.shecan.ui.widget.AgreeView
+        android:id="@+id/agreementView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_margin="16dp"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+        <ImageView
+            android:id="@+id/iconToolbarOtp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/toolbar_logo_vertical"
+            android:transitionName="toolbar_logo"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/iconBackImg"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:alpha="0"
+            android:background="@drawable/back_button_background"
+            android:padding="12dp"
+            android:src="@drawable/ic_back"
+            android:rotation="180"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ProgressBar
+        android:id="@+id/progressVerify"
+        android:indeterminateTint="@color/greenMain"
+        android:indeterminateTintMode="src_in"
+        android:visibility="gone"
+        android:layout_gravity="center"
+        android:layout_width="36dp"
+        android:layout_height="36dp" />
+
+</FrameLayout>

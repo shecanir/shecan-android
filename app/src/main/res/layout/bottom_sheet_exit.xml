@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/root"
+    android:background="@drawable/bg_bottom_dialog"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- handle بالا -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/bg_handle"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/exit_sheet_title"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/primaryTextColor"
+        android:layout_marginBottom="6dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/exit_sheet_message"
+        android:textSize="14sp"
+        android:textColor="@color/greenPrimaryTextColor"
+        android:layout_marginBottom="20dp"/>
+
+    <!-- دکمه نظر دادن -->
+    <LinearLayout
+        android:id="@+id/btnRate"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_item"
+        android:gravity="center"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/rate_app_button"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@color/primaryTextColor"/>
+    </LinearLayout>
+
+    <!-- دکمه خروج -->
+    <LinearLayout
+        android:id="@+id/btnExit"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_item_exit"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/exit_button_short"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="#D32F2F"/>
+    </LinearLayout>
+
+</LinearLayout>

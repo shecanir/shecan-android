@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- حالت تاچ -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#DDEFEF"/> <!-- رنگ پس‌زمینه هنگام لمس -->
+        </shape>
+    </item>
+
+    <!-- حالت نرمال -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF"/>
+        </shape>
+    </item>
+
+</selector>

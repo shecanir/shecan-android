@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- بدون رنگ، فقط سایه -->
+    <solid android:color="@android:color/transparent" />
+
+    <padding android:bottom="12dp" />
+
+    <size android:width="200dp" android:height="200dp" />
+
+    <gradient
+        android:type="radial"
+        android:gradientRadius="160dp"
+        android:startColor="@android:color/transparent"
+        android:endColor="#FF0000" />
+</shape>
