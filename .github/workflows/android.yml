@@ -1,0 +1,56 @@
+name: Android checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        store: [Site, Myket, CafeBazaar]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install Android SDK
+        run: sdkmanager 'platforms;android-34' 'build-tools;34.0.0'
+      - name: Configure Firebase for debug checks
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os
+          from pathlib import Path
+          supplied = os.environ.get('GOOGLE_SERVICES_JSON', '').strip()
+          # No production Firebase access is needed to compile or run unit tests.
+          config = json.loads(supplied) if supplied else {
+              'project_info': {'project_number': '123456789012', 'project_id': 'shecan-ci'},
+              'client': [{
+                  'client_info': {
+                      'mobilesdk_app_id': '1:123456789012:android:0123456789abcdef',
+                      'android_client_info': {'package_name': 'co.bonyan.shecan'}
+                  },
+                  'api_key': [{'current_key': 'AIzaSy000000000000000000000000000000000'}]
+              }],
+              'configuration_version': '1'
+          }
+          Path('app/google-services.json').write_text(json.dumps(config))
+          PYTHON
+      - name: Build and test
+        run: ./gradlew --no-daemon :app:assemble${{ matrix.store }}Debug :app:test${{ matrix.store }}DebugUnitTest
+      - name: Save test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.store }}
+          path: app/build/reports/tests/

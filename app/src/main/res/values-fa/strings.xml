@@ -264,4 +264,5 @@
     <string name="service_status">وضعیت سرویس</string>
     <string name="pro_service_config_missing">اطلاعات اتصال سرویس حرفه‌ای کامل نیست. سرویس را دوباره انتخاب و مجدد امتحان کنید.</string>
 
+    <string name="settings_boot_summary">پس از راه‌اندازی دستگاه، با مجوز قبلی VPN دوباره متصل شود.</string>
 </resources>

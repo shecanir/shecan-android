@@ -2,6 +2,7 @@ package ir.shecan.ui.fragment.bottomSheet;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
+import static ir.shecan.core.util.ServiceSelectionPolicy.isDueDateExpired;
 
 import android.app.Dialog;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import androidx.annotation.Nullable;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,7 +30,6 @@ import ir.shecan.R;
 import ir.shecan.Shecan;
 import ir.shecan.core.billing.BillingPeriod;
 import ir.shecan.core.billing.BillingSla;
-import ir.shecan.core.constant.DurationType;
 import ir.shecan.core.constant.RequestStatus;
 import ir.shecan.databinding.BottomSheetSubscriptionBinding;
 import ir.shecan.data.modelDto.ServiceItem;
@@ -42,12 +43,23 @@ public class SubscriptionBottomSheet extends BottomSheetDialogFragment {
     private BottomSheetSubscriptionBinding binding;
     private ServiceItem item;
 
-    public SubscriptionBottomSheet(ServiceItem item) {
-        this.item = item;
+    private static final String ARG_ITEM = "item_json";
+
+    public SubscriptionBottomSheet() {
     }
 
     public static SubscriptionBottomSheet newInstance(ServiceItem item) {
-        return new SubscriptionBottomSheet(item);
+        SubscriptionBottomSheet sheet = new SubscriptionBottomSheet();
+        Bundle args = new Bundle();
+        args.putString(ARG_ITEM, new Gson().toJson(item));
+        sheet.setArguments(args);
+        return sheet;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        item = new Gson().fromJson(requireArguments().getString(ARG_ITEM), ServiceItem.class);
     }
 
     @Nullable
@@ -87,9 +99,6 @@ public class SubscriptionBottomSheet extends BottomSheetDialogFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        if (getArguments() != null)
-            item = (ServiceItem) getArguments().getSerializable("item");
 
         if (item == null) return;
 
@@ -241,20 +250,6 @@ public class SubscriptionBottomSheet extends BottomSheetDialogFragment {
         return null;
     }
 
-    private boolean isDueDateExpired(String dueDate) {
-        try {
-            if (dueDate == null || dueDate.trim().isEmpty()) return false;
-            String normalized = dueDate.trim();
-            if (normalized.contains("T")) normalized = normalized.substring(0, normalized.indexOf("T"));
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            Date date = sdf.parse(normalized);
-            if (date == null) return false;
-            return date.getTime() < System.currentTimeMillis();
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
     // تبدیل میلادی به شمسی
     private String convertToShamsi(String gregorian) {
         try {
@@ -349,5 +344,11 @@ public class SubscriptionBottomSheet extends BottomSheetDialogFragment {
         } catch (Exception e) {
             return "-";
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        binding = null;
+        super.onDestroyView();
     }
 }

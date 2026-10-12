@@ -14,6 +14,7 @@ public class GlobalConfigFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+        getPreferenceManager().setSharedPreferencesName("app_preferences");
         setPreferencesFromResource(R.xml.perf_settings, rootKey);
 
         Shecan.getPrefs().edit()

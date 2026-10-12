@@ -5,6 +5,12 @@
         android:key="settings_system"
         android:title="@string/settings_system">
 
+        <SwitchPreferenceCompat
+            android:key="settings_boot"
+            android:title="@string/settings_boot"
+            android:summary="@string/settings_boot_summary"
+            android:defaultValue="false" />
+
         <!-- زبان (در صورت نیاز فعال کن)
         <ListPreference
             android:key="settings_language"

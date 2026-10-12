@@ -325,4 +325,5 @@
     <string name="billing_period_monthly">ماهانه</string>
     <string name="service_status">وضعیت سرویس</string>
     <string name="pro_service_config_missing">The Pro service connection details are incomplete. Select the service again and retry.</string>
+    <string name="settings_boot_summary">Reconnect after restarting the device once VPN permission has been granted.</string>
 </resources>

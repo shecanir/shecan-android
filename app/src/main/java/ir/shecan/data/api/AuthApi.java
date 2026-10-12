@@ -18,6 +18,8 @@ import ir.shecan.core.billing.BillingPlan;
 import ir.shecan.core.billing.BillingPlanCatalog;
 import ir.shecan.core.constant.Constant;
 import ir.shecan.core.util.PersianTools;
+import ir.shecan.core.util.DynamicBannerRequestFactory;
+import java.util.Collections;
 import ir.shecan.data.modelDio.ExistApiInput;
 import ir.shecan.data.modelDio.BannerMatchApiInput;
 import ir.shecan.data.modelDio.DialogActionApiInput;
@@ -61,9 +63,11 @@ public class AuthApi {
     private static DynamicDialogViewModel dialogMatchCache = null;
 
     private final ApiRepository repo;
+    private final Context context;
 
     public AuthApi(Context context) {
-        repo = new ApiRepository(context);
+        this.context = context.getApplicationContext();
+        repo = new ApiRepository(this.context);
     }
 
     private static String normalizeAuthIdentifier(String identifier) {
@@ -546,6 +550,27 @@ public class AuthApi {
     // ---------------------------------------------------
     // 10) homePage
     // ---------------------------------------------------
+    public void loadBanners(HomePage homePage, ApiCallback<List<BannerViewModel>> callback) {
+        bannerMatch(DynamicBannerRequestFactory.fromStorage(context), new ApiCallback<BannerViewModel>() {
+            @Override
+            public void onSuccess(BannerViewModel banner, boolean fromCache) {
+                callback.onSuccess(banner != null ? Collections.singletonList(banner)
+                        : Collections.emptyList(), fromCache);
+            }
+
+            @Override
+            public void onError(int statusCode, String message) {
+                String url = homePage != null && homePage.getBannerService() != null
+                        ? homePage.getBannerService().getAndroid() : null;
+                if (url == null || url.trim().isEmpty()) {
+                    callback.onSuccess(Collections.emptyList(), false);
+                } else {
+                    bannerList(url, callback);
+                }
+            }
+        });
+    }
+
     public void homePageApi(ApiCallback<HomePage> callback) {
 
         repo.request(

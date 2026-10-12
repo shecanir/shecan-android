@@ -5,25 +5,17 @@ import static android.view.View.VISIBLE;
 import static ir.shecan.core.util.AppUtils.adjustUIForFragment;
 
 import android.os.Bundle;
-import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import java.util.List;
 
 import ir.shecan.R;
 import ir.shecan.core.billing.BillingStore;
+import ir.shecan.core.billing.MarketplaceBillingController;
 import ir.shecan.core.billing.BillingHost;
 import ir.shecan.core.billing.BillingPurchaseObserver;
-import ir.shecan.core.billing.CafeBazaarBillingManager;
-import ir.shecan.core.billing.CafeBazaarBillingProducts;
-import ir.shecan.core.billing.MyketBillingManager;
-import ir.shecan.core.billing.MyketBillingProducts;
-import ir.shecan.core.billing.MarketplacePriceCatalog;
-import ir.shecan.core.constant.Constant;
 import ir.shecan.databinding.ActivityBillingPlansBinding;
 import ir.shecan.ui.fragment.refactor.BillingPlansFragment;
 
@@ -34,9 +26,6 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
     public static final String EXTRA_RENEWAL_ORDER_ID = "renewal_order_id";
 
     private ActivityBillingPlansBinding binding;
-    private MyketBillingManager myketBillingManager;
-    private CafeBazaarBillingManager cafeBazaarBillingManager;
-    private BillingPurchaseObserver billingPurchaseObserver;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,8 +39,7 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
         if (mainActivity != null) {
             mainActivity.releaseMarketplaceBilling();
         }
-        setupMyketBilling();
-        setupCafeBazaarBilling();
+        getMarketplaceBilling().start();
 
         if (savedInstanceState == null) {
             BillingPlansFragment fragment = new BillingPlansFragment();
@@ -84,213 +72,50 @@ public class BillingPlansActivity extends AppCompatActivity implements BillingHo
         binding.toolbar.vip.setVisibility(GONE);
     }
 
-    private void setupMyketBilling() {
-        if (!Constant.IsMyketMode || !MyketBillingProducts.hasAnySku()) return;
+    private MarketplaceBillingController marketplaceBilling;
 
-        myketBillingManager = new MyketBillingManager(this);
-        myketBillingManager.startSetup(
-                MyketBillingProducts.consumableSkus(),
-                MyketBillingProducts.nonConsumableSkus(),
-                new MyketBillingManager.Listener() {
-                    @Override
-                    public void onBillingReady() {
-                        Log.d("MyketBilling", "Myket billing is ready.");
-                    }
-
-                    @Override
-                    public void onBillingUnavailable(String message) {
-                        Log.w("MyketBilling", message);
-                    }
-
-                    @Override
-                    public void onSkuDetailsLoaded(List<?> skuDetails) {
-                        Log.d("MyketBilling", "Loaded Myket sku details: " + skuDetails.size());
-                        for (Object detail : skuDetails) {
-                            if (detail instanceof ir.myket.billingclient.util.SkuDetails) {
-                                ir.myket.billingclient.util.SkuDetails sku =
-                                        (ir.myket.billingclient.util.SkuDetails) detail;
-                                MarketplacePriceCatalog.putPrice(
-                                        BillingStore.MYKET,
-                                        sku.getSku(),
-                                        sku.getPrice()
-                                );
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onConsumablePurchaseReady(Object purchase, boolean restoredFromInventory) {
-                        Log.d("MyketBilling", "Consumable purchase is ready: " + purchase);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplacePurchaseReady(BillingStore.MYKET, purchase, restoredFromInventory);
-                        }
-                    }
-
-                    @Override
-                    public void onNonConsumablePurchaseReady(Object purchase, boolean restoredFromInventory) {
-                        Log.d("MyketBilling", "Non-consumable purchase is ready: " + purchase);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplacePurchaseReady(BillingStore.MYKET, purchase, restoredFromInventory);
-                        }
-                    }
-
-                    @Override
-                    public void onPurchaseConsumed(Object purchase) {
-                        Log.d("MyketBilling", "Purchase consumed: " + purchase);
-                    }
-
-                    @Override
-                    public void onBillingError(String message) {
-                        Log.e("MyketBilling", message);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplaceBillingError(BillingStore.MYKET, message);
-                        }
-                    }
-                }
-        );
-    }
-
-    private void setupCafeBazaarBilling() {
-        if (!Constant.IsCafeBazaarMode || !CafeBazaarBillingProducts.hasAnySku()) return;
-
-        cafeBazaarBillingManager = new CafeBazaarBillingManager(this);
-        cafeBazaarBillingManager.startSetup(
-                CafeBazaarBillingProducts.consumableSkus(),
-                CafeBazaarBillingProducts.nonConsumableSkus(),
-                new CafeBazaarBillingManager.Listener() {
-                    @Override
-                    public void onBillingReady() {
-                        Log.d("CafeBazaarBilling", "Cafe Bazaar billing is ready.");
-                    }
-
-                    @Override
-                    public void onBillingUnavailable(@NonNull String message) {
-                        Log.w("CafeBazaarBilling", message);
-                    }
-
-                    @Override
-                    public void onBillingDisconnected() {
-                        Log.d("CafeBazaarBilling", "Cafe Bazaar billing disconnected.");
-                    }
-
-                    @Override
-                    public void onInAppSkuDetailsLoaded(@NonNull List<?> skuDetails) {
-                        Log.d("CafeBazaarBilling", "Loaded Cafe Bazaar in-app sku details: " + skuDetails.size());
-                        for (Object detail : skuDetails) {
-                            if (detail instanceof ir.cafebazaar.poolakey.entity.SkuDetails) {
-                                ir.cafebazaar.poolakey.entity.SkuDetails sku =
-                                        (ir.cafebazaar.poolakey.entity.SkuDetails) detail;
-                                MarketplacePriceCatalog.putPrice(
-                                        BillingStore.CAFE_BAZAAR,
-                                        sku.getSku(),
-                                        sku.getPrice()
-                                );
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onPurchaseFlowBegan(@NonNull String sku) {
-                        Log.d("CafeBazaarBilling", "Purchase flow began: " + sku);
-                    }
-
-                    @Override
-                    public void onConsumablePurchaseReady(@NonNull Object purchaseInfo, boolean restoredFromInventory) {
-                        Log.d("CafeBazaarBilling", "Consumable purchase is ready: " + purchaseInfo);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplacePurchaseReady(BillingStore.CAFE_BAZAAR, purchaseInfo, restoredFromInventory);
-                        }
-                    }
-
-                    @Override
-                    public void onNonConsumablePurchaseReady(@NonNull Object purchaseInfo, boolean restoredFromInventory) {
-                        Log.d("CafeBazaarBilling", "Non-consumable purchase is ready: " + purchaseInfo);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplacePurchaseReady(BillingStore.CAFE_BAZAAR, purchaseInfo, restoredFromInventory);
-                        }
-                    }
-
-                    @Override
-                    public void onPurchaseCanceled(@NonNull String sku) {
-                        Log.d("CafeBazaarBilling", "Purchase canceled: " + sku);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplacePurchaseCanceled(BillingStore.CAFE_BAZAAR, sku);
-                        }
-                    }
-
-                    @Override
-                    public void onPurchaseConsumed(@NonNull String purchaseToken) {
-                        Log.d("CafeBazaarBilling", "Purchase consumed: " + purchaseToken);
-                    }
-
-                    @Override
-                    public void onBillingError(@NonNull String message) {
-                        Log.e("CafeBazaarBilling", message);
-                        if (billingPurchaseObserver != null) {
-                            billingPurchaseObserver.onMarketplaceBillingError(BillingStore.CAFE_BAZAAR, message);
-                        }
-                    }
-                }
-        );
+    private MarketplaceBillingController getMarketplaceBilling() {
+        if (marketplaceBilling == null) marketplaceBilling = new MarketplaceBillingController(this);
+        return marketplaceBilling;
     }
 
     @Override
-    public void setBillingPurchaseObserver(BillingPurchaseObserver billingPurchaseObserver) {
-        this.billingPurchaseObserver = billingPurchaseObserver;
-        if (billingPurchaseObserver != null && myketBillingManager != null) {
-            myketBillingManager.redeliverOwnedPurchases();
-        }
+    public void setBillingPurchaseObserver(BillingPurchaseObserver observer) {
+        getMarketplaceBilling().setBillingPurchaseObserver(observer);
     }
 
     @Override
     public boolean isBillingReadyForStore(BillingStore store) {
-        switch (store) {
-            case CAFE_BAZAAR:
-                return cafeBazaarBillingManager != null && cafeBazaarBillingManager.isReady();
-            case MYKET:
-                return myketBillingManager != null && myketBillingManager.isReady();
-            case SITE:
-            default:
-                return true;
-        }
+        return getMarketplaceBilling().isBillingReadyForStore(store);
     }
 
     @Override
     public void refreshMarketplacePrices(BillingStore store) {
-        MarketplacePriceCatalog.clear(store);
-        if (store == BillingStore.CAFE_BAZAAR && cafeBazaarBillingManager != null) {
-            cafeBazaarBillingManager.querySkuDetails();
-        } else if (store == BillingStore.MYKET && myketBillingManager != null) {
-            myketBillingManager.querySkuDetails();
-        }
+        getMarketplaceBilling().refreshMarketplacePrices(store);
     }
 
     @Override
     public void launchMyketPurchase(String sku, Long renewalOrderId) {
-        if (myketBillingManager != null) {
-            myketBillingManager.launchPurchaseFlow(this, sku, renewalOrderId);
-        }
+        getMarketplaceBilling().launchMyketPurchase(sku, renewalOrderId);
     }
 
     @Override
     public void consumeMyketPurchase(Object purchase) {
-        if (myketBillingManager != null) {
-            myketBillingManager.consumePurchase(purchase);
-        }
+        getMarketplaceBilling().consumeMyketPurchase(purchase);
     }
 
     @Override
     public void launchCafeBazaarPurchase(String sku, Long renewalOrderId) {
-        if (cafeBazaarBillingManager != null) {
-            cafeBazaarBillingManager.launchPurchaseFlow(getActivityResultRegistry(), sku, renewalOrderId);
-        }
+        getMarketplaceBilling().launchCafeBazaarPurchase(sku, renewalOrderId);
+    }
+
+    public void releaseMarketplaceBilling() {
+        if (marketplaceBilling != null) marketplaceBilling.releaseMarketplaceBilling();
     }
 
     @Override
     protected void onDestroy() {
-        if (myketBillingManager != null) myketBillingManager.dispose();
-        if (cafeBazaarBillingManager != null) cafeBazaarBillingManager.dispose();
-        billingPurchaseObserver = null;
+        releaseMarketplaceBilling();
         binding = null;
         super.onDestroy();
     }

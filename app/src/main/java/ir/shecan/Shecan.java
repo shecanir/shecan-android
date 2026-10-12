@@ -22,20 +22,12 @@ import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.facebook.drawee.backends.pipeline.Fresco;
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -47,13 +39,11 @@ import io.sentry.Sentry;
 import io.sentry.android.core.SentryAndroid;
 import io.sentry.protocol.User;
 import ir.shecan.core.sentry.SentrySamplingConfig;
-import ir.shecan.core.service.BaseApiResponseListener;
 import ir.shecan.core.service.ConnectionStatusApiListener;
 import ir.shecan.core.service.CoreApiResponseListener;
 import ir.shecan.core.service.DynamicIpConnectionMonitor;
 import ir.shecan.core.service.MonitoringService;
 import ir.shecan.core.service.ShecanVpnService;
-import ir.shecan.core.service.VolleyHelper;
 import ir.shecan.core.util.Configurations;
 import ir.shecan.core.util.LanguageHelper;
 import ir.shecan.core.util.Logger;
@@ -116,7 +106,8 @@ public class Shecan extends Application {
     private SharedPreferences prefs;
     private long appStartedElapsedMs;
 
-    private static final long DYNAMIC_IP_REFRESH_INTERVAL_MS = 20_000L;
+    private static final long DYNAMIC_IP_REFRESH_INTERVAL_MS = 5 * 60_000L;
+    private static final long DYNAMIC_IP_RECOVERY_INTERVAL_MS = 20_000L;
     private static final long NETWORK_CHANGE_SETTLE_MS = 2_000L;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -128,7 +119,9 @@ public class Shecan extends Application {
                     dynamicIpMonitor.poll();
                 }
             } finally {
-                handler.postDelayed(this, DYNAMIC_IP_REFRESH_INTERVAL_MS);
+                handler.removeCallbacks(this);
+                handler.postDelayed(this, dynamicIpMonitor.isRecovering()
+                        ? DYNAMIC_IP_RECOVERY_INTERVAL_MS : DYNAMIC_IP_REFRESH_INTERVAL_MS);
             }
         }
     };
@@ -161,6 +154,8 @@ public class Shecan extends Application {
                 @Override
                 public void onChecking() {
                     setVpnState(VPN_STATE_CONNECTING);
+                    handler.removeCallbacks(dynamicIpRefreshRunnable);
+                    handler.postDelayed(dynamicIpRefreshRunnable, DYNAMIC_IP_RECOVERY_INTERVAL_MS);
                 }
 
                 @Override
@@ -208,6 +203,7 @@ public class Shecan extends Application {
             vpnState.postValue(state);
         }
         if (changed) {
+            if (state == VPN_STATE_CONNECTED) initCheckIP();
             MonitoringService.refresh(this);
         }
     }
@@ -245,7 +241,6 @@ public class Shecan extends Application {
 
         instance = this;
         appStartedElapsedMs = SystemClock.elapsedRealtime();
-        Fresco.initialize(this);
 
         Logger.init();
 
@@ -713,102 +708,6 @@ public class Shecan extends Application {
         private static final String DEFAULT_MONITORING_TARGET_URL = "https://my.shecan.ir/monitoring/targets";
         private static final String DEFAULT_MONITORING_LOGS_URL = "https://my.shecan.ir/monitoring/logs";
 
-        public static void fetchData(Context context, BaseApiResponseListener listener) {
-            RequestQueue requestQueue = VolleyHelper.getSecureRequestQueue(context);
-            String apiUrl = "https://shecan.ir/app/home-page";
-            StringRequest stringRequest = new StringRequest(
-                    Request.Method.GET,
-                    apiUrl,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            try {
-                                JSONObject jsonObject = new JSONObject(response);
-
-                                JSONObject versionObject = jsonObject.getJSONObject("version");
-                                JSONObject androidVersion = versionObject.getJSONObject("android");
-
-                                setCurrentVersion(androidVersion.getString("current_version"));
-                                setMinVersion(androidVersion.getString("min_version"));
-
-                                setUpdateLink(jsonObject.getString("update_link"));
-                                setBannerImageUrl(jsonObject.getString("banner_image_url"));
-                                setBannerLink(jsonObject.getString("banner_link"));
-                                setDynamicIpGuideLink(jsonObject.getString("dynamic_ip_guide_link"));
-                                setTicketingLink(jsonObject.getString("ticketing_link"));
-                                setPurchaseLink(jsonObject.getString("purchase_link"));
-                                saveDynamicData(jsonObject.optJSONObject("dynamic_data"));
-                                saveMonitoring(jsonObject.optJSONObject("monitoring"));
-                                saveSentrySampleRate(jsonObject);
-
-                                listener.onSuccess();
-                            } catch (JSONException e) {
-                                listener.onError("خطای سرور");
-                            }
-                        }
-                    },
-                    new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            listener.onError(error.toString());
-                        }
-                    }
-            );
-
-            stringRequest.setShouldCache(false);
-            requestQueue.getCache().clear();
-            requestQueue.add(stringRequest);
-        }
-
-
-        private static void setCurrentVersion(String version) {
-            getPrefs().edit()
-                    .putString(CURRENT_VERSION, version)
-                    .apply();
-        }
-
-        private static void setMinVersion(String version) {
-            getPrefs().edit()
-                    .putString(MIN_VERSION, version)
-                    .apply();
-        }
-
-        private static void setUpdateLink(String link) {
-            getPrefs().edit()
-                    .putString(UPDATE_LINK, link)
-                    .apply();
-        }
-
-        private static void setBannerImageUrl(String url) {
-            getPrefs().edit()
-                    .putString(BANNER_IMAGE_URL, url)
-                    .apply();
-        }
-
-        private static void setBannerLink(String link) {
-            getPrefs().edit()
-                    .putString(BANNER_LINK, link)
-                    .apply();
-        }
-
-        private static void setDynamicIpGuideLink(String link) {
-            getPrefs().edit()
-                    .putString(DYNAMIC_IP_GUIDE_LINK, link)
-                    .apply();
-        }
-
-        private static void setTicketingLink(String link) {
-            getPrefs().edit()
-                    .putString(TICKETING_LINK, link)
-                    .apply();
-        }
-
-        private static void setPurchaseLink(String link) {
-            getPrefs().edit()
-                    .putString(PURCHASE_LINK, link)
-                    .apply();
-        }
-
         private static void setDynamicBannerUrl(String url) {
             setString(DYNAMIC_BANNER_URL, url);
         }
@@ -840,32 +739,19 @@ public class Shecan extends Application {
                     .apply();
         }
 
-        private static void saveDynamicData(JSONObject dynamicData) {
-            if (dynamicData == null) return;
-            setDynamicBannerUrl(dynamicData.optString("banner", null));
-
-            JSONObject dialog = dynamicData.optJSONObject("dialog");
-            if (dialog == null) return;
-            setDialogMatchUrl(dialog.optString("match", null));
-            setDialogDismissUrl(dialog.optString("dismiss", null));
-            setDialogActionUrl(dialog.optString("action", null));
-        }
-
-        private static void saveMonitoring(JSONObject monitoring) {
-            if (monitoring == null) return;
-            setMonitoringTargetUrl(monitoring.optString("target", null));
-            setMonitoringLogsUrl(monitoring.optString("logs", null));
-        }
-
-        private static void saveSentrySampleRate(JSONObject homePage) {
-            SentrySamplingConfig.updateFromRemote(
-                    Shecan.getInstance(),
-                    SentrySamplingConfig.readAndroidSampleRate(homePage)
-            );
-        }
-
         public static void saveHomePageConfig(HomePage homePage) {
             if (homePage == null) return;
+            if (homePage.getVersion() != null && homePage.getVersion().getAndroid() != null) {
+                HomePage.VersionDTO.AndroidDTO version = homePage.getVersion().getAndroid();
+                setString(CURRENT_VERSION, version.getCurrentVersion());
+                setString(MIN_VERSION, version.getMinVersion());
+            }
+            setString(UPDATE_LINK, homePage.getUpdateLink());
+            setString(BANNER_IMAGE_URL, homePage.getBannerImageUrl());
+            setString(BANNER_LINK, homePage.getBannerLink());
+            setString(DYNAMIC_IP_GUIDE_LINK, homePage.getDynamicIpGuideLink());
+            setString(TICKETING_LINK, homePage.getTicketingLink());
+            setString(PURCHASE_LINK, homePage.getPurchaseLink());
 
             SentrySamplingConfig.updateFromRemote(
                     Shecan.getInstance(),
