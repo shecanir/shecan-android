@@ -131,7 +131,7 @@ public class LoginFragment extends Fragment {
         String inputNumber = binding.edtPhoneNumber.getText().toString();
         String identifier = formatPhoneNumber(inputNumber);
 
-        OtpFragment otpFragment = new OtpFragment(identifier, false);
+        OtpFragment otpFragment = OtpFragment.newInstance(identifier, false);
         route(otpFragment);
     }
 
@@ -139,7 +139,7 @@ public class LoginFragment extends Fragment {
         String inputNumber = binding.edtPhoneNumber.getText().toString();
         String identifier = formatPhoneNumber(inputNumber);
 
-        PasswordFragment otpFragment = new PasswordFragment(identifier);
+        PasswordFragment otpFragment = PasswordFragment.newInstance(identifier);
         route(otpFragment);
     }
 

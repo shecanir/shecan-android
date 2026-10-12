@@ -22,6 +22,17 @@ Requirements
 -------------
 * Android version: >= 5.0 (API 21)
 
+Building and checking
+-------------
+* Use JDK 17 through `JAVA_HOME` or Android Studio's Gradle JDK setting.
+* Install Android SDK platform 34 and build tools 34.0.0, and configure `sdk.dir` in local.properties or `ANDROID_HOME`.
+* Obtain the Firebase configuration for package `co.bonyan.shecan` and save it as `app/google-services.json`. This environment-specific file is intentionally ignored by Git.
+* Run `./gradlew :app:assembleSiteDebug :app:testSiteDebugUnitTest`; replace `Site` with `Myket` or `CafeBazaar` for the marketplace variants.
+* Android/Google dependencies use a Google Maven mirror first, followed by the official repositories. This also handles networks where Google serves dependency metadata but returns 404 for the corresponding AAR files. Other dependency groups use the official repositories.
+* CI builds and tests all three debug variants. It accepts the optional `GOOGLE_SERVICES_JSON` repository secret; otherwise it generates a dummy Firebase configuration for compile/unit checks only. Use the real configuration for releases and device testing.
+* `BUILD_TIME` is the Git commit timestamp in milliseconds. Release pipelines may set `SOURCE_DATE_EPOCH` (seconds) to override it reproducibly.
+* Release signing and Sentry upload credentials come from environment variables configured in `app/build.gradle`.
+
 Open Source Licenses
 -------------
 * __[ClearEditText](https://github.com/MrFuFuFu/ClearEditText)__ by *[Yuan Fu](https://github.com/MrFuFuFu)* - [APL 2.0](https://github.com/MrFuFuFu/ClearEditText)

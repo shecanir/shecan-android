@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Random;
 
 import de.measite.minidns.DNSMessage;
@@ -105,36 +104,38 @@ public class ShecanVpnService extends VpnService implements Runnable {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent != null) {
-            switch (Objects.requireNonNull(intent.getAction())) {
-                case ACTION_ACTIVATE:
-                    activated = true;
-                    ((Shecan) getApplicationContext())
-                            .setVpnState(Shecan.VPN_STATE_CONNECTING);
-                    startForeground(
-                            MonitoringService.NOTIFICATION_ID,
-                            MonitoringService.createNotification(this)
-                    );
-                    failureReported = false;
-                    connectionVerificationDeadlineMs = 0L;
-
-                    Context applicationContext = getApplicationContext();
-                    MonitoringService.refresh(applicationContext);
-
-                    if (this.mThread == null) {
-                        this.mThread = new Thread(this, "ShecanVpn");
-                        this.running = true;
-                        this.mThread.start();
-                    }
-                    Shecan.updateShortcut(applicationContext);
-
-                    return START_STICKY;
-                case ACTION_DEACTIVATE:
-                    stopThread();
-                    return START_NOT_STICKY;
-            }
+        String action = intent != null ? intent.getAction() : null;
+        // Android uses SERVICE_INTERFACE for always-on and null for sticky restarts.
+        if (action == null || SERVICE_INTERFACE.equals(action)) action = ACTION_ACTIVATE;
+        switch (action) {
+            case ACTION_ACTIVATE:
+                activateVpn();
+                return START_STICKY;
+            case ACTION_DEACTIVATE:
+                stopThread();
+                return START_NOT_STICKY;
+            default:
+                return START_NOT_STICKY;
         }
-        return START_NOT_STICKY;
+    }
+
+    protected void activateVpn() {
+        if (activated && running) return;
+        activated = true;
+        ((Shecan) getApplicationContext()).setVpnState(Shecan.VPN_STATE_CONNECTING);
+        startForeground(MonitoringService.NOTIFICATION_ID,
+                MonitoringService.createNotification(this));
+        failureReported = false;
+        connectionVerificationDeadlineMs = 0L;
+
+        Context applicationContext = getApplicationContext();
+        MonitoringService.refresh(applicationContext);
+        if (mThread == null) {
+            mThread = new Thread(this, "ShecanVpn");
+            running = true;
+            mThread.start();
+        }
+        Shecan.updateShortcut(applicationContext);
     }
 
     private List<Pair<String, Integer>> getResolvedDNS(AbstractDNSServer dnsServer) {
@@ -476,11 +477,46 @@ public class ShecanVpnService extends VpnService implements Runnable {
                 }
                 ((Shecan) getApplicationContext()).setVpnState(Shecan.VPN_STATE_CONNECTING);
                 connectionStatusHandler.postDelayed(
-                        ShecanVpnService.this::checkConnectionStatusAfterStart,
+                        ShecanVpnService.this::refreshProIpBeforeConnectionRetry,
                         CONNECTION_STATUS_RETRY_DELAY_MS
                 );
             }
         }, null);
+    }
+
+    private void refreshProIpBeforeConnectionRetry() {
+        if (!activated || !running) return;
+        if (!isProMode()) {
+            checkConnectionStatusAfterStart();
+            return;
+        }
+        // A boot/always-on start may need to register a new public IP first.
+        callCoreAPI(getApplicationContext(), new CoreApiResponseListener() {
+            private void retry() {
+                if (activated && running) checkConnectionStatusAfterStart();
+            }
+
+            @Override
+            public void onSuccess(String ip) { retry(); }
+
+            @Override
+            public void onInTheRange() { retry(); }
+
+            @Override
+            public void onInvalid() { reject(R.string.connection_error_config_invalid); }
+
+            @Override
+            public void onOutOfRange() { reject(R.string.out_of_range_ip_error); }
+
+            @Override
+            public void onError(String errorMessage) { retry(); }
+
+            private void reject(int messageRes) {
+                if (!activated || !running) return;
+                reportVpnFailure(messageRes);
+                stopThread();
+            }
+        });
     }
 
     private void reportVpnFailure(int messageRes) {

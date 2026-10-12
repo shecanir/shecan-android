@@ -1,11 +1,9 @@
 package ir.shecan.ui.fragment.refactor;
 
 import android.annotation.SuppressLint;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.InputType;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -35,10 +33,24 @@ import ir.shecan.data.storage.AppStorage;
 
 public class PasswordFragment extends Fragment {
 
-    private final String identifier;
+    private static final String ARG_IDENTIFIER = "identifier";
+    private String identifier;
 
-    public PasswordFragment(String identifier) {
-        this.identifier = identifier;
+    public PasswordFragment() {
+    }
+
+    public static PasswordFragment newInstance(String identifier) {
+        PasswordFragment fragment = new PasswordFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_IDENTIFIER, identifier);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        identifier = requireArguments().getString(ARG_IDENTIFIER);
     }
 
     private FragmentPasswordBinding binding;
@@ -74,7 +86,7 @@ public class PasswordFragment extends Fragment {
 
         binding.getRoot().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
 
-            if (!isAdded() || getContext() == null) return;
+            if (!isAdded() || getContext() == null || binding == null) return;
 
             int screenHeight = binding.getRoot().getHeight();
 
@@ -105,6 +117,7 @@ public class PasswordFragment extends Fragment {
                     new ApiCallback<VerifyApiViewModel>() {
                         @Override
                         public void onSuccess(VerifyApiViewModel res, boolean fromCache) {
+                            if (!isAdded() || binding == null) return;
                             showLoading(false);
                             if (res != null) {
                                 AppStorage storage = new AppStorage(getContext());
@@ -153,7 +166,7 @@ public class PasswordFragment extends Fragment {
 
             getActivity().getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.fragmentContainer, new OtpFragment(identifier, true))
+                    .replace(R.id.fragmentContainer, OtpFragment.newInstance(identifier, true))
                     .addToBackStack(null)
                     .commit();
         });
@@ -240,6 +253,7 @@ public class PasswordFragment extends Fragment {
     }
 
     private void showLoading(boolean loading) {
+        if (binding == null) return;
         if (loading) {
             binding.btnContinue.setEnabled(false);
             binding.btnContinue.setAlpha(0.5f);
@@ -266,5 +280,13 @@ public class PasswordFragment extends Fragment {
             return getString(R.string.login_error_generic);
         }
         return message.trim();
+    }
+
+    @Override
+    public void onDestroyView() {
+        typingHandler.removeCallbacksAndMessages(null);
+        isEyePressed = false;
+        binding = null;
+        super.onDestroyView();
     }
 }

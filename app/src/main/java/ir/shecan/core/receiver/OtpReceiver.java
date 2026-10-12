@@ -26,10 +26,12 @@ public class OtpReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-        if (SmsRetriever.SMS_RETRIEVED_ACTION.equals(intent.getAction())) {
+        if (intent != null && SmsRetriever.SMS_RETRIEVED_ACTION.equals(intent.getAction())) {
 
             Bundle extras = intent.getExtras();
+            if (extras == null) return;
             Status status = (Status) extras.get(SmsRetriever.EXTRA_STATUS);
+            if (status == null) return;
 
             switch (status.getStatusCode()) {
 

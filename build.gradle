@@ -6,6 +6,19 @@ buildscript {
         kotlin_version = '1.8.22'
     }
     repositories {
+        // Keep metadata and artifacts on the same reachable repository.
+        // Google Maven can return a POM but fail to serve its matching AAR.
+        maven {
+            url "https://maven.aliyun.com/repository/google"
+            content {
+                includeGroupByRegex "androidx\\..*"
+                includeGroupByRegex "com\\.android(\\..*)?"
+                includeGroupByRegex "com\\.google\\.android(\\..*)?"
+                includeGroupByRegex "com\\.google\\.firebase(\\..*)?"
+                includeGroup "com.google.gms"
+                includeGroup "com.google.testing.platform"
+            }
+        }
         google()
         mavenCentral()
         maven { url "https://jitpack.io" }
@@ -23,6 +36,17 @@ buildscript {
 
 allprojects {
     repositories {
+        maven {
+            url "https://maven.aliyun.com/repository/google"
+            content {
+                includeGroupByRegex "androidx\\..*"
+                includeGroupByRegex "com\\.android(\\..*)?"
+                includeGroupByRegex "com\\.google\\.android(\\..*)?"
+                includeGroupByRegex "com\\.google\\.firebase(\\..*)?"
+                includeGroup "com.google.gms"
+                includeGroup "com.google.testing.platform"
+            }
+        }
         google()
         mavenCentral()
         maven { url "https://jitpack.io" }

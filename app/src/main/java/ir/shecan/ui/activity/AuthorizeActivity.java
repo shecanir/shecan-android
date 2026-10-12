@@ -44,7 +44,9 @@ public class AuthorizeActivity extends AppCompatActivity {
         getApplicationContext().setTheme(R.style.AppTheme);
 
         // Load first fragment
-        loadFragment(new LoginFragment(), false);
+        if (savedInstanceState == null) {
+            loadFragment(new LoginFragment(), false);
+        }
     }
 
     // ---------------- Fragment Loader ----------------

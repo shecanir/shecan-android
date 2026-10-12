@@ -4,6 +4,10 @@ import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 import android.content.Intent;
+import static ir.shecan.core.util.ServiceSelectionPolicy.isActivePaidService;
+import static ir.shecan.core.util.ServiceSelectionPolicy.isFreeService;
+import static ir.shecan.core.util.ServiceSelectionPolicy.shouldOpenRenewal;
+
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,7 +22,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -30,13 +33,11 @@ import ir.shecan.Shecan;
 import ir.shecan.core.billing.BillingPeriod;
 import ir.shecan.core.billing.BillingSla;
 import ir.shecan.core.constant.RequestStatus;
-import ir.shecan.core.service.BaseApiResponseListener;
 import ir.shecan.core.service.ConnectionStatusApiListener;
 import ir.shecan.core.service.CoreApiResponseListener;
 import ir.shecan.core.service.MonitoringService;
 import ir.shecan.core.service.ShecanVpnService;
 import ir.shecan.core.util.AppUtils;
-import ir.shecan.core.util.DynamicBannerRequestFactory;
 import ir.shecan.core.util.DynamicDialogRequestFactory;
 import ir.shecan.core.util.ToastManager;
 import ir.shecan.core.util.TrackingUtils;
@@ -109,8 +110,7 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 
         setupDonatePadding();
 
-        if (activity.bannerUrl == null) updateBanner();
-        else handleBannerImage(activity.bannerUrl);
+        handleBannerImage(activity.bannerUrl);
 
         AppStorage appStorage = new AppStorage(getContext());
         currentServiceItem = appStorage.getServiceStatus(ServiceItem.class);
@@ -231,47 +231,8 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         return savedItem;
     }
 
-    private boolean isActivePaidService(ServiceItem item) {
-        if (item == null || item.isClosed() || isFreeService(item)) return false;
-        RequestStatus status = RequestStatus.fromValue(item.statusId);
-        return status == RequestStatus.ACTIVE
-                || status == RequestStatus.IN_USE
-                || status == RequestStatus.EXPIRING;
-    }
-
-    private boolean isFreeService(ServiceItem item) {
-        return item == null || "0".equals(item.getOrderCode());
-    }
-
     private boolean shouldOpenRenewalBeforeConnect() {
-        if (currentServiceItem != null
-                && RequestStatus.isRenewalBlocked(currentServiceItem.statusId)) {
-            return false;
-        }
-        RequestStatus status = currentServiceItem != null
-                ? RequestStatus.fromValue(currentServiceItem.statusId)
-                : null;
-        if (status == RequestStatus.SUPPORT_FINISHED
-                || status == RequestStatus.WAITING_FOR_PAYMENT_OR_RENEW
-                || status == RequestStatus.WAITING_FOR_PAYMENT_OR_ACTIVATION
-                || status == RequestStatus.SUSPENDED) {
-            return true;
-        }
-        return isDueDateExpired(currentServiceItem != null ? currentServiceItem.dueDate : null);
-    }
-
-    private boolean isDueDateExpired(String dueDate) {
-        try {
-            if (dueDate == null || dueDate.trim().isEmpty()) return false;
-            String normalized = dueDate.trim();
-            if (normalized.contains("T")) normalized = normalized.substring(0, normalized.indexOf("T"));
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
-            java.util.Date date = sdf.parse(normalized);
-            if (date == null) return false;
-            return date.getTime() < System.currentTimeMillis();
-        } catch (Exception ignored) {
-            return false;
-        }
+        return shouldOpenRenewal(currentServiceItem);
     }
 
     private void openBillingPlansForCurrentService() {
@@ -489,33 +450,37 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
 //        }
     }
 
+    private boolean homePageRequestInFlight;
+
     private void fetchData() {
-        if (!isAdded()) return;
+        if (!isAdded() || homePageRequestInFlight) return;
+        homePageRequestInFlight = true;
 
-        Shecan.ShecanInfo.fetchData(requireContext(), new BaseApiResponseListener() {
+        AuthApi auth = new AuthApi(requireContext());
+        auth.homePageApi(new ApiCallback<HomePage>() {
             @Override
-            public void onError(String errorMessage) {
-                if (!isAdded()) return;
-                maybeShowDynamicDialog();
-                loadBanner();
-            }
-
-            @Override
-            public void onSuccess() {
-                if (!isAdded()) return;
+            public void onSuccess(HomePage res, boolean fromCache) {
+                homePageRequestInFlight = false;
+                if (!isAdded() || binding == null) return;
                 if (!isUpdateVersionCheck) {
                     checkIsUpdateAvailable();
                     isUpdateVersionCheck = true;
                 }
                 maybeShowDynamicDialog();
-                loadBanner();
+                showBanner(auth, res);
+                if (res != null && res.getAppStoreRate() != null) {
+                    checkRatingRule(res.getAppStoreRate().getAndroid());
+                }
+            }
+
+            @Override
+            public void onError(int statusCode, String message) {
+                homePageRequestInFlight = false;
+                if (!isAdded() || binding == null) return;
+                maybeShowDynamicDialog();
+                showBanner(auth, null);
             }
         });
-    }
-
-    private void loadBanner() {
-        if (!isAdded()) return;
-        updateBanner();
     }
 
     private void maybeShowDynamicDialog() {
@@ -746,71 +711,22 @@ public class HomeFragment extends ToolbarFragment implements CoreApiResponseList
         scheduler = null;
     }
 
-    public void updateBanner() {
-        AuthApi auth = new AuthApi(getContext());
+    private void showBanner(AuthApi auth, HomePage res) {
+        auth.loadBanners(res, new ApiCallback<List<BannerViewModel>>() {
+            @Override
+            public void onSuccess(List<BannerViewModel> list, boolean fromCache) {
+                if (!isAdded() || binding == null) return;
+                activity.bannerUrl = list;
+                handleBannerImage(list);
+            }
 
-        auth.homePageApi(
-                new ApiCallback<HomePage>() {
-                    @Override
-                    public void onSuccess(HomePage res, boolean fromCache) {
-                        showBanner(auth, res, fromCache);
-                        checkRatingRule(res.getAppStoreRate().getAndroid());
-                    }
-
-                    @Override
-                    public void onError(int statusCode, String message) {
-                        Log.e(TAG, "onError: ");
-                    }
-                }
-        );
-    }
-
-    private void showBanner(AuthApi auth, HomePage res, boolean fromCache) {
-        auth.bannerMatch(
-                DynamicBannerRequestFactory.fromStorage(requireContext()),
-                new ApiCallback<BannerViewModel>() {
-                    @Override
-                    public void onSuccess(BannerViewModel banner, boolean fromCache) {
-                        if (!isAdded()) return;
-                        List<BannerViewModel> list = banner != null
-                                ? Collections.singletonList(banner)
-                                : new ArrayList<>();
-                        activity.bannerUrl = list;
-                        handleBannerImage(list);
-                    }
-
-                    @Override
-                    public void onError(int statusCode, String message) {
-                        loadLegacyBanners(auth, res);
-                    }
-                }
-        );
-    }
-
-    private void loadLegacyBanners(AuthApi auth, HomePage res) {
-        if (res == null || res.getBannerService() == null) {
-            handleBannerImage(new ArrayList<>());
-            return;
-        }
-
-        auth.bannerList(
-                res.getBannerService().getAndroid(),
-                new ApiCallback<List<BannerViewModel>>() {
-                    @Override
-                    public void onSuccess(List<BannerViewModel> list, boolean fromCache) {
-                        if (!isAdded()) return;
-                        activity.bannerUrl = list;
-                        handleBannerImage(list);
-                    }
-
-                    @Override
-                    public void onError(int statusCode, String message) {
-                        if (!isAdded()) return;
-                        handleBannerImage(new ArrayList<>());
-                        ToastManager.show(getContext(), message);
-                    }
-                }
-        );
+            @Override
+            public void onError(int statusCode, String message) {
+                if (!isAdded() || binding == null) return;
+                handleBannerImage(new ArrayList<>());
+                ToastManager.show(getContext(), message);
+            }
+        });
     }
 
     private void checkRatingRule(String url) {

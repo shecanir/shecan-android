@@ -21,6 +21,7 @@ import ir.shecan.core.util.Logger;
 public class BootBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (intent == null || !Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) return;
         if (Shecan.getPrefs().getBoolean("settings_boot", false)) {
             Shecan.activateService(context);
             Logger.info("Triggered boot receiver");

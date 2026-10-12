@@ -1,6 +1,5 @@
 package ir.shecan.ui.fragment.refactor;
 
-import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,11 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,8 +40,13 @@ import ir.shecan.data.storage.AppStorage;
 
 public class OtpFragment extends Fragment {
 
-    private final String identifier;
-    private final boolean isExist;
+    private static final String ARG_IDENTIFIER = "identifier";
+    private static final String ARG_IS_EXIST = "is_exist";
+    private static final String STATE_RESEND_AT = "resend_at";
+    private String identifier;
+    private boolean isExist;
+    private long resendAtMs;
+    private CountDownTimer resendTimer;
 
     private OtpReceiver otpReceiver;
 
@@ -54,9 +56,30 @@ public class OtpFragment extends Fragment {
 
 
 
-    public OtpFragment(String identifier, boolean isExist) {
-        this.identifier = identifier;
-        this.isExist = isExist;
+    public OtpFragment() {
+    }
+
+    public static OtpFragment newInstance(String identifier, boolean isExist) {
+        OtpFragment fragment = new OtpFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_IDENTIFIER, identifier);
+        args.putBoolean(ARG_IS_EXIST, isExist);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        identifier = requireArguments().getString(ARG_IDENTIFIER);
+        isExist = requireArguments().getBoolean(ARG_IS_EXIST);
+        if (savedInstanceState != null) resendAtMs = savedInstanceState.getLong(STATE_RESEND_AT);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(STATE_RESEND_AT, resendAtMs);
     }
 
     private FragmentOtpBinding binding;
@@ -102,7 +125,8 @@ public class OtpFragment extends Fragment {
         otpFields[5] = binding.otpLayout.otp6;
 
         setupOtpFields();
-        startTimer();
+        if (resendAtMs == 0L) startTimer();
+        else startCountdown();
 
         binding.otpLayout.btnVerify.setOnClickListener(v -> validateOtp());
         binding.otpLayout.tvResend.setOnClickListener(v -> startTimer());
@@ -120,7 +144,7 @@ public class OtpFragment extends Fragment {
 
         binding.getRoot().getViewTreeObserver().addOnGlobalLayoutListener(() -> {
 
-            if (!isAdded() || getContext() == null) return;
+            if (!isAdded() || getContext() == null || binding == null) return;
 
             int screenHeight = binding.getRoot().getHeight();
 
@@ -285,10 +309,17 @@ public class OtpFragment extends Fragment {
             }
         });
 
-        binding.otpLayout.tvResend.setVisibility(TextView.GONE);
-        binding.otpLayout.tvTimer.setVisibility(TextView.VISIBLE);
+        resendAtMs = System.currentTimeMillis() + 60_000L;
+        startCountdown();
+    }
 
-        new CountDownTimer(60000, 1000) {
+    private void startCountdown() {
+        if (resendTimer != null) resendTimer.cancel();
+        long remaining = Math.max(0L, resendAtMs - System.currentTimeMillis());
+        binding.otpLayout.tvResend.setVisibility(remaining > 0 ? TextView.GONE : TextView.VISIBLE);
+        binding.otpLayout.tvTimer.setVisibility(remaining > 0 ? TextView.VISIBLE : TextView.GONE);
+        if (remaining == 0L) return;
+        resendTimer = new CountDownTimer(remaining, 1000) {
             public void onTick(long millisUntilFinished) {
                 binding.otpLayout.tvTimer.setText("ارسال مجدد کد در " + millisUntilFinished / 1000 + " ثانیه");
             }
@@ -334,6 +365,7 @@ public class OtpFragment extends Fragment {
 
             @Override
             public void onSuccess(VerifyApiViewModel res, boolean fromCache) {
+                if (!isAdded() || binding == null) return;
 
                 if (res != null) {
                     handleVerifySuccess(res, false);
@@ -344,6 +376,7 @@ public class OtpFragment extends Fragment {
 
             @Override
             public void onError(int statusCode, String message) {
+                if (!isAdded() || binding == null) return;
                 verifyNormal(auth, code); // fallback
             }
         });
@@ -355,6 +388,7 @@ public class OtpFragment extends Fragment {
 
             @Override
             public void onSuccess(VerifyApiViewModel res, boolean fromCache) {
+                if (!isAdded() || binding == null) return;
 
                 if (res != null) {
                     handleVerifySuccess(res, true);
@@ -365,6 +399,7 @@ public class OtpFragment extends Fragment {
 
             @Override
             public void onError(int statusCode, String message) {
+                if (!isAdded() || binding == null) return;
                 handleVerifyError(message);
             }
         });
@@ -373,6 +408,7 @@ public class OtpFragment extends Fragment {
     private void handleVerifySuccess(VerifyApiViewModel res, boolean isNormal) {
 
         isVerifyingOtp = false;
+        if (!isAdded() || binding == null) return;
         showLoading(false);
 
         AppStorage storage = new AppStorage(getContext());
@@ -400,6 +436,7 @@ public class OtpFragment extends Fragment {
     private void handleVerifyError(String message) {
 
         isVerifyingOtp = false;
+        if (!isAdded() || binding == null) return;
         showLoading(false);
 
         if (message == null || message.isEmpty()) {
@@ -407,46 +444,6 @@ public class OtpFragment extends Fragment {
         } else if (isAdded()) {
             ToastManager.show(getContext(), message);
         }
-    }
-
-    private void callNormalVerify(AuthApi auth, String code) {
-
-        auth.verifyOtp(identifier, code, new ApiCallback<VerifyApiViewModel>() {
-
-            @Override
-            public void onSuccess(VerifyApiViewModel res, boolean fromCache) {
-                isVerifyingOtp = false;
-                showLoading(false);
-
-                if (res != null) {
-                    AppStorage storage = new AppStorage(getContext());
-                    storage.prepareServiceSelectionAfterLogin();
-                    storage.saveToken(res);
-
-                    if (!res.getMail().contains("shecan.fake")) {
-                        getActivity().finish();
-                    } else {
-                        getActivity().getSupportFragmentManager()
-                                .beginTransaction()
-                                .replace(R.id.fragmentContainer, new SignUpFragment())
-                                .addToBackStack(null)
-                                .commit();
-                    }
-                } else {
-                    shakeError(getString(R.string.codeIsWrong));
-                }
-            }
-
-            @Override
-            public void onError(int statusCode, String message) {
-                isVerifyingOtp = false;
-                showLoading(false);
-
-                if (isAdded() && message != null && !message.isEmpty()) {
-                    ToastManager.show(getContext(), message);
-                }
-            }
-        });
     }
 
     private void shakeError(String msg) {
@@ -458,6 +455,7 @@ public class OtpFragment extends Fragment {
     }
 
     private void showLoading(boolean loading) {
+        if (binding == null) return;
         if (loading) {
             binding.otpLayout.btnVerify.setEnabled(false);
             binding.otpLayout.btnVerify.setAlpha(0.5f);
@@ -481,15 +479,8 @@ public class OtpFragment extends Fragment {
 
         IntentFilter filter = new IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requireActivity().registerReceiver(
-                    otpReceiver,
-                    filter,
-                    Context.RECEIVER_EXPORTED
-            );
-        } else {
-            ContextCompat.registerReceiver(requireActivity(), otpReceiver, filter, ContextCompat.RECEIVER_EXPORTED);
-        }
+        ContextCompat.registerReceiver(requireActivity(), otpReceiver, filter,
+                SmsRetriever.SEND_PERMISSION, null, ContextCompat.RECEIVER_EXPORTED);
     }
 
 
@@ -498,5 +489,16 @@ public class OtpFragment extends Fragment {
         super.onPause();
         requireActivity().unregisterReceiver(otpReceiver);
 
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (resendTimer != null) resendTimer.cancel();
+        resendTimer = null;
+        otpReceiver.setListener(null);
+        otpFields = new EditText[6];
+        isVerifyingOtp = false;
+        binding = null;
+        super.onDestroyView();
     }
 }

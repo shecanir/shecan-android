@@ -76,15 +76,6 @@
 
         <!-- Receivers -->
         <receiver
-            android:name=".core.receiver.StatusBarBroadcastReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="ir.shecan.receiver.StatusBarBroadcastReceiver.STATUS_BAR_BTN_DEACTIVATE_CLICK_ACTION" />
-                <action android:name="ir.shecan.receiver.StatusBarBroadcastReceiver.STATUS_BAR_BTN_SETTINGS_CLICK_ACTION" />
-            </intent-filter>
-        </receiver>
-
-        <receiver
             android:name=".core.receiver.MonitoringControlReceiver"
             android:exported="false" />
 
@@ -150,6 +141,7 @@
 
         <receiver
             android:name=".core.receiver.OtpReceiver"
+            android:permission="com.google.android.gms.auth.api.phone.permission.SEND"
             android:exported="true">
             <intent-filter>
                 <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED" />

@@ -5,6 +5,10 @@ import static android.view.View.GONE;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import static ir.shecan.core.util.ServiceSelectionPolicy.findPreferredActivePaidService;
+import static ir.shecan.core.util.ServiceSelectionPolicy.isFreeService;
+import static ir.shecan.core.util.ServiceSelectionPolicy.shouldOpenRenewal;
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,17 +19,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import ir.shecan.R;
 import ir.shecan.core.billing.BillingPeriod;
 import ir.shecan.core.billing.BillingSla;
 import ir.shecan.core.constant.RequestStatus;
 import ir.shecan.core.service.MonitoringService;
-import ir.shecan.core.util.AppUtils;
 import ir.shecan.core.util.DebugJsonLogger;
-import ir.shecan.core.util.DynamicBannerRequestFactory;
 import ir.shecan.core.util.ToastManager;
 import ir.shecan.core.util.TrackingUtils;
 import ir.shecan.data.api.ApiCallback;
@@ -255,55 +255,6 @@ public class ConfigListFragment extends ToolbarFragment {
         return false;
     }
 
-    private ServiceItem findPreferredActivePaidService(List<ServiceItem> items) {
-        if (items == null) return null;
-        for (ServiceItem item : items) {
-            if (isActivePaidService(item)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    private boolean isActivePaidService(ServiceItem item) {
-        if (item == null || item.isClosed() || isFreeService(item)) return false;
-        RequestStatus status = RequestStatus.fromValue(item.statusId);
-        return status == RequestStatus.ACTIVE
-                || status == RequestStatus.IN_USE
-                || status == RequestStatus.EXPIRING;
-    }
-
-    private boolean isFreeService(ServiceItem item) {
-        return item == null || "0".equals(item.getOrderCode());
-    }
-
-    private boolean shouldOpenRenewal(ServiceItem item) {
-        if (item == null) return false;
-        if (RequestStatus.isRenewalBlocked(item.statusId)) return false;
-        RequestStatus status = RequestStatus.fromValue(item.statusId);
-        if (status == RequestStatus.SUPPORT_FINISHED
-                || status == RequestStatus.WAITING_FOR_PAYMENT_OR_RENEW
-                || status == RequestStatus.WAITING_FOR_PAYMENT_OR_ACTIVATION
-                || status == RequestStatus.SUSPENDED) {
-            return true;
-        }
-        return isDueDateExpired(item.dueDate);
-    }
-
-    private boolean isDueDateExpired(String dueDate) {
-        try {
-            if (dueDate == null || dueDate.trim().isEmpty()) return false;
-            String normalized = dueDate.trim();
-            if (normalized.contains("T")) normalized = normalized.substring(0, normalized.indexOf("T"));
-            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US);
-            java.util.Date date = sdf.parse(normalized);
-            if (date == null) return false;
-            return date.getTime() < System.currentTimeMillis();
-        } catch (Exception ignored) {
-            return false;
-        }
-    }
-
     private void openBillingPlans(ServiceItem item) {
         if (!isAdded()) return;
         if (item != null && RequestStatus.isRenewalBlocked(item.statusId)) return;
@@ -354,26 +305,8 @@ public class ConfigListFragment extends ToolbarFragment {
                 new ApiCallback<HomePage>() {
                     @Override
                     public void onSuccess(HomePage res, boolean fromCache) {
-                        auth.bannerMatch(
-                                DynamicBannerRequestFactory.fromStorage(requireContext()),
-                                new ApiCallback<BannerViewModel>() {
-                                    @Override
-                                    public void onSuccess(BannerViewModel banner, boolean fromCache) {
-                                        if (!isAdded()) return;
-                                        List<BannerViewModel> list = banner != null
-                                                ? Collections.singletonList(banner)
-                                                : new ArrayList<>();
-                                        activity.bannerUrl = list;
-                                        handleBannerImage(list);
-                                    }
-
-                                    @Override
-                                    public void onError(int statusCode, String message) {
-                                        if (!isAdded()) return;
-                                        loadLegacyBanners(auth, res);
-                                    }
-                                }
-                        );
+                        if (!isAdded() || binding == null) return;
+                        loadBanners(auth, res);
                     }
 
                     @Override
@@ -384,32 +317,23 @@ public class ConfigListFragment extends ToolbarFragment {
         );
     }
 
-    private void loadLegacyBanners(AuthApi auth, HomePage res) {
-        if (res == null || res.getBannerService() == null) {
-            handleBannerImage(new ArrayList<>());
-            return;
-        }
+    private void loadBanners(AuthApi auth, HomePage res) {
+        auth.loadBanners(res, new ApiCallback<List<BannerViewModel>>() {
+            @Override
+            public void onSuccess(List<BannerViewModel> list, boolean fromCache) {
+                if (!isAdded() || binding == null) return;
+                activity.bannerUrl = list;
+                handleBannerImage(list);
+            }
 
-        auth.bannerList(
-                res.getBannerService().getAndroid(),
-                new ApiCallback<List<BannerViewModel>>() {
-                    @Override
-                    public void onSuccess(List<BannerViewModel> list, boolean fromCache) {
-                        if (!isAdded()) return;
-                        activity.bannerUrl = list;
-                        handleBannerImage(list);
-                    }
-
-                    @Override
-                    public void onError(int statusCode, String message) {
-                        if (!isAdded()) return;
-                        handleBannerImage(new ArrayList<>());
-                        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-                    }
-                }
-        );
+            @Override
+            public void onError(int statusCode, String message) {
+                if (!isAdded() || binding == null) return;
+                handleBannerImage(new ArrayList<>());
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            }
+        });
     }
-
 
     private void handleBannerImage(List<BannerViewModel> banners) {
 
